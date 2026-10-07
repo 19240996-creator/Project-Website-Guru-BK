@@ -1,6 +1,6 @@
 @extends('layouts.siswa')
 
-@section('title', 'Ruang Bimbingan & Masa Depan - ' . $student->name)
+@section('title', 'Ruang BK - ' . $student->name)
 
 @section('content')
 <!-- Hero Welcome Section -->
