@@ -370,35 +370,91 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
-        $q1 = AssessmentQuestion::create([
-            'assessment_id' => $asesmenMinat->id,
-            'question_text' => 'Aktivitas mana yang paling Anda nikmati saat memiliki waktu luang?',
-            'sort_order' => 1,
-        ]);
-        AssessmentOption::create(['question_id' => $q1->id, 'option_text' => 'Merakit, membongkar perangkat keras komputer atau mesin fisik', 'score_value' => 5, 'dimension_code' => 'R']);
-        AssessmentOption::create(['question_id' => $q1->id, 'option_text' => 'Menganalisis kode program atau memecahkan teka-teki logika', 'score_value' => 5, 'dimension_code' => 'I']);
-        AssessmentOption::create(['question_id' => $q1->id, 'option_text' => 'Mendesain tata letak grafis, visual, atau karya multimedia', 'score_value' => 5, 'dimension_code' => 'A']);
-        AssessmentOption::create(['question_id' => $q1->id, 'option_text' => 'Mengajarkan sesuatu atau berdiskusi kelompok membantu sesama', 'score_value' => 5, 'dimension_code' => 'S']);
+        $riasecQuestions = [
+            [
+                'text' => 'Aktivitas mana yang paling sering membuat Anda antusias dan betah melakukannya dalam waktu luang?',
+                'options' => [
+                    ['text' => 'Merakit atau memperbaiki perangkat keras, mesin mekanis, dan instalasi fisik', 'code' => 'R'],
+                    ['text' => 'Menganalisis algoritma data, meneliti cara kerja sistem, atau memecahkan teka-teki logika', 'code' => 'I'],
+                    ['text' => 'Merancang desain grafis, ilustrasi digital, multimedia interaktif, atau karya visual kreatif', 'code' => 'A'],
+                    ['text' => 'Mendampingi teman belajar, berdiskusi kelompok, atau kegiatan sosial kemanusiaan', 'code' => 'S'],
+                    ['text' => 'Merancang ide bisnis baru, memimpin organisasi tim, atau mempromosikan inisiatif usaha', 'code' => 'E'],
+                    ['text' => 'Mengelola pembukuan keuangan, merapikan basis data berkas, atau menyusun dokumentasi teratur', 'code' => 'C'],
+                ],
+            ],
+            [
+                'text' => 'Ketika ditugaskan mengerjakan proyek bersama tim, peran apa yang secara alami paling Anda sukai?',
+                'options' => [
+                    ['text' => 'Eksekutor teknis praktis yang menguji fungsionalitas fisik dan operasional alat', 'code' => 'R'],
+                    ['text' => 'Peneliti data yang mengumpulkan fakta, menguji hipotesis, dan membedah akar permasalahan', 'code' => 'I'],
+                    ['text' => 'Konseptor kreatif yang merancang identitas visual, estetika tampilan, dan pengalaman pengguna', 'code' => 'A'],
+                    ['text' => 'Komunikator empati yang menyatukan dinamika anggota, menengahi perbedaan, dan menjaga motivasi tim', 'code' => 'S'],
+                    ['text' => 'Koordinator utama yang membagi tanggung jawab, menetapkan target waktu, dan mempresentasikan hasil', 'code' => 'E'],
+                    ['text' => 'Pengendali mutu yang memastikan setiap detail pekerjaan mematuhi panduan dan jadwal kerja', 'code' => 'C'],
+                ],
+            ],
+            [
+                'text' => 'Bagaimana cara Anda biasanya menyelesaikan suatu permasalahan yang rumit?',
+                'options' => [
+                    ['text' => 'Menguji coba solusi secara praktis langsung pada objek fisik atau sistem kerja nyata', 'code' => 'R'],
+                    ['text' => 'Membedah masalah dengan logika analitis berdasarkan data, teori, dan bukti konkret', 'code' => 'I'],
+                    ['text' => 'Mengeksplorasi sudut pandang baru yang tidak konvensional dengan inovasi gagasan bebas', 'code' => 'A'],
+                    ['text' => 'Mengajak musyawarah pihak terkait untuk mencapai solusi yang adil dan mendukung kebersamaan', 'code' => 'S'],
+                    ['text' => 'Mengambil keputusan strategis dengan cepat untuk mengubah kendala menjadi peluang pencapaian', 'code' => 'E'],
+                    ['text' => 'Merujuk pada aturan baku, prosedur operasional standar (SOP), dan alur yang terbukti teruji', 'code' => 'C'],
+                ],
+            ],
+            [
+                'text' => 'Lingkungan kerja atau ruang belajar seperti apa yang paling membuat Anda produktif dan bersemangat?',
+                'options' => [
+                    ['text' => 'Laboratorium rekayasa teknologi, bengkel manufaktur, atau instalasi lapangan terbuka', 'code' => 'R'],
+                    ['text' => 'Pusat riset komputasi, laboratorium observasi ilmiah, atau ruang studi analitis terfokus', 'code' => 'I'],
+                    ['text' => 'Studio kreatif yang dinamis, fleksibel, penuh inspirasi seni, dan bebas berekspresi', 'code' => 'A'],
+                    ['text' => 'Ruang bimbingan interaktif, komunitas sosial, atau institusi pelayanan dan edukasi', 'code' => 'S'],
+                    ['text' => 'Ruang startup inovatif, pusat inkubasi bisnis, atau arena negosiasi dan kepemimpinan', 'code' => 'E'],
+                    ['text' => 'Ruang kantor terorganisir dengan alur kerja yang jelas, tertib, dan sistematis', 'code' => 'C'],
+                ],
+            ],
+            [
+                'text' => 'Pencapaian seperti apa yang memberikan kepuasan batin terbesar bagi diri Anda?',
+                'options' => [
+                    ['text' => 'Berhasil membuat atau memperbaiki sistem teknis/peralatan fisik yang bekerja dengan optimal', 'code' => 'R'],
+                    ['text' => 'Berhasil membuktikan kebenaran suatu hipotesis atau memecahkan persoalan logika rumit', 'code' => 'I'],
+                    ['text' => 'Berhasil melahirkan karya orisinal bernilai estetika tinggi yang menginspirasi orang lain', 'code' => 'A'],
+                    ['text' => 'Berhasil mendampingi dan memberdayakan orang lain agar mencapai kemajuan positif', 'code' => 'S'],
+                    ['text' => 'Berhasil memimpin inisiatif besar hingga meraih kemenangan target atau pertumbuhan usaha', 'code' => 'E'],
+                    ['text' => 'Berhasil menyelesaikan manajemen data dan arsip dengan akurasi 100% tanpa kekeliruan', 'code' => 'C'],
+                ],
+            ],
+            [
+                'text' => 'Saat berselancar di internet atau media sosial, topik konten apa yang paling menarik perhatian Anda?',
+                'options' => [
+                    ['text' => 'Teknologi perangkat keras, robotika terapan, otomotif modern, dan rekayasa infrastruktur', 'code' => 'R'],
+                    ['text' => 'Penemuan sains terkini, kecerdasan buatan, keamanan siber, dan analisis data mendalam', 'code' => 'I'],
+                    ['text' => 'Tren desain UI/UX, animasi 3D, sinematografi, dan eksplorasi seni visual kontemporer', 'code' => 'A'],
+                    ['text' => 'Perkembangan psikologi perilaku, dinamika komunikasi interpersonal, dan edukasi kemanusiaan', 'code' => 'S'],
+                    ['text' => 'Strategi pemasaran digital, ekonomi kewirausahaan, kepemimpinan modern, dan manajemen modal', 'code' => 'E'],
+                    ['text' => 'Sistem informasi akuntansi, efisiensi manajemen alur kerja, dan tata kelola regulasi profesional', 'code' => 'C'],
+                ],
+            ],
+        ];
 
-        $q2 = AssessmentQuestion::create([
-            'assessment_id' => $asesmenMinat->id,
-            'question_text' => 'Ketika menghadapi suatu permasalahan kompleks di tim, peran apa yang Anda ambil?',
-            'sort_order' => 2,
-        ]);
-        AssessmentOption::create(['question_id' => $q2->id, 'option_text' => 'Mencari akar penyebab teknis dengan eksperimen dan data', 'score_value' => 5, 'dimension_code' => 'I']);
-        AssessmentOption::create(['question_id' => $q2->id, 'option_text' => 'Memimpin pembagian tugas dan memastikan batas waktu tercapai', 'score_value' => 5, 'dimension_code' => 'E']);
-        AssessmentOption::create(['question_id' => $q2->id, 'option_text' => 'Menyusun dokumentasi dan SOP tertata secara teliti', 'score_value' => 5, 'dimension_code' => 'C']);
-        AssessmentOption::create(['question_id' => $q2->id, 'option_text' => 'Menjadi penengah dan menjaga keharmonisan anggota tim', 'score_value' => 5, 'dimension_code' => 'S']);
+        foreach ($riasecQuestions as $qIdx => $qData) {
+            $question = AssessmentQuestion::create([
+                'assessment_id' => $asesmenMinat->id,
+                'question_text' => $qData['text'],
+                'sort_order' => $qIdx + 1,
+            ]);
 
-        $q3 = AssessmentQuestion::create([
-            'assessment_id' => $asesmenMinat->id,
-            'question_text' => 'Lingkungan kerja seperti apa yang membuat Anda bersemangat berprestasi?',
-            'sort_order' => 3,
-        ]);
-        AssessmentOption::create(['question_id' => $q3->id, 'option_text' => 'Laboratorium riset atau pusat komputasi yang terfokus', 'score_value' => 5, 'dimension_code' => 'I']);
-        AssessmentOption::create(['question_id' => $q3->id, 'option_text' => 'Ruang kerja kreatif dengan kebebasan mengekspresikan ide', 'score_value' => 5, 'dimension_code' => 'A']);
-        AssessmentOption::create(['question_id' => $q3->id, 'option_text' => 'Startup dinamis dengan target bisnis nyata dan negosiasi', 'score_value' => 5, 'dimension_code' => 'E']);
-        AssessmentOption::create(['question_id' => $q3->id, 'option_text' => 'Instansi tertib dengan alur kerja yang jelas dan amanah', 'score_value' => 5, 'dimension_code' => 'C']);
+            foreach ($qData['options'] as $optData) {
+                AssessmentOption::create([
+                    'question_id' => $question->id,
+                    'option_text' => $optData['text'],
+                    'score_value' => 5,
+                    'dimension_code' => $optData['code'],
+                ]);
+            }
+        }
 
         // Assessment Result for Ahmad Rizky
         StudentAssessmentResult::create([

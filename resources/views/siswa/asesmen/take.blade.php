@@ -17,7 +17,7 @@
         </div>
     @endif
 
-    <form action="{{ route('siswa.asesmen.submit', $assessment->id) }}" method="POST">
+    <form id="assessmentForm" action="{{ route('siswa.asesmen.submit', $assessment->id) }}" method="POST">
         @csrf
 
         @foreach($assessment->questions as $idx => $q)
@@ -48,10 +48,78 @@
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
             <a href="{{ route('siswa.asesmen.index') }}" class="btn btn-secondary">Batal & Kembali</a>
-            <button type="submit" class="btn btn-primary" onclick="return confirm('Kirimkan seluruh jawaban asesmen ini?')">
+            <button type="button" class="btn btn-primary" onclick="openAssessmentConfirmModal()">
                 Selesaikan & Analisis Hasil Asesmen
             </button>
         </div>
     </form>
 </div>
+
+<!-- Modal Konfirmasi Kirim Asesmen -->
+<div id="assessmentConfirmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="assessmentModalTitle" onclick="handleAssessmentBackdropClick(event)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge primary">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+            </div>
+            <h3 id="assessmentModalTitle" class="modal-title">Konfirmasi Penyelesaian Asesmen</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin mengirimkan seluruh jawaban asesmen ini? Sistem akan langsung memproses dan memetakan analisis tipologi minat serta rekomendasi karier Anda.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAssessmentConfirmModal()">
+                Periksa Kembali
+            </button>
+            <button type="button" class="btn btn-primary" onclick="submitAssessmentForm()">
+                Ya, Selesaikan & Analisis
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openAssessmentConfirmModal() {
+        var form = document.getElementById('assessmentForm');
+        if (form && !form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        var modal = document.getElementById('assessmentConfirmModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeAssessmentConfirmModal() {
+        var modal = document.getElementById('assessmentConfirmModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleAssessmentBackdropClick(e) {
+        if (e.target.id === 'assessmentConfirmModal') {
+            closeAssessmentConfirmModal();
+        }
+    }
+
+    function submitAssessmentForm() {
+        var form = document.getElementById('assessmentForm');
+        if (form) {
+            form.submit();
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAssessmentConfirmModal();
+        }
+    });
+</script>
 @endsection

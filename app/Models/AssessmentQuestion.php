@@ -15,6 +15,6 @@ class AssessmentQuestion extends Model
 
     public function options()
     {
-        return $this->hasMany(AssessmentOption::class);
+        return $this->hasMany(AssessmentOption::class, 'question_id');
     }
 }

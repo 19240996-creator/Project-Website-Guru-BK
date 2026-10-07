@@ -111,9 +111,9 @@
                         @endif
                     </a>
 
-                    <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                    <form id="logoutFormGuru" action="{{ route('logout') }}" method="POST" style="display: inline;">
                         @csrf
-                        <button type="submit" class="btn btn-secondary btn-sm" onclick="return confirm('Apakah Anda yakin ingin keluar dari sistem?')">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="openLogoutModal()">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                             <span>Keluar</span>
                         </button>
@@ -151,6 +151,70 @@
             </main>
         </div>
     </div>
+
+    <!-- Modal Konfirmasi Keluar Akun -->
+    <div id="logoutModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle" onclick="handleBackdropClick(event)">
+        <div class="modal-dialog">
+            <div class="modal-body">
+                <div class="modal-icon-badge danger">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </div>
+                <h3 id="logoutModalTitle" class="modal-title">Konfirmasi Keluar Akun</h3>
+                <p class="modal-desc">
+                    Apakah Anda yakin ingin keluar dari sistem? Seluruh catatan bimbingan, pembaruan agenda, dan berkas yang telah disimpan tetap aman.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeLogoutModal()">
+                    Batal
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmLogout()">
+                    Ya, Keluar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openLogoutModal() {
+            var modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeLogoutModal() {
+            var modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function handleBackdropClick(e) {
+            if (e.target.id === 'logoutModal') {
+                closeLogoutModal();
+            }
+        }
+
+        function confirmLogout() {
+            var form = document.getElementById('logoutFormGuru');
+            if (form) {
+                form.submit();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLogoutModal();
+            }
+        });
+    </script>
     @yield('scripts')
 </body>
 </html>

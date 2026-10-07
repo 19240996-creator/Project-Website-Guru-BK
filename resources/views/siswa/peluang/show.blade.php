@@ -73,10 +73,74 @@
                         <textarea name="notes" class="form-control" rows="2" placeholder="Tuliskan motivasi atau kualifikasi Anda..."></textarea>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%;" onclick="return confirm('Daftar pada peluang ini sekarang?')">
+                    <button type="button" class="btn btn-primary" style="width: 100%;" onclick="openPeluangConfirmModal()">
                         Daftar Program Ini Sekarang
                     </button>
                 </form>
+
+                <div id="peluangConfirmModal" class="modal-backdrop" onclick="handlePeluangBackdropClick(event)" role="dialog" aria-modal="true" aria-labelledby="peluangModalTitle">
+                    <div class="modal-dialog">
+                        <div class="modal-body">
+                            <div class="modal-icon-badge primary">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="8.5" cy="7" r="4"></circle>
+                                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                                </svg>
+                            </div>
+                            <h3 id="peluangModalTitle" class="modal-title">Konfirmasi Pendaftaran</h3>
+                            <p class="modal-desc">
+                                Apakah Anda yakin ingin mendaftar pada program ini? Pastikan catatan dan profil Anda sudah sesuai sebelum melanjutkan pendaftaran.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closePeluangConfirmModal()">
+                                Batal
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="submitPeluangForm()">
+                                Ya, Daftar Sekarang
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function openPeluangConfirmModal() {
+                        var modal = document.getElementById('peluangConfirmModal');
+                        if (modal) {
+                            modal.classList.add('active');
+                            document.body.style.overflow = 'hidden';
+                        }
+                    }
+
+                    function closePeluangConfirmModal() {
+                        var modal = document.getElementById('peluangConfirmModal');
+                        if (modal) {
+                            modal.classList.remove('active');
+                            document.body.style.overflow = '';
+                        }
+                    }
+
+                    function handlePeluangBackdropClick(e) {
+                        if (e.target.id === 'peluangConfirmModal') {
+                            closePeluangConfirmModal();
+                        }
+                    }
+
+                    function submitPeluangForm() {
+                        var form = document.querySelector('form[action="{{ route('siswa.peluang.register', $opportunity->id) }}"]');
+                        if (form) {
+                            form.submit();
+                        }
+                    }
+
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape') {
+                            closePeluangConfirmModal();
+                        }
+                    });
+                </script>
             @endif
         </div>
     </div>

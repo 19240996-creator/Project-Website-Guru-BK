@@ -10,6 +10,7 @@ class StudentAssessmentResult extends Model
         'student_id',
         'assessment_id',
         'total_score',
+        'dimension_scores',
         'result_category',
         'summary',
         'recommendations',
@@ -18,6 +19,7 @@ class StudentAssessmentResult extends Model
 
     protected $casts = [
         'is_published' => 'boolean',
+        'dimension_scores' => 'array',
     ];
 
     public function student()

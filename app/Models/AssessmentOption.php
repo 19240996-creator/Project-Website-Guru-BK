@@ -10,6 +10,6 @@ class AssessmentOption extends Model
 
     public function question()
     {
-        return $this->belongsTo(AssessmentQuestion::class);
+        return $this->belongsTo(AssessmentQuestion::class, 'question_id');
     }
 }

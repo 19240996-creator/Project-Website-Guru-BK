@@ -3,122 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk - Sistem Informasi Bimbingan Konseling & Karier</title>
+    <title>Ruang BK - Platform Digital Bimbingan Konseling - SIM BK</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=1">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <style>
-        .login-page {
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background-color: #c8ebfe;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
             padding: 24px;
         }
+
         .login-card {
             width: 100%;
-            max-width: 440px;
+            max-width: 870px;
             background: #ffffff;
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            padding: 36px 32px;
+            border-radius: 36px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -15px rgba(9, 44, 112, 0.15);
         }
-        .demo-box {
-            margin-top: 24px;
-            padding: 16px;
-            background-color: #f8fafc;
-            border: 1px dashed var(--color-border-strong);
-            border-radius: var(--radius-md);
+
+        /* Sisi Kiri: Ilustrasi Ruang BK */
+        .login-illustration-pane {
+            flex: 0 0 504px;
+            width: 504px;
+            line-height: 0;
+            background: #ffffff;
         }
-        .demo-btn {
-            display: block;
+
+        .login-illustration-pane img {
             width: 100%;
-            text-align: left;
-            padding: 8px 12px;
-            margin-top: 6px;
-            background: #ffffff;
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-sm);
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.15s ease;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
-        .demo-btn:hover {
-            border-color: var(--color-primary);
-            background-color: var(--color-primary-light);
+
+        /* Sisi Kanan: Form Login */
+        .login-form-pane {
+            flex: 1;
+            padding: 48px 42px 48px 36px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 15px;
+            font-weight: 800;
+            color: #092c70;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background-color: #e7efff;
+            border-radius: 14px;
+            padding: 4px 14px;
+            height: 52px;
+            transition: box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            background-color: #e2ecff;
+            box-shadow: 0 0 0 2px #092c70;
+        }
+
+        .input-icon-left {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #092c70;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .input-control {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            font-family: inherit;
+            color: #092c70;
+            font-weight: 500;
+            outline: none;
+            height: 100%;
+        }
+
+        .input-control::placeholder {
+            color: #7890b8;
+            font-weight: 400;
+        }
+
+        .password-toggle-btn {
+            background: none;
+            border: none;
+            color: #092c70;
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s ease;
+        }
+
+        .password-toggle-btn:hover {
+            opacity: 0.7;
+        }
+
+        .btn-submit-login {
+            width: 100%;
+            height: 52px;
+            background-color: #082d61;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: -0.01em;
+        }
+
+        .btn-submit-login:hover {
+            background-color: #051d3f;
+        }
+
+        .btn-submit-login:active {
+            transform: scale(0.99);
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 890px) {
+            .login-card {
+                flex-direction: column;
+                max-width: 480px;
+                border-radius: 28px;
+            }
+
+            .login-illustration-pane {
+                flex: none;
+                width: 100%;
+                height: 280px;
+            }
+
+            .login-illustration-pane img {
+                height: 100%;
+                object-position: top center;
+            }
+
+            .login-form-pane {
+                padding: 32px 28px;
+            }
         }
     </style>
 </head>
-<body class="login-page">
+<body>
     <div class="login-card">
-        <div style="text-align: center; margin-bottom: 28px;">
-            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; background: var(--color-primary-light); color: var(--color-primary); margin-bottom: 12px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
-            </div>
-            <h1 style="font-size: 20px; font-weight: 800; color: var(--color-text-main);">SIM BK & Karier</h1>
-            <p style="font-size: 13px; color: var(--color-text-muted); margin-top: 4px;">
-                Sistem Informasi Bimbingan, Pengembangan Siswa & Perencanaan Karier
-            </p>
+        <!-- Sisi Kiri: Visual Banner Ruang BK -->
+        <div class="login-illustration-pane">
+            <img src="{{ asset('images/login-illustration.png') }}" alt="RUANG BK - Platform Digital Bimbingan, Konseling dan Pengembangan Siswa">
         </div>
 
-        @if(session('success'))
-            <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+        <!-- Sisi Kanan: Form Login -->
+        <div class="login-form-pane">
+            @if(session('error'))
+                <div class="error-message">{{ session('error') }}</div>
+            @endif
 
-        @if(session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
+            @if($errors->has('login'))
+                <div class="error-message">{{ $errors->first('login') }}</div>
+            @endif
 
-        @if($errors->has('login'))
-            <div class="alert alert-danger">{{ $errors->first('login') }}</div>
-        @endif
+            <form action="{{ route('login.post') }}" method="POST">
+                @csrf
+                <div class="form-group">
+                    <label for="loginInput" class="form-label">NISN</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon-left">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <input type="text" id="loginInput" name="login" class="input-control" value="{{ old('login') }}" placeholder="Masukkan NISN" required autofocus autocomplete="username">
+                    </div>
+                </div>
 
-        <form action="{{ route('login.post') }}" method="POST">
-            @csrf
-            <div class="form-group">
-                <label for="loginInput" class="form-label">Username, NISN, atau Email</label>
-                <input type="text" id="loginInput" name="login" class="form-control" value="{{ old('login') }}" placeholder="Contoh: gurubk atau 0071234561" required autofocus>
-                <div class="form-hint">Siswa dapat masuk menggunakan NISN masing-masing.</div>
-            </div>
+                <div class="form-group">
+                    <label for="passwordInput" class="form-label">Sandi</label>
+                    <div class="input-wrapper">
+                        <span class="input-icon-left">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </span>
+                        <input type="password" id="passwordInput" name="password" class="input-control" placeholder="Masukkan kata sandi" required autocomplete="current-password">
+                        <button type="button" class="password-toggle-btn" id="togglePasswordBtn" onclick="togglePasswordVisibility()" aria-label="Buka tutup sandi" title="Buka/Tutup Sandi">
+                            <svg id="eyeOpenIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg id="eyeClosedIcon" style="display: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="passwordInput" class="form-label">Kata Sandi</label>
-                <input type="password" id="passwordInput" name="password" class="form-control" placeholder="Masukkan kata sandi akun" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
-                Masuk ke Aplikasi
-            </button>
-        </form>
-
-        <!-- Akun Demo Cepat -->
-        <div class="demo-box">
-            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-text-subtle);">
-                Akses Uji Coba Cepat (Klik untuk mengisi):
-            </div>
-            <button type="button" class="demo-btn" onclick="fillLogin('gurubk', 'password123')">
-                <strong>Guru BK:</strong> Dra. Endang Sri Rahayu (gurubk)
-            </button>
-            <button type="button" class="demo-btn" onclick="fillLogin('0071234561', 'password123')">
-                <strong>Siswa 1 (Target Kuliah ITB):</strong> Ahmad Rizky (0071234561)
-            </button>
-            <button type="button" class="demo-btn" onclick="fillLogin('0071234564', 'password123')">
-                <strong>Siswa 2 (Perlu Bimbingan):</strong> Dewi Lestari (0071234564)
-            </button>
+                <button type="submit" class="btn-submit-login">
+                    Login
+                </button>
+            </form>
         </div>
     </div>
 
     <script>
-        function fillLogin(username, password) {
-            document.getElementById('loginInput').value = username;
-            document.getElementById('passwordInput').value = password;
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('passwordInput');
+            const eyeOpen = document.getElementById('eyeOpenIcon');
+            const eyeClosed = document.getElementById('eyeClosedIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeOpen.style.display = 'none';
+                eyeClosed.style.display = 'block';
+            } else {
+                passwordInput.type = 'password';
+                eyeOpen.style.display = 'block';
+                eyeClosed.style.display = 'none';
+            }
         }
     </script>
 </body>

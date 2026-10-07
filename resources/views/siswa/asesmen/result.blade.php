@@ -26,15 +26,45 @@
                 {{ $result->result_category }}
             </div>
 
+            <!-- Ringkasan Interpretasi Minat -->
             <div style="padding: 16px; background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 14px; line-height: 1.6; color: var(--color-text-main); margin-bottom: 20px;">
                 {{ $result->summary }}
             </div>
 
-            <div style="font-size: 13px; font-weight: 700; color: var(--color-text-main); margin-bottom: 6px;">
-                Rekomendasi Bimbingan Karier:
+            <!-- Distribusi Dimensi RIASEC -->
+            @if(!empty($result->dimension_scores) && is_array($result->dimension_scores))
+                <div style="margin-bottom: 24px; padding: 18px; background: #ffffff; border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--color-text-main); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Distribusi Skor Dimensi Minat (RIASEC):</span>
+                        <span style="font-size: 11px; color: var(--color-text-muted); font-weight: 500;">Berdasarkan jawaban kuesioner</span>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        @foreach($result->dimension_scores as $dim)
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                                    <span style="font-weight: 600; color: var(--color-text-main);">
+                                        <strong>[{{ $dim['code'] }}]</strong> {{ $dim['name'] }} <span style="color: var(--color-text-muted); font-weight: normal;">({{ $dim['label'] }})</span>
+                                    </span>
+                                    <span style="font-weight: 700; color: var(--color-primary);">
+                                        {{ $dim['percentage'] }}% ({{ $dim['count'] }} butir)
+                                    </span>
+                                </div>
+                                <div style="width: 100%; height: 8px; background: var(--color-border); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: {{ max(4, $dim['percentage']) }}%; height: 100%; background: var(--color-primary); border-radius: 4px; transition: width 0.3s ease;"></div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Rekomendasi Bimbingan Karier & Program Studi -->
+            <div style="font-size: 14px; font-weight: 700; color: var(--color-text-main); margin-bottom: 8px;">
+                Rekomendasi Bimbingan Karier & Rumpun Studi:
             </div>
-            <div style="font-size: 13px; line-height: 1.6; color: var(--color-text-muted);">
-                {{ $result->recommendations }}
+            <div style="padding: 16px; background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px; line-height: 1.7; color: var(--color-text-main); white-space: pre-line;">
+{{ $result->recommendations }}
             </div>
 
             <div class="alert alert-info" style="font-size: 12px; margin-top: 24px; margin-bottom: 0;">
@@ -48,7 +78,7 @@
             Isi Ulang Asesmen
         </a>
         <a href="{{ route('siswa.rencana.show') }}" class="btn btn-primary">
-            Lanjutkan ke Rute Masa Depan →
+            Lanjutkan ke Rute Masa Depan
         </a>
     </div>
 </div>

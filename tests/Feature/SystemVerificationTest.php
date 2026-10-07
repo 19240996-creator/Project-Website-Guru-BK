@@ -138,4 +138,23 @@ class SystemVerificationTest extends TestCase
             'work_target_company' => 'Software House Nusantara',
         ]);
     }
+
+    public function test_siswa_can_access_assessment_take_page_without_sql_error()
+    {
+        $siswaUser = User::where('username', '0071234561')->first();
+
+        $response = $this->actingAs($siswaUser)->get('/siswa/asesmen/1/kerjakan');
+        $response->assertStatus(200);
+        $response->assertSee('Pertanyaan 1 dari', false);
+    }
+
+    public function test_siswa_can_view_assessment_result_page()
+    {
+        $siswaUser = User::where('username', '0071234561')->first();
+
+        $response = $this->actingAs($siswaUser)->get('/siswa/asesmen/hasil/1');
+        $response->assertStatus(200);
+        $response->assertSee('Hasil Pemetaan Asesmen Diri', false);
+        $response->assertSee('Isi Ulang Asesmen', false);
+    }
 }

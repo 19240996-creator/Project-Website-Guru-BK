@@ -16,7 +16,9 @@
         <div class="card-header">
             <h3 class="card-title">Pilih Arah Pilihan Utama Anda</h3>
             @if($currentPlan)
-                <span class="badge badge-primary">Versi ke-{{ $currentPlan->version }} (Aktif)</span>
+                <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">
+                    Versi ke-{{ $currentPlan->version }} (Aktif)
+                </span>
             @endif
         </div>
         <div class="card-body">
@@ -128,9 +130,9 @@
                         <div class="form-group" style="margin-bottom: 0;">
                             <label class="form-label">Model / Waktu Perkuliahan</label>
                             <select name="entry_path_kk" class="form-select">
-                                <option value="Kelas Karyawan" {{ $currentPlan && $currentPlan->primary_goal === 'kuliah_kerja' && $currentPlan->entry_path === 'Kelas Karyawan' ? 'selected' : '' }}>Kelas Karyawan (Sore / Malam)</option>
+                                <option value="Kelas Malam" {{ $currentPlan && $currentPlan->primary_goal === 'kuliah_kerja' && in_array($currentPlan->entry_path, ['Kelas Malam', 'Kelas Karyawan']) ? 'selected' : '' }}>Kelas Malam</option>
                                 <option value="Kuliah Daring / Hybrid" {{ $currentPlan && $currentPlan->primary_goal === 'kuliah_kerja' && $currentPlan->entry_path === 'Kuliah Daring / Hybrid' ? 'selected' : '' }}>Kuliah Daring / Hybrid Learning</option>
-                                <option value="Kelas Akhir Pekan" {{ $currentPlan && $currentPlan->primary_goal === 'kuliah_kerja' && $currentPlan->entry_path === 'Kelas Akhir Pekan' ? 'selected' : '' }}>Kelas Akhir Pekan (Sabtu & Minggu)</option>
+                                <option value="Kelas Karyawan (Jumat & Sabtu)" {{ $currentPlan && $currentPlan->primary_goal === 'kuliah_kerja' && in_array($currentPlan->entry_path, ['Kelas Karyawan (Jumat & Sabtu)', 'Kelas Akhir Pekan']) ? 'selected' : '' }}>Kelas Karyawan (Jumat & Sabtu)</option>
                                 <option value="Program Magang Bersertifikat" {{ $currentPlan && $currentPlan->primary_goal === 'kuliah_kerja' && $currentPlan->entry_path === 'Program Magang Bersertifikat' ? 'selected' : '' }}>Program Magang Bersertifikat / Ikatan Kerja</option>
                             </select>
                         </div>
@@ -193,30 +195,34 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Versi</th>
-                                <th>Pilihan Utama</th>
-                                <th>Target Spesifik</th>
-                                <th>Waktu Pembaruan</th>
+                                <th style="width: 110px; white-space: nowrap;">Versi</th>
+                                <th style="width: 190px; white-space: nowrap;">Pilihan Utama</th>
+                                <th style="min-width: 280px;">Target Spesifik</th>
+                                <th style="width: 200px; white-space: nowrap;">Waktu Pembaruan</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($student->futurePlans as $p)
                                 <tr>
-                                    <td><strong>Versi {{ $p->version }}</strong></td>
-                                    <td>
-                                        @if($p->primary_goal === 'kuliah')
-                                            <span class="badge badge-primary">Ingin Kuliah</span>
-                                        @elseif($p->primary_goal === 'bekerja')
-                                            <span class="badge badge-success">Ingin Bekerja</span>
-                                        @elseif($p->primary_goal === 'kuliah_kerja')
-                                            <span class="badge badge-info">Kuliah Sambil Bekerja</span>
-                                        @elseif($p->primary_goal === 'wirausaha')
-                                            <span class="badge badge-warning">Ingin Wirausaha</span>
-                                        @else
-                                            <span class="badge badge-secondary">{{ ucfirst(str_replace('_', ' ', $p->primary_goal)) }}</span>
-                                        @endif
+                                    <td style="white-space: nowrap; vertical-align: middle;">
+                                        <strong style="color: var(--color-text-main); font-size: 13px;">Versi {{ $p->version }}</strong>
                                     </td>
-                                    <td>
+                                    <td style="white-space: nowrap; vertical-align: middle;">
+                                        <span style="font-weight: 700; color: var(--color-text-main); font-size: 13px;">
+                                            @if($p->primary_goal === 'kuliah')
+                                                Kuliah
+                                            @elseif($p->primary_goal === 'bekerja')
+                                                Bekerja
+                                            @elseif($p->primary_goal === 'kuliah_kerja')
+                                                Kuliah Sambil Bekerja
+                                            @elseif($p->primary_goal === 'wirausaha')
+                                                Wirausaha
+                                            @else
+                                                {{ ucfirst(str_replace('_', ' ', $p->primary_goal)) }}
+                                            @endif
+                                        </span>
+                                    </td>
+                                    <td style="vertical-align: middle; line-height: 1.5;">
                                         @if($p->primary_goal === 'kuliah_kerja')
                                             <strong>{{ $p->college_target ?: '-' }}</strong> (Prodi: {{ $p->study_program ?: '-' }}) &bull; Target Kerja: {{ $p->work_target_field ?: ($p->work_target_company ?: '-') }}
                                         @elseif($p->primary_goal === 'kuliah')
@@ -229,7 +235,9 @@
                                             -
                                         @endif
                                     </td>
-                                    <td>{{ $p->created_at->translatedFormat('d M Y, H:i') }}</td>
+                                    <td style="white-space: nowrap; vertical-align: middle; color: var(--color-text-muted); font-size: 13px;">
+                                        {{ $p->created_at->translatedFormat('d M Y, H:i') }} WIB
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
