@@ -75,7 +75,7 @@
         @if($counselings->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Nomor & Tanggal</th>
                             <th>Identitas Siswa</th>

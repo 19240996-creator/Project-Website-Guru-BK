@@ -13,6 +13,7 @@ use App\Http\Controllers\Guru\OpportunityController as GuruOpportunityController
 use App\Http\Controllers\Guru\AlumniController as GuruAlumniController;
 use App\Http\Controllers\Guru\ReportController as GuruReportController;
 use App\Http\Controllers\Guru\AuditLogController as GuruAuditLogController;
+use App\Http\Controllers\Guru\ProfileController as GuruProfileController;
 
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\ProfileController as SiswaProfileController;
@@ -56,11 +57,16 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     // 4. Beranda & "Yang Perlu Saya Kerjakan"
     Route::get('/dashboard', [GuruDashboardController::class, 'index'])->name('dashboard');
 
+    // Profil Guru BK
+    Route::get('/profil', [GuruProfileController::class, 'show'])->name('profil.show');
+    Route::put('/profil', [GuruProfileController::class, 'update'])->name('profil.update');
+
     // 5. Data Siswa & Profil 360 Derajat
     Route::get('/siswa', [GuruStudentController::class, 'index'])->name('siswa.index');
     Route::get('/siswa/tambah', [GuruStudentController::class, 'create'])->name('siswa.create');
     Route::post('/siswa', [GuruStudentController::class, 'store'])->name('siswa.store');
     Route::post('/siswa/import', [GuruStudentController::class, 'import'])->name('siswa.import');
+    Route::get('/siswa/template-impor', [GuruStudentController::class, 'downloadTemplate'])->name('siswa.template');
     Route::get('/siswa/{id}', [GuruStudentController::class, 'show'])->name('siswa.show');
     Route::get('/siswa/{id}/edit', [GuruStudentController::class, 'edit'])->name('siswa.edit');
     Route::put('/siswa/{id}', [GuruStudentController::class, 'update'])->name('siswa.update');

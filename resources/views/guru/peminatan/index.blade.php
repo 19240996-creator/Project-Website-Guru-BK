@@ -15,31 +15,31 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px;">
     <div class="stat-card">
         <span class="stat-label">Target Kuliah</span>
-        <span class="stat-value" style="color: var(--color-primary);">{{ $countKuliah }}</span>
+        <span class="stat-value">{{ $countKuliah }}</span>
         <span class="stat-desc">PTN, PTS, Kedinasan</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Target Bekerja</span>
-        <span class="stat-value" style="color: var(--color-accent);">{{ $countKerja }}</span>
+        <span class="stat-value">{{ $countKerja }}</span>
         <span class="stat-desc">Industri, Swasta, BUMN</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Kuliah Sambil Kerja</span>
-        <span class="stat-value" style="color: var(--color-info);">{{ $countKuliahKerja }}</span>
+        <span class="stat-value">{{ $countKuliahKerja }}</span>
         <span class="stat-desc">Kuliah Fleksibel & Karier</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Target Wirausaha</span>
-        <span class="stat-value" style="color: var(--color-warning);">{{ $countWirausaha }}</span>
+        <span class="stat-value">{{ $countWirausaha }}</span>
         <span class="stat-desc">Bisnis Mandiri & Usaha</span>
     </div>
 
-    <div class="stat-card" style="border-left: 4px solid var(--color-danger);">
+    <div class="stat-card">
         <span class="stat-label">Belum Menentukan</span>
-        <span class="stat-value" style="color: var(--color-danger);">{{ $countUndecided }}</span>
+        <span class="stat-value">{{ $countUndecided }}</span>
         <span class="stat-desc">Belum Mengisi Formulir</span>
     </div>
 </div>
@@ -91,14 +91,14 @@
 
 <!-- Table Peta Rencana -->
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy">
         <h3 class="card-title">Daftar Pilihan Rencana Siswa ({{ $students->total() }} Siswa)</h3>
     </div>
     <div class="card-body" style="padding: 0;">
         @if($students->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Nama Siswa & Kelas</th>
                             <th>Arah Pilihan Utama</th>
@@ -175,7 +175,7 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm">
-                                        Profil 360°
+                                        Profil
                                     </a>
                                 </td>
                             </tr>

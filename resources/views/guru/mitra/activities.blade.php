@@ -60,17 +60,17 @@
 </div>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy">
         <h3 class="card-title">Daftar Jadwal Kegiatan Kemitraan ({{ $activities->total() }})</h3>
         <a href="{{ route('guru.laporan.generate', ['package' => 'paket_b']) }}" target="_blank" class="btn btn-secondary btn-sm">
-            Cetak Laporan Kurikulum (Paket B)
+            Cetak Laporan Kurikulum
         </a>
     </div>
     <div class="card-body" style="padding: 0;">
         @if($activities->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Tanggal & Waktu</th>
                             <th>Mitra Pelaksana</th>

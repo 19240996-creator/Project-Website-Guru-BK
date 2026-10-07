@@ -12,6 +12,8 @@ use App\Models\Partner;
 use App\Models\PartnerActivity;
 use App\Models\Opportunity;
 use App\Models\AlumniTracking;
+use App\Models\AcademicYear;
+use App\Models\CounselingCategory;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -155,6 +157,34 @@ class DashboardController extends Controller
             ->orderBy('start_time', 'asc')
             ->get();
 
+        $counselor = auth()->user();
+        $counselorCounselingsCount = Counseling::where('counselor_id', $counselor->id)->count();
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+
+        // Chart 1: Kategori Kasus Bimbingan & Konseling (Column Chart)
+        $counselingCategories = CounselingCategory::withCount('counselings')->get();
+        $categoryChartLabels = $counselingCategories->pluck('name')->toArray();
+        $categoryChartData = $counselingCategories->pluck('counselings_count')->toArray();
+
+        // Chart 2: Peta Rencana Masa Depan Siswa Kelas XII (Pie Chart)
+        $workAndStudyCount = $plans->where('primary_goal', 'kuliah_kerja')->count();
+        $futurePlanChartLabels = [
+            'Target Kuliah',
+            'Target Bekerja',
+            'Target Wirausaha',
+            'Belum Menentukan',
+        ];
+        $futurePlanChartData = [
+            $collegeCount,
+            $workCount,
+            $businessCount,
+            $undecidedGradeXIICount,
+        ];
+        if ($workAndStudyCount > 0) {
+            array_splice($futurePlanChartLabels, 3, 0, 'Kuliah & Kerja');
+            array_splice($futurePlanChartData, 3, 0, $workAndStudyCount);
+        }
+
         return view('guru.dashboard', compact(
             'totalStudents',
             'attentionStudentsCount',
@@ -170,7 +200,14 @@ class DashboardController extends Controller
             'activeOpportunitiesCount',
             'upcomingActivitiesCount',
             'priorityTasks',
-            'upcomingActivities'
+            'upcomingActivities',
+            'counselor',
+            'counselorCounselingsCount',
+            'activeAcademicYear',
+            'categoryChartLabels',
+            'categoryChartData',
+            'futurePlanChartLabels',
+            'futurePlanChartData'
         ));
     }
 }

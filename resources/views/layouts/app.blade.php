@@ -16,14 +16,15 @@
         <!-- Sidebar Navigation Guru BK -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <div class="brand-title">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
-                    <span>RUANG BK</span>
-                </div>
-                <span class="brand-badge">Ruang Guru BK</span>
+                <a href="{{ route('guru.dashboard') }}" style="text-decoration: none;">
+                    <div class="brand-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <span>RUANG BK</span>
+                    </div>
+                </a>
             </div>
 
             <nav class="sidebar-nav">
@@ -36,7 +37,7 @@
                 <div class="nav-group-label">Kesiswaan & BK</div>
                 <a href="{{ route('guru.siswa.index') }}" class="nav-item {{ request()->routeIs('guru.siswa.*') ? 'active' : '' }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    <span>Data & Profil Siswa 360°</span>
+                    <span>Data & Profil Siswa</span>
                 </a>
                 <a href="{{ route('guru.konseling.index') }}" class="nav-item {{ request()->routeIs('guru.konseling.*') ? 'active' : '' }}">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -78,18 +79,25 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     <span>Audit Log Aktivitas</span>
                 </a>
+                <div class="nav-group-label">Akun Guru</div>
+                <a href="{{ route('guru.profil.show') }}" class="nav-item {{ request()->routeIs('guru.profil.*') ? 'active' : '' }}">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span>Profil Saya</span>
+                </a>
             </nav>
 
             <div class="sidebar-footer">
-                <div class="user-snippet">
-                    <div class="user-avatar-initial">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                <a href="{{ route('guru.profil.show') }}" style="text-decoration: none; color: inherit; display: block;" title="Lihat Profil Guru BK">
+                    <div class="user-snippet">
+                        <div class="user-avatar-initial">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <div class="user-meta">
+                            <div class="user-name">{{ auth()->user()->name }}</div>
+                            <div class="user-role-text">Guru Bimbingan Konseling</div>
+                        </div>
                     </div>
-                    <div class="user-meta">
-                        <div class="user-name">{{ auth()->user()->name }}</div>
-                        <div class="user-role-text">Guru Bimbingan Konseling</div>
-                    </div>
-                </div>
+                </a>
             </div>
         </aside>
 
@@ -100,6 +108,11 @@
                     @yield('header_title', 'Sistem Informasi Bimbingan Konseling & Karier')
                 </div>
                 <div class="topbar-actions">
+                    <a href="{{ route('guru.profil.show') }}" class="btn btn-secondary btn-sm {{ request()->routeIs('guru.profil.*') ? 'active' : '' }}" title="Profil Guru BK">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        <span>Profil</span>
+                    </a>
+
                     <a href="{{ route('notifikasi.index') }}" class="btn btn-secondary btn-sm" title="Notifikasi">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                         <span>Notifikasi</span>

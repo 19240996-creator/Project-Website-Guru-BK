@@ -28,7 +28,7 @@
         <div class="card-header">
             <h3 class="card-title">Permohonan Siswa</h3>
             <a href="{{ route('guru.siswa.show', $counseling->student_id) }}" class="btn btn-secondary btn-sm" target="_blank">
-                Lihat Profil 360° Siswa
+                Lihat Profil Siswa
             </a>
         </div>
         <div class="card-body">

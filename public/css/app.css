@@ -283,6 +283,51 @@ a:hover {
   color: var(--color-text-main);
 }
 
+.card-header-navy {
+  background-color: var(--color-primary);
+  border-bottom: none;
+  color: #ffffff;
+}
+
+.card-header-navy .card-title {
+  color: #ffffff;
+}
+
+.card-header-navy p,
+.card-header-navy .text-muted {
+  color: #bfdbfe !important;
+}
+
+.card-header-navy .btn-secondary {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+}
+
+.card-header-navy .btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.card-header-navy .badge-light-navy {
+  background-color: #ffffff;
+  color: var(--color-primary);
+  font-weight: 700;
+  border: 1px solid #bfdbfe;
+}
+
+.card-header-navy .badge-translucent {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+}
+
 .card-body {
   padding: 20px;
 }
@@ -402,6 +447,16 @@ a:hover {
   color: #ffffff;
 }
 
+.btn-warning {
+  background-color: #d97706;
+  color: #ffffff;
+}
+
+.btn-warning:hover {
+  background-color: #b45309;
+  color: #ffffff;
+}
+
 .btn-sm {
   padding: 5px 10px;
   font-size: 12px;
@@ -471,6 +526,14 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid var(--color-border);
+}
+
+.table-thead-navy th {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-bottom: none;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 .table td {
@@ -801,6 +864,142 @@ textarea.form-control {
     padding-bottom: 12px;
     margin-bottom: 20px;
   }
+}
+
+/* Counselor Profile Card in Dashboard (Antislop Compliant) */
+.counselor-profile-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 22px 24px;
+  margin-bottom: 24px;
+}
+
+.counselor-profile-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.counselor-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.counselor-avatar-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid var(--color-primary-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.counselor-info-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.counselor-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.counselor-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text-main);
+  line-height: 1.3;
+}
+
+.counselor-role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  background-color: var(--color-primary-light);
+  border: 1px solid var(--color-primary-border);
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.counselor-meta-list {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.counselor-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.counselor-meta-item svg {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.counselor-profile-meta-pane {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.counselor-stat-pill {
+  background-color: #f8fafc;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  text-align: left;
+}
+
+.counselor-stat-pill-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: block;
+}
+
+.counselor-stat-pill-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-main);
+  display: block;
+  margin-top: 2px;
+}
+
+.counselor-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* Responsive Styles */

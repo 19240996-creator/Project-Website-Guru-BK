@@ -14,12 +14,12 @@
 <div class="grid-2" style="margin-bottom: 28px;">
     @foreach($assessments as $asm)
         <div class="card">
-            <div class="card-header">
+            <div class="card-header card-header-navy">
                 <div>
                     <h3 class="card-title">{{ $asm->title }}</h3>
-                    <small style="color: var(--color-text-subtle);">Kategori: {{ $asm->category }}</small>
+                    <small style="color: #bfdbfe;">Kategori: {{ $asm->category }}</small>
                 </div>
-                <span class="badge badge-success">Aktif</span>
+                <span class="badge badge-translucent">Aktif</span>
             </div>
             <div class="card-body">
                 <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 16px;">
@@ -46,14 +46,14 @@
 </div>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy">
         <h3 class="card-title">Hasil Pengerjaan Asesmen Siswa Terbaru</h3>
     </div>
     <div class="card-body" style="padding: 0;">
         @if($recentResults->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Siswa</th>
                             <th>Kelas</th>

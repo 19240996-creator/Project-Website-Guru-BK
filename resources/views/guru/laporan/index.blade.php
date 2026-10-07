@@ -12,11 +12,11 @@
 </div>
 
 <div class="grid-3" style="margin-bottom: 24px;">
-    <!-- Paket A: Kesiswaan -->
+    <!-- Laporan Kesiswaan -->
     <div class="card" style="border-top: 4px solid #2563eb; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
             <div class="card-header">
-                <h3 class="card-title">Paket A: Wakasek Kesiswaan</h3>
+                <h3 class="card-title">Wakasek Kesiswaan</h3>
                 <span class="badge badge-primary">Kesiswaan</span>
             </div>
             <div class="card-body">
@@ -33,16 +33,16 @@
         </div>
         <div class="card-footer">
             <a href="{{ route('guru.laporan.generate', ['package' => 'paket_a']) }}" target="_blank" class="btn btn-primary" style="width: 100%;">
-                Buka & Cetak Laporan Paket A
+                Buka & Cetak Laporan
             </a>
         </div>
     </div>
 
-    <!-- Paket B: Kurikulum -->
+    <!-- Laporan Kurikulum -->
     <div class="card" style="border-top: 4px solid #059669; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
             <div class="card-header">
-                <h3 class="card-title">Paket B: Wakasek Kurikulum</h3>
+                <h3 class="card-title">Wakasek Kurikulum</h3>
                 <span class="badge badge-success">Kurikulum</span>
             </div>
             <div class="card-body">
@@ -59,16 +59,16 @@
         </div>
         <div class="card-footer">
             <a href="{{ route('guru.laporan.generate', ['package' => 'paket_b']) }}" target="_blank" class="btn btn-accent" style="width: 100%;">
-                Buka & Cetak Laporan Paket B
+                Buka & Cetak Laporan
             </a>
         </div>
     </div>
 
-    <!-- Paket C: Kepala Sekolah -->
+    <!-- Laporan Kepala Sekolah -->
     <div class="card" style="border-top: 4px solid #d97706; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
             <div class="card-header">
-                <h3 class="card-title">Paket C: Kepala Sekolah</h3>
+                <h3 class="card-title">Kepala Sekolah</h3>
                 <span class="badge badge-warning">Eksekutif</span>
             </div>
             <div class="card-body">
@@ -84,8 +84,8 @@
             </div>
         </div>
         <div class="card-footer">
-            <a href="{{ route('guru.laporan.generate', ['package' => 'paket_c']) }}" target="_blank" class="btn btn-secondary" style="width: 100%; border-color: var(--color-warning);">
-                Buka & Cetak Laporan Paket C
+            <a href="{{ route('guru.laporan.generate', ['package' => 'paket_c']) }}" target="_blank" class="btn btn-warning" style="width: 100%;">
+                Buka & Cetak Laporan
             </a>
         </div>
     </div>

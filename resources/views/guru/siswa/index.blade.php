@@ -74,7 +74,7 @@
 
 <!-- Table Daftar Siswa -->
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy">
         <h3 class="card-title">Daftar Data Siswa (Total: {{ $students->total() }})</h3>
     </div>
     <div class="card-body" style="padding: 0;">
@@ -123,8 +123,8 @@
                                     </span>
                                 </td>
                                 <td style="text-align: right;">
-                                    <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Lihat Profil 360">
-                                        Profil 360°
+                                    <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Lihat Profil">
+                                        Profil
                                     </a>
                                     <a href="{{ route('guru.siswa.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit">
                                         Ubah
@@ -149,9 +149,13 @@
 </div>
 
 <!-- Section Impor CSV / Excel (Section 2 Blueprint) -->
-<div id="importSection" class="card" style="margin-top: 32px; border-top: 3px solid var(--color-accent);">
-    <div class="card-header">
+<div id="importSection" class="card" style="margin-top: 32px;">
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <h3 class="card-title">Impor Data Siswa Secara Massal (Format CSV / Excel)</h3>
+        <a href="{{ route('guru.siswa.template') }}" class="btn btn-secondary btn-sm" title="Unduh Template Format Impor CSV / Excel">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Unduh Template CSV</span>
+        </a>
     </div>
     <div class="card-body">
         <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">
@@ -160,21 +164,53 @@
 
         <form action="{{ route('guru.siswa.import') }}" method="POST" enctype="multipart/form-data" style="max-width: 600px;">
             @csrf
-            <div class="form-group">
-                <label class="form-label">Pilih Kelas Tujuan Impor</label>
-                <select name="student_class_id" class="form-select" required>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px;">Pilihan Kelas</label>
+                <select name="grade" class="form-select" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px;">
                     <option value="">-- Pilih Kelas --</option>
-                    @foreach($classes as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }} ({{ $c->major }})</option>
-                    @endforeach
+                    <option value="X">Kelas X</option>
+                    <option value="XI">Kelas XI</option>
+                    <option value="XII">Kelas XII</option>
                 </select>
+                <small style="color: var(--color-text-subtle); font-size: 11px; margin-top: 4px; display: block;">
+                    Pilih tingkatan jenjang kelas tujuan siswa.
+                </small>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Pilih File CSV Siswa</label>
-                <input type="file" name="csv_file" class="form-control" accept=".csv, .txt" required>
-                <div class="form-hint">
-                    Format kolom CSV: <code>NIS, NISN, Nama Lengkap, Jenis Kelamin (L/P), No. HP</code>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label class="form-label" style="font-weight: 600; font-size: 13px; margin: 0;">Jurusan / Program Keahlian</label>
+                    <button type="button" id="btnToggleManualMajor" class="btn btn-secondary btn-sm" onclick="toggleManualMajor()" style="padding: 2px 8px; font-size: 11px;">
+                        Klik untuk memasukkan jurusan manual
+                    </button>
+                </div>
+
+                <div id="selectMajorWrapper">
+                    <select name="major" id="majorSelect" class="form-select" style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px;" required>
+                        <option value="">-- Pilih Jurusan yang Tersedia --</option>
+                        @foreach($majors as $m)
+                            <option value="{{ $m }}">{{ $m }}</option>
+                        @endforeach
+                    </select>
+                    <small style="color: var(--color-text-subtle); font-size: 11px; margin-top: 4px; display: block;">
+                        Daftar jurusan yang telah tersimpan dari input sebelumnya.
+                    </small>
+                </div>
+
+                <div id="manualMajorWrapper" style="display: none; margin-top: 6px;">
+                    <input type="text" name="custom_major" id="customMajorInput" class="form-control" placeholder="Ketik nama jurusan baru (misal: Desain Komunikasi Visual)..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px;">
+                    <small style="color: var(--color-text-subtle); font-size: 11px; margin-top: 4px; display: block;">
+                        Jurusan baru akan otomatis tersimpan dalam daftar pilihan untuk impor berikutnya.
+                    </small>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label" style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px;">Pilih File CSV Siswa</label>
+                <input type="file" name="csv_file" class="form-control" accept=".csv, .txt" required style="width: 100%; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px;">
+                <div class="form-hint" style="font-size: 11px; color: var(--color-text-subtle); margin-top: 4px;">
+                    Format kolom CSV: <code>NIS, NISN, Nama Lengkap, Jenis Kelamin (L/P), No. HP</code>.
+                    Belum memiliki format? <a href="{{ route('guru.siswa.template') }}" style="color: var(--color-primary); font-weight: 600; text-decoration: underline;">Unduh template format di sini</a>.
                 </div>
             </div>
 
@@ -182,6 +218,40 @@
                 Mulai Proses Impor Siswa
             </button>
         </form>
+
+        <script>
+            var isManualMajor = false;
+            function toggleManualMajor() {
+                isManualMajor = !isManualMajor;
+                var selectWrapper = document.getElementById('selectMajorWrapper');
+                var manualWrapper = document.getElementById('manualMajorWrapper');
+                var majorSelect = document.getElementById('majorSelect');
+                var customInput = document.getElementById('customMajorInput');
+                var btnToggle = document.getElementById('btnToggleManualMajor');
+
+                if (isManualMajor) {
+                    selectWrapper.style.display = 'none';
+                    manualWrapper.style.display = 'block';
+                    majorSelect.value = '';
+                    majorSelect.removeAttribute('required');
+                    customInput.setAttribute('required', 'required');
+                    customInput.focus();
+                    btnToggle.textContent = 'Batal, pilih dari daftar yang ada';
+                } else {
+                    selectWrapper.style.display = 'block';
+                    manualWrapper.style.display = 'none';
+                    customInput.value = '';
+                    customInput.removeAttribute('required');
+                    majorSelect.setAttribute('required', 'required');
+                    btnToggle.textContent = 'Klik untuk memasukkan jurusan manual';
+                }
+            }
+
+            // Jika belum ada jurusan yang tersimpan, aktifkan mode manual langsung
+            @if($majors->isEmpty())
+                toggleManualMajor();
+            @endif
+        </script>
     </div>
 </div>
 @endsection

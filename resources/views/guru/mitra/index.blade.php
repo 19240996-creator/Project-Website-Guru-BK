@@ -25,19 +25,19 @@
 <div class="grid-4" style="margin-bottom: 24px;">
     <div class="stat-card">
         <span class="stat-label">Perguruan Tinggi</span>
-        <span class="stat-value" style="color: #2563eb;">{{ $stats['total_pt'] }}</span>
+        <span class="stat-value">{{ $stats['total_pt'] }}</span>
         <span class="stat-desc">PTN dan PTS Rekanan</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Perusahaan Industri</span>
-        <span class="stat-value" style="color: #059669;">{{ $stats['total_perusahaan'] }}</span>
+        <span class="stat-value">{{ $stats['total_perusahaan'] }}</span>
         <span class="stat-desc">Dunia Usaha & Industri</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Kerja Sama Aktif</span>
-        <span class="stat-value" style="color: var(--color-primary);">{{ $stats['total_aktif'] }}</span>
+        <span class="stat-value">{{ $stats['total_aktif'] }}</span>
         <span class="stat-desc">Memiliki MoU / PKS Berlaku</span>
     </div>
 
@@ -59,7 +59,7 @@
         @if($partners->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Kode & Nama Mitra</th>
                             <th>Tipe & Kategori</th>

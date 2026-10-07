@@ -20,35 +20,35 @@
 
     <div class="stat-card">
         <span class="stat-label">Alumni Bekerja</span>
-        <span class="stat-value" style="color: #059669;">{{ $stats['bekerja'] }}</span>
+        <span class="stat-value">{{ $stats['bekerja'] }}</span>
         <span class="stat-desc">Terserap di industri</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Alumni Kuliah</span>
-        <span class="stat-value" style="color: #2563eb;">{{ $stats['kuliah'] }}</span>
+        <span class="stat-value">{{ $stats['kuliah'] }}</span>
         <span class="stat-desc">Studi lanjut PTN/PTS</span>
     </div>
 
     <div class="stat-card">
         <span class="stat-label">Alumni Wirausaha</span>
-        <span class="stat-value" style="color: #d97706;">{{ $stats['wirausaha'] }}</span>
+        <span class="stat-value">{{ $stats['wirausaha'] }}</span>
         <span class="stat-desc">Mendirikan usaha mandiri</span>
     </div>
 </div>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy">
         <h3 class="card-title">Daftar Pelacakan Alumni ({{ $alumni->total() }})</h3>
         <a href="{{ route('guru.laporan.generate', ['package' => 'paket_c']) }}" target="_blank" class="btn btn-secondary btn-sm">
-            Cetak Rekap Lulusan Kepala Sekolah (Paket C)
+            Cetak Rekap Lulusan Kepala Sekolah
         </a>
     </div>
     <div class="card-body" style="padding: 0;">
         @if($alumni->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Identitas Alumni</th>
                             <th>Tahun Lulus & Jurusan</th>

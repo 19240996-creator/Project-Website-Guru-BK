@@ -11,6 +11,7 @@ use App\Models\StudentClass;
 use App\Models\User;
 use App\Models\StudentAchievement;
 use App\Models\AuditLog;
+use App\Models\AcademicYear;
 
 class StudentController extends Controller
 {
@@ -47,8 +48,13 @@ class StudentController extends Controller
 
         $students = $query->paginate(15)->withQueryString();
         $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+        $majors = StudentClass::whereNotNull('major')
+            ->where('major', '!=', '')
+            ->distinct()
+            ->orderBy('major')
+            ->pluck('major');
 
-        return view('guru.siswa.index', compact('students', 'classes'));
+        return view('guru.siswa.index', compact('students', 'classes', 'majors'));
     }
 
     public function show($id)
@@ -165,19 +171,50 @@ class StudentController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'student_class_id' => 'required|exists:student_classes,id',
+            'grade' => 'required_without:student_class_id|nullable|in:X,XI,XII',
             'csv_file' => 'required|file|mimes:csv,txt',
         ], [
-            'student_class_id.required' => 'Pilih kelas tujuan sebelum mengunggah file.',
+            'grade.required_without' => 'Pilih jenjang kelas (X, XI, atau XII) sebelum mengunggah file.',
+            'grade.in' => 'Pilihan kelas hanya boleh X, XI, atau XII.',
             'csv_file.required' => 'Pilih file CSV / Excel ekspor terlebih dahulu.',
         ]);
+
+        if ($request->filled('student_class_id')) {
+            $classId = $request->student_class_id;
+        } else {
+            $major = trim($request->custom_major ?: $request->major);
+            if (empty($major)) {
+                return back()->withErrors(['major' => 'Pilih jurusan yang tersedia atau masukkan jurusan baru secara manual.'])->withInput();
+            }
+
+            $grade = $request->grade;
+            $academicYear = AcademicYear::where('is_active', true)->first();
+
+            // Cari kelas dengan jenjang dan jurusan tersebut
+            $studentClass = StudentClass::where('grade', $grade)
+                ->where('major', $major)
+                ->first();
+
+            if (!$studentClass) {
+                $countExisting = StudentClass::where('grade', $grade)->where('major', $major)->count();
+                $className = "{$grade} {$major}" . ($countExisting > 0 ? ' ' . ($countExisting + 1) : '');
+
+                $studentClass = StudentClass::create([
+                    'academic_year_id' => $academicYear ? $academicYear->id : null,
+                    'grade' => $grade,
+                    'major' => $major,
+                    'name' => $className,
+                ]);
+            }
+
+            $classId = $studentClass->id;
+        }
 
         $file = $request->file('csv_file');
         $handle = fopen($file->getRealPath(), 'r');
         $header = fgetcsv($handle, 1000, ',');
 
         $imported = 0;
-        $classId = $request->student_class_id;
 
         while (($row = fgetcsv($handle, 1000, ',')) !== false) {
             if (count($row) < 3) continue;
@@ -224,5 +261,31 @@ class StudentController extends Controller
         AuditLog::log('IMPORT', 'Student', null, "Melakukan impor massal {$imported} data siswa ke kelas ID {$classId}.");
 
         return redirect()->route('guru.siswa.index')->with('success', "Berhasil mengimpor {$imported} data siswa beserta pembuatan akun login default.");
+    }
+
+    public function downloadTemplate()
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="template_impor_siswa.csv"',
+        ];
+
+        $callback = function () {
+            $handle = fopen('php://output', 'w');
+            // Byte Order Mark (BOM) UTF-8 agar kompatibel saat dibuka di Microsoft Excel
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Baris header
+            fputcsv($handle, ['NIS', 'NISN', 'Nama Lengkap', 'Jenis Kelamin (L/P)', 'No. HP']);
+
+            // Baris data contoh realistis
+            fputcsv($handle, ['25261001', '0081234501', 'Aditya Pratama', 'L', '081234567801']);
+            fputcsv($handle, ['25261002', '0081234502', 'Nabila Putri Cahyani', 'P', '081234567802']);
+            fputcsv($handle, ['25261003', '0081234503', 'Rian Hidayat', 'L', '081234567803']);
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

@@ -12,15 +12,15 @@
 </div>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy">
         <h3 class="card-title">Catatan Riwayat Aktivitas Sistem</h3>
-        <span class="badge badge-primary">Total: {{ $logs->total() }} Log</span>
+        <span class="badge badge-translucent">Total: {{ $logs->total() }} Log</span>
     </div>
     <div class="card-body" style="padding: 0;">
         @if($logs->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Waktu & Tanggal</th>
                             <th>Pengguna Pelaksana</th>

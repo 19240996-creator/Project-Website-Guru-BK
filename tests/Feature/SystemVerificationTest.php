@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Student;
+use App\Models\StudentClass;
 use App\Models\Counseling;
+use Illuminate\Http\UploadedFile;
 
 class SystemVerificationTest extends TestCase
 {
@@ -23,8 +25,44 @@ class SystemVerificationTest extends TestCase
 
         $response = $this->actingAs($guru)->get('/guru/dashboard');
         $response->assertStatus(200);
+        $response->assertSee('Selamat Bertugas', false);
+        $response->assertSee($guru->name, false);
         $response->assertSee('YANG PERLU SAYA KERJAKAN', false);
         $response->assertSee('Total Siswa Aktif', false);
+        $response->assertSee(route('guru.profil.show'), false);
+        $response->assertSee('counselingCategoryColumnChart', false);
+        $response->assertSee('futurePlanPieChart', false);
+        $response->assertSee('Distribusi Kategori Layanan Konseling', false);
+        $response->assertSee('Peta Rencana Masa Depan Kelas XII', false);
+        $response->assertSee('<svg viewBox="0 0 140 140"', false);
+        $response->assertSee('stroke-dasharray', false);
+    }
+
+    public function test_guru_bk_can_access_and_update_profile()
+    {
+        $guru = User::where('username', 'gurubk')->first();
+
+        // 1. Can view profile page
+        $response = $this->actingAs($guru)->get('/guru/profil');
+        $response->assertStatus(200);
+        $response->assertSee('Profil Guru Bimbingan Konseling', false);
+        $response->assertSee($guru->name, false);
+        $response->assertSee($guru->email, false);
+        $response->assertSee('Aktif Bertugas', false);
+
+        // 2. Can update profile information
+        $updateResponse = $this->actingAs($guru)->put('/guru/profil', [
+            'name' => 'Dra. Endang Sri Rahayu, M.Pd.',
+            'email' => 'guru@sekolah.sch.id',
+            'phone' => '081299998888',
+        ]);
+        $updateResponse->assertRedirect();
+        $updateResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $guru->id,
+            'phone' => '081299998888',
+        ]);
     }
 
     public function test_guru_bk_can_access_student_360_profile()
@@ -156,5 +194,68 @@ class SystemVerificationTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Hasil Pemetaan Asesmen Diri', false);
         $response->assertSee('Isi Ulang Asesmen', false);
+    }
+
+    public function test_guru_bk_can_import_students_with_grade_and_major()
+    {
+        $guru = User::where('username', 'gurubk')->first();
+
+        // 1. Check form shows X, XI, XII and major controls
+        $indexResponse = $this->actingAs($guru)->get('/guru/siswa');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Pilihan Kelas', false);
+        $indexResponse->assertSee('<option value="X">Kelas X</option>', false);
+        $indexResponse->assertSee('<option value="XI">Kelas XI</option>', false);
+        $indexResponse->assertSee('<option value="XII">Kelas XII</option>', false);
+        $indexResponse->assertSee('Klik untuk memasukkan jurusan manual', false);
+
+        // 2. Perform import with grade and manual custom major
+        $csvContent = "NIS,NISN,Nama Lengkap,Jenis Kelamin,No. HP\n25261099,0081234599,Bintang Pratama,L,081234567899\n";
+        $file = UploadedFile::fake()->createWithContent('siswa_baru.csv', $csvContent);
+
+        $importResponse = $this->actingAs($guru)->post('/guru/siswa/import', [
+            'grade' => 'X',
+            'custom_major' => 'Desain Komunikasi Visual',
+            'csv_file' => $file,
+        ]);
+
+        $importResponse->assertRedirect(route('guru.siswa.index'));
+        $importResponse->assertSessionHas('success');
+
+        // Verify class was created and student imported
+        $this->assertDatabaseHas('student_classes', [
+            'grade' => 'X',
+            'major' => 'Desain Komunikasi Visual',
+        ]);
+
+        $this->assertDatabaseHas('students', [
+            'nis' => '25261099',
+            'nisn' => '0081234599',
+            'name' => 'Bintang Pratama',
+        ]);
+    }
+
+    public function test_guru_bk_can_download_student_import_template()
+    {
+        $guru = User::where('username', 'gurubk')->first();
+
+        // 1. Template download link is visible on student index
+        $indexResponse = $this->actingAs($guru)->get('/guru/siswa');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee(route('guru.siswa.template'), false);
+        $indexResponse->assertSee('Unduh Template CSV', false);
+
+        // 2. Download template file response
+        $templateResponse = $this->actingAs($guru)->get('/guru/siswa/template-impor');
+        $templateResponse->assertStatus(200);
+        $templateResponse->assertHeader('Content-Disposition', 'attachment; filename="template_impor_siswa.csv"');
+
+        // 3. Verify content has CSV headers and sample data
+        $content = $templateResponse->streamedContent();
+        $this->assertStringContainsString('NIS,NISN', $content);
+        $this->assertStringContainsString('Nama Lengkap', $content);
+        $this->assertStringContainsString('Jenis Kelamin (L/P)', $content);
+        $this->assertStringContainsString('Aditya Pratama', $content);
+        $this->assertStringContainsString('Nabila Putri Cahyani', $content);
     }
 }

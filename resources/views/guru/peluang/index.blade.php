@@ -23,7 +23,7 @@
         @if($opportunities->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Kode & Judul Peluang</th>
                             <th>Tipe & Mitra Penyelenggara</th>

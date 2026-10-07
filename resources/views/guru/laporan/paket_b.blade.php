@@ -45,7 +45,7 @@
 
         <div class="report-header">
             <div style="font-size: 14px; font-weight: 700; text-transform: uppercase;">Pemerintah Daerah Provinsi Jawa Barat - Dinas Pendidikan</div>
-            <div class="report-title">LAPORAN JADWAL & KEGIATAN KEMITRAAN (PAKET B)</div>
+            <div class="report-title">LAPORAN JADWAL & KEGIATAN KEMITRAAN</div>
             <div class="report-sub">Peruntukan: Wakil Kepala Sekolah Bidang Kurikulum | Tujuan: Sinkronisasi Jadwal Pembelajaran</div>
             <div style="font-size: 11px; color: #555; margin-top: 4px;">Tanggal Cetak Dokumen: {{ $today->translatedFormat('d F Y') }}</div>
         </div>
