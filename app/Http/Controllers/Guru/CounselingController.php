@@ -106,6 +106,12 @@ class CounselingController extends Controller
     {
         $counseling = Counseling::findOrFail($id);
 
+        if (!$counseling->scheduled_date) {
+            return redirect()->route('guru.konseling.show', $counseling->id)
+                ->with('warning', 'Peringatan: Guru BK harus mengisi jadwal sesi konseling terlebih dahulu sebelum mengisi Catatan Internal Konseling & Privasi Rahasia Guru BK.')
+                ->withInput();
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:diajukan,ditinjau,dijadwalkan,dilaksanakan,tindak_lanjut,selesai,dialihkan',
             'confidential_level' => 'required|in:umum,terbatas,rahasia',

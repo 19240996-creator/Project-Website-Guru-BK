@@ -105,7 +105,7 @@
                             <th>Target Kampus / Perusahaan / Usaha</th>
                             <th>Jalur / Bidang Spesifik</th>
                             <th>Versi & Update</th>
-                            <th style="text-align: right;">Aksi</th>
+                            <th style="text-align: center; width: 110px; min-width: 90px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -173,8 +173,8 @@
                                         -
                                     @endif
                                 </td>
-                                <td style="text-align: right;">
-                                    <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm">
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;">
                                         Profil
                                     </a>
                                 </td>
@@ -184,9 +184,7 @@
                 </table>
             </div>
 
-            <div style="padding: 16px 20px;">
-                {{ $students->links() }}
-            </div>
+            {{ $students->links() }}
         @else
             <div class="empty-state">
                 <p class="empty-state-title">Data Peminatan Tidak Ditemukan</p>

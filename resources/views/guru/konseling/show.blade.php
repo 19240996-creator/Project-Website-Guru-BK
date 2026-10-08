@@ -69,7 +69,7 @@
     </div>
 
     <!-- Panel Penjadwalan & Waktu Sesi -->
-    <div class="card">
+    <div class="card" id="panelPenjadwalan">
         <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 class="card-title">Penjadwalan Sesi Konseling</h3>
             @if($counseling->scheduled_date)
@@ -79,23 +79,23 @@
             @endif
         </div>
         <div class="card-body">
-            <form action="{{ route('guru.konseling.schedule', $counseling->id) }}" method="POST">
+            <form action="{{ route('guru.konseling.schedule', $counseling->id) }}" method="POST" id="formPenjadwalan">
                 @csrf
                 <div class="grid-2">
                     <div class="form-group">
                         <label class="form-label">Tanggal Sesi Pertemuan *</label>
-                        <input type="date" name="scheduled_date" class="form-control" value="{{ old('scheduled_date', $counseling->scheduled_date ? $counseling->scheduled_date->format('Y-m-d') : date('Y-m-d')) }}" required>
+                        <input type="date" name="scheduled_date" id="scheduled_date_input" class="form-control" value="{{ old('scheduled_date', $counseling->scheduled_date ? $counseling->scheduled_date->format('Y-m-d') : date('Y-m-d')) }}" required>
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Waktu Pertemuan (WIB) *</label>
-                        <input type="time" name="scheduled_time" class="form-control" value="{{ old('scheduled_time', $counseling->scheduled_time ? substr($counseling->scheduled_time, 0, 5) : '09:00') }}" required>
+                        <input type="time" name="scheduled_time" id="scheduled_time_input" class="form-control" value="{{ old('scheduled_time', $counseling->scheduled_time ? substr($counseling->scheduled_time, 0, 5) : '09:00') }}" required>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Lokasi / Ruang Pertemuan *</label>
-                    <input type="text" name="scheduled_location" class="form-control" value="{{ old('scheduled_location', $counseling->scheduled_location ?: 'Ruang Konseling BK 1') }}" placeholder="Contoh: Ruang Konseling BK 1" required>
+                    <input type="text" name="scheduled_location" id="scheduled_location_input" class="form-control" value="{{ old('scheduled_location', $counseling->scheduled_location ?: 'Ruang Konseling BK 1') }}" placeholder="Contoh: Ruang Konseling BK 1" required>
                 </div>
 
                 <div class="form-group">
@@ -129,47 +129,87 @@
         </p>
     </div>
     <div class="card-body">
+        @if(!$counseling->scheduled_date)
+            <div class="alert alert-warning" id="bannerPeringatanJadwal" style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px;">
+                <div class="modal-icon-badge warning" style="margin-bottom: 0; width: 38px; height: 38px; flex-shrink: 0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <strong style="font-size: 14px; color: var(--color-warning); display: block; margin-bottom: 4px;">Peringatan: Jadwal Sesi Pertemuan Belum Ditetapkan!</strong>
+                    <div style="font-size: 13px; line-height: 1.5; color: var(--color-text-main); margin-bottom: 10px;">
+                        Guru BK harus mengisi dan menetapkan <strong>jadwal sesi konseling</strong> (tanggal, waktu, dan lokasi pertemuan) terlebih dahulu sebelum mengisi Catatan Internal Konseling &amp; Privasi Rahasia Guru BK.
+                    </div>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="scrollToSchedulePanel()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                        Isi Jadwal Sesi Konseling Terlebih Dahulu
+                    </button>
+                </div>
+            </div>
+        @endif
 
-        <form action="{{ route('guru.konseling.notes', $counseling->id) }}" method="POST">
-            @csrf
-            <div class="grid-2">
-                <div class="form-group">
-                    <label class="form-label">Status Alur Konseling Saat Ini *</label>
-                    <select name="status" class="form-select" required>
-                        <option value="diajukan" {{ $counseling->status === 'diajukan' ? 'selected' : '' }}>Diajukan (Menunggu)</option>
-                        <option value="ditinjau" {{ $counseling->status === 'ditinjau' ? 'selected' : '' }}>Ditinjau BK</option>
-                        <option value="dijadwalkan" {{ $counseling->status === 'dijadwalkan' ? 'selected' : '' }}>Dijadwalkan</option>
-                        <option value="dilaksanakan" {{ $counseling->status === 'dilaksanakan' ? 'selected' : '' }}>Dilaksanakan (Sesi Berjalan)</option>
-                        <option value="tindak_lanjut" {{ $counseling->status === 'tindak_lanjut' ? 'selected' : '' }}>Membutuhkan Tindak Lanjut</option>
-                        <option value="selesai" {{ $counseling->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        <option value="dialihkan" {{ $counseling->status === 'dialihkan' ? 'selected' : '' }}>Dialihkan / Rujukan Luar</option>
-                    </select>
+        <div style="position: relative;">
+            @if(!$counseling->scheduled_date)
+                <div onclick="showScheduleRequiredModal()" title="Klik untuk diarahkan mengisi jadwal sesi konseling terlebih dahulu" style="position: absolute; inset: 0; z-index: 10; cursor: pointer; background: rgba(248, 250, 252, 0.65); backdrop-filter: blur(1.5px); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; padding: 20px;">
+                    <div style="background: var(--color-surface); padding: 14px 22px; border-radius: var(--radius-md); border: 1px solid var(--color-warning-border); box-shadow: var(--shadow-md); text-align: center; max-width: 420px;">
+                        <div class="modal-icon-badge warning" style="margin: 0 auto 10px auto; width: 40px; height: 40px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        </div>
+                        <strong style="display: block; font-size: 14px; color: var(--color-text-main); margin-bottom: 4px;">Formulir Catatan Terkunci Sementara</strong>
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin: 0 0 12px 0; line-height: 1.45;">
+                            Harap isi jadwal sesi konseling di panel atas terlebih dahulu untuk membuka pengisian catatan internal ini.
+                        </p>
+                        <button type="button" class="btn btn-warning btn-sm" style="pointer-events: auto;">
+                            Isi Jadwal Sesi Sekarang &uarr;
+                        </button>
+                    </div>
+                </div>
+            @endif
+
+            <form action="{{ route('guru.konseling.notes', $counseling->id) }}" method="POST" id="formCatatanInternal" @if(!$counseling->scheduled_date) onsubmit="return handleCatatanInternalSubmit(event)" @endif>
+                @csrf
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Status Alur Konseling Saat Ini *</label>
+                        <select name="status" class="form-select" required @if(!$counseling->scheduled_date) tabindex="-1" @endif>
+                            <option value="diajukan" {{ $counseling->status === 'diajukan' ? 'selected' : '' }}>Diajukan (Menunggu)</option>
+                            <option value="ditinjau" {{ $counseling->status === 'ditinjau' ? 'selected' : '' }}>Ditinjau BK</option>
+                            <option value="dijadwalkan" {{ $counseling->status === 'dijadwalkan' ? 'selected' : '' }}>Dijadwalkan</option>
+                            <option value="dilaksanakan" {{ $counseling->status === 'dilaksanakan' ? 'selected' : '' }}>Dilaksanakan (Sesi Berjalan)</option>
+                            <option value="tindak_lanjut" {{ $counseling->status === 'tindak_lanjut' ? 'selected' : '' }}>Membutuhkan Tindak Lanjut</option>
+                            <option value="selesai" {{ $counseling->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            <option value="dialihkan" {{ $counseling->status === 'dialihkan' ? 'selected' : '' }}>Dialihkan / Rujukan Luar</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tingkat Kerahasiaan Dokumen *</label>
+                        <select name="confidential_level" class="form-select" required @if(!$counseling->scheduled_date) tabindex="-1" @endif>
+                            <option value="rahasia" {{ $counseling->confidential_level === 'rahasia' ? 'selected' : '' }}>Rahasia (Default BK)</option>
+                            <option value="terbatas" {{ $counseling->confidential_level === 'terbatas' ? 'selected' : '' }}>Terbatas</option>
+                            <option value="umum" {{ $counseling->confidential_level === 'umum' ? 'selected' : '' }}>Umum</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Tingkat Kerahasiaan Dokumen *</label>
-                    <select name="confidential_level" class="form-select" required>
-                        <option value="rahasia" {{ $counseling->confidential_level === 'rahasia' ? 'selected' : '' }}>Rahasia (Default BK)</option>
-                        <option value="terbatas" {{ $counseling->confidential_level === 'terbatas' ? 'selected' : '' }}>Terbatas</option>
-                        <option value="umum" {{ $counseling->confidential_level === 'umum' ? 'selected' : '' }}>Umum</option>
-                    </select>
+                    <label class="form-label">Catatan Hasil Pertemuan & Interpretasi Internal (Rahasia)</label>
+                    <textarea name="counselor_notes" class="form-control" rows="5" placeholder="Tuliskan dinamika wawancara, observasi perilaku, akar masalah tersembunyi, dan penilaian profesional..." @if(!$counseling->scheduled_date) tabindex="-1" @endif>{{ old('counselor_notes', $counseling->counselor_notes) }}</textarea>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label class="form-label">Catatan Hasil Pertemuan & Interpretasi Internal (Rahasia)</label>
-                <textarea name="counselor_notes" class="form-control" rows="5" placeholder="Tuliskan dinamika wawancara, observasi perilaku, akar masalah tersembunyi, dan penilaian profesional...">{{ old('counselor_notes', $counseling->counselor_notes) }}</textarea>
-            </div>
+                <div class="form-group">
+                    <label class="form-label">Kesepakatan & Komitmen Siswa (Dapat dilihat siswa untuk panduan)</label>
+                    <textarea name="student_action_plan" class="form-control" rows="3" placeholder="Rencana aksi mandiri yang disepakati siswa bersama guru BK..." @if(!$counseling->scheduled_date) tabindex="-1" @endif>{{ old('student_action_plan', $counseling->student_action_plan) }}</textarea>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label">Kesepakatan & Komitmen Siswa (Dapat dilihat siswa untuk panduan)</label>
-                <textarea name="student_action_plan" class="form-control" rows="3" placeholder="Rencana aksi mandiri yang disepakati siswa bersama guru BK...">{{ old('student_action_plan', $counseling->student_action_plan) }}</textarea>
-            </div>
-
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="submit" class="btn btn-primary">Simpan Catatan & Pembaruan Status</button>
-            </div>
-        </form>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" @if(!$counseling->scheduled_date) onclick="return handleCatatanInternalSubmit(event)" @endif>Simpan Catatan & Pembaruan Status</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -273,4 +313,96 @@
         </form>
     </div>
 </div>
+
+<!-- Modal Peringatan Wajib Isi Jadwal Konseling Terlebih Dahulu -->
+<div id="scheduleRequiredModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="scheduleReqModalTitle" onclick="handleScheduleModalBackdrop(event)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge warning">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <h3 id="scheduleReqModalTitle" class="modal-title">Wajib Isi Jadwal Sesi Terlebih Dahulu</h3>
+            <p class="modal-desc">
+                Guru BK harus mengisi dan menetapkan <strong>jadwal sesi konseling</strong> (tanggal, waktu, dan lokasi pertemuan) terlebih dahulu sebelum dapat mengisi Catatan Internal Konseling &amp; Privasi Rahasia Guru BK.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeScheduleRequiredModal()">
+                Tutup
+            </button>
+            <button type="button" class="btn btn-primary" onclick="goToScheduleFromModal()">
+                Isi Jadwal Sesi Sekarang &uarr;
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showScheduleRequiredModal() {
+        var modal = document.getElementById('scheduleRequiredModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeScheduleRequiredModal() {
+        var modal = document.getElementById('scheduleRequiredModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleScheduleModalBackdrop(e) {
+        if (e.target.id === 'scheduleRequiredModal') {
+            closeScheduleRequiredModal();
+        }
+    }
+
+    function scrollToSchedulePanel() {
+        closeScheduleRequiredModal();
+        var panel = document.getElementById('panelPenjadwalan');
+        var dateInput = document.getElementById('scheduled_date_input');
+        if (panel) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            panel.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+            panel.style.boxShadow = '0 0 0 4px rgba(245, 158, 11, 0.45)';
+            panel.style.borderColor = 'var(--color-warning)';
+            setTimeout(function() {
+                if (dateInput) {
+                    dateInput.focus();
+                }
+            }, 350);
+            setTimeout(function() {
+                panel.style.boxShadow = '';
+                panel.style.borderColor = '';
+            }, 2500);
+        }
+    }
+
+    function goToScheduleFromModal() {
+        closeScheduleRequiredModal();
+        setTimeout(scrollToSchedulePanel, 80);
+    }
+
+    function handleCatatanInternalSubmit(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        showScheduleRequiredModal();
+        return false;
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeScheduleRequiredModal();
+        }
+    });
+</script>
 @endsection

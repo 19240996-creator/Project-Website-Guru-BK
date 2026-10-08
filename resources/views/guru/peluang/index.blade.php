@@ -31,7 +31,7 @@
                             <th>Batas Pendaftaran</th>
                             <th>Jumlah Pendaftar</th>
                             <th>Status</th>
-                            <th style="text-align: right;">Aksi</th>
+                            <th style="text-align: center; width: 150px; min-width: 140px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -60,8 +60,8 @@
                                         {{ ucfirst($op->status) }}
                                     </span>
                                 </td>
-                                <td style="text-align: right;">
-                                    <a href="{{ route('guru.peluang.show', $op->id) }}" class="btn btn-secondary btn-sm">
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <a href="{{ route('guru.peluang.show', $op->id) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;">
                                         Pendaftar & Detail
                                     </a>
                                 </td>
@@ -71,8 +71,7 @@
                 </table>
             </div>
 
-            <div style="padding: 16px 20px;">
-                {{ $opportunities->links() }}
+            {{ $opportunities->links() }}
             </div>
         @else
             <div class="empty-state">

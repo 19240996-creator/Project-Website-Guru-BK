@@ -8,23 +8,31 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=1">
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
     @yield('styles')
 </head>
 <body>
     <div class="app-layout">
         <!-- Sidebar Navigation Guru BK -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="appSidebar">
             <div class="sidebar-header">
-                <a href="{{ route('guru.dashboard') }}" style="text-decoration: none;">
-                    <div class="brand-title">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                <div class="sidebar-brand-wrapper">
+                    <a href="{{ route('guru.dashboard') }}" style="text-decoration: none;">
+                        <div class="brand-title">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                            <span>RUANG BK</span>
+                        </div>
+                    </a>
+                    <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Tutup Menu Navigasi" onclick="closeMobileSidebar()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
-                        <span>RUANG BK</span>
-                    </div>
-                </a>
+                    </button>
+                </div>
             </div>
 
             <nav class="sidebar-nav">
@@ -129,8 +137,17 @@
         <!-- Main Wrapper -->
         <div class="main-wrapper">
             <header class="topbar">
-                <div class="topbar-title">
-                    @yield('header_title', 'Sistem Informasi Bimbingan Konseling & Karier')
+                <div class="topbar-left">
+                    <button type="button" class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Buka Menu Navigasi" onclick="toggleMobileSidebar()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="topbar-title">
+                        @yield('header_title', 'Sistem Informasi Bimbingan Konseling & Karier')
+                    </div>
                 </div>
                 <div class="topbar-actions">
                     <a href="{{ route('guru.profil.show') }}" class="btn btn-secondary btn-sm {{ request()->routeIs('guru.profil.*') ? 'active' : '' }}" title="Profil Guru BK">
@@ -170,6 +187,12 @@
                     @if(session('error'))
                         <div class="alert alert-danger">
                             {{ session('error') }}
+                        </div>
+                    @endif
+
+                    @if(session('warning'))
+                        <div class="alert alert-warning">
+                            {{ session('warning') }}
                         </div>
                     @endif
 
@@ -217,7 +240,44 @@
         </div>
     </div>
 
+    <!-- Overlay Backdrop Sidebar Mobile -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="closeMobileSidebar()"></div>
+
     <script>
+        function toggleMobileSidebar() {
+            var sidebar = document.getElementById('appSidebar');
+            var backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar) {
+                var isOpen = sidebar.classList.toggle('mobile-open');
+                if (backdrop) backdrop.classList.toggle('active', isOpen);
+                document.body.classList.toggle('sidebar-locked', isOpen);
+            }
+        }
+
+        function closeMobileSidebar() {
+            var sidebar = document.getElementById('appSidebar');
+            var backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar) {
+                sidebar.classList.remove('mobile-open');
+                if (backdrop) backdrop.classList.remove('active');
+                document.body.classList.remove('sidebar-locked');
+            }
+        }
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 992) {
+                closeMobileSidebar();
+            }
+        });
+
+        document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 992) {
+                    closeMobileSidebar();
+                }
+            });
+        });
+
         function openLogoutModal() {
             var modal = document.getElementById('logoutModal');
             if (modal) {
@@ -250,6 +310,7 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeLogoutModal();
+                closeMobileSidebar();
             }
         });
     </script>

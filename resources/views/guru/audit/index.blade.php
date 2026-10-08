@@ -22,12 +22,12 @@
                 <table class="table">
                     <thead class="table-thead-navy">
                         <tr>
-                            <th>Waktu & Tanggal</th>
-                            <th>Pengguna Pelaksana</th>
-                            <th>Aksi</th>
-                            <th>Entitas Data</th>
+                            <th style="width: 150px; min-width: 130px;">Waktu & Tanggal</th>
+                            <th style="width: 180px; min-width: 160px;">Pengguna Pelaksana</th>
+                            <th style="width: 160px; min-width: 140px; text-align: center;">Aksi</th>
+                            <th style="width: 160px; min-width: 140px;">Entitas Data</th>
                             <th>Deskripsi Perubahan</th>
-                            <th>Alamat IP</th>
+                            <th style="width: 110px; min-width: 90px;">Alamat IP</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -41,8 +41,8 @@
                                     <strong>{{ $log->user ? $log->user->name : 'Sistem' }}</strong><br>
                                     <small style="color: var(--color-text-subtle);">{{ $log->user ? ucfirst(str_replace('_', ' ', $log->user->role)) : '-' }}</small>
                                 </td>
-                                <td>
-                                    <span class="badge badge-secondary">{{ $log->action }}</span>
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <span class="badge badge-secondary" style="display: inline-flex; align-items: center; justify-content: center;">{{ $log->action }}</span>
                                 </td>
                                 <td>
                                     <code>{{ $log->entity_type }} #{{ $log->entity_id ?: '-' }}</code>

@@ -65,31 +65,24 @@
         <div class="card-body">
             @php
                 $maxVal = max(array_merge([1], $categoryChartData));
-                $categoryShortNames = [
-                    'Masalah Belajar' => 'Belajar',
-                    'Pengembangan Pribadi' => 'Pribadi',
-                    'Hubungan Sosial' => 'Sosial',
-                    'Masalah Keluarga & Lingkungan' => 'Keluarga',
-                    'Perencanaan Karier' => 'Karier',
-                ];
-                $colColors = ['#1e3a8a', '#2563eb', '#0d9488', '#d97706', '#059669'];
+                $colColors = ['#1e3a8a', '#1d4ed8', '#0f766e', '#b45309', '#047857'];
             @endphp
             <div id="counselingCategoryColumnChart" style="display: flex; flex-direction: column; height: 230px; justify-content: flex-end; padding-top: 10px;">
                 <!-- Column Bars Area -->
-                <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 170px; gap: 12px; border-bottom: 2px solid #cbd5e1; padding-bottom: 4px;">
+                <div style="display: flex; align-items: flex-end; justify-content: space-around; height: 170px; gap: 12px; border-bottom: 2px solid var(--color-border-strong, #cbd5e1); padding-bottom: 4px;">
                     @foreach($categoryChartLabels as $idx => $label)
                         @php
                             $val = $categoryChartData[$idx] ?? 0;
+                            $fullName = $categoryChartFullNames[$idx] ?? $label;
                             $heightPercent = $maxVal > 0 ? ($val / $maxVal) : 0;
-                            $barHeight = $val > 0 ? max(18, round($heightPercent * 140)) : 6;
+                            $barHeight = $val > 0 ? max(20, round($heightPercent * 135)) : 6;
                             $color = $colColors[$idx % count($colColors)];
-                            $shortName = $categoryShortNames[$label] ?? \Illuminate\Support\Str::limit($label, 10);
                         @endphp
-                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;" title="{{ $label }}: {{ $val }} Kasus">
-                            <span style="font-size: 12px; font-weight: 700; color: {{ $val > 0 ? $color : 'var(--color-text-subtle)' }}; margin-bottom: 4px;">
+                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%;" title="{{ $fullName }}: {{ $val }} Kasus">
+                            <span style="font-size: 13px; font-weight: 700; color: {{ $val > 0 ? $color : 'var(--color-text-subtle)' }}; margin-bottom: 4px;">
                                 {{ $val }}
                             </span>
-                            <div style="width: 100%; max-width: 44px; height: {{ $barHeight }}px; background: {{ $val > 0 ? $color : '#e2e8f0' }}; border-radius: 6px 6px 0 0; transition: height 0.3s ease;"></div>
+                            <div style="width: 100%; max-width: 44px; height: {{ $barHeight }}px; background: {{ $val > 0 ? $color : 'var(--color-border, #e2e8f0)' }}; border-radius: 6px 6px 0 0; transition: height 0.3s ease; box-shadow: {{ $val > 0 ? '0 2px 4px rgba(0,0,0,0.06)' : 'none' }};"></div>
                         </div>
                     @endforeach
                 </div>
@@ -97,14 +90,15 @@
                 <div style="display: flex; justify-content: space-around; gap: 12px; margin-top: 8px;">
                     @foreach($categoryChartLabels as $idx => $label)
                         @php
-                            $shortName = $categoryShortNames[$label] ?? \Illuminate\Support\Str::limit($label, 10);
+                            $val = $categoryChartData[$idx] ?? 0;
+                            $fullName = $categoryChartFullNames[$idx] ?? $label;
                         @endphp
-                        <div style="flex: 1; text-align: center;" title="{{ $label }}">
-                            <div style="font-size: 11px; font-weight: 600; color: var(--color-text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                {{ $shortName }}
+                        <div style="flex: 1; text-align: center;" title="{{ $fullName }}">
+                            <div style="font-size: 12px; font-weight: 600; color: var(--color-text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ $label }}
                             </div>
-                            <div style="font-size: 10px; color: var(--color-text-muted);">
-                                {{ $categoryChartData[$idx] ?? 0 }} sesi
+                            <div style="font-size: 11px; color: var(--color-text-muted);">
+                                {{ $val }} kasus
                             </div>
                         </div>
                     @endforeach
@@ -113,13 +107,13 @@
         </div>
     </div>
 
-    <!-- Pie / Donut Chart: Proporsi Rencana Masa Depan Kelas XII -->
+    <!-- Pie / Donut Chart: Proporsi Rencana Masa Depan Siswa & Kelas XII -->
     <div class="card" style="margin-bottom: 0;">
         <div class="card-header card-header-navy">
             <div>
                 <h3 class="card-title">Peta Rencana Masa Depan Kelas XII</h3>
                 <p style="font-size: 12px; margin-top: 2px;">
-                    Grafik lingkaran proporsi karier siswa tingkat akhir ({{ $totalGradeXII }} siswa)
+                    Grafik lingkaran proporsi karier siswa binaan (Total {{ $totalPlanStudents }} siswa)
                 </p>
             </div>
             <a href="{{ route('guru.peminatan.index') }}" class="btn btn-secondary btn-sm" title="Buka Detail Peminatan">
@@ -129,11 +123,18 @@
         <div class="card-body">
             @php
                 $planColors = [
+                    'Target Kuliah' => 'var(--color-primary, #1e3a8a)',
+                    'Target Bekerja' => 'var(--color-success, #047857)',
+                    'Target Wirausaha' => 'var(--color-warning, #b45309)',
+                    'Kuliah & Kerja' => 'var(--color-info, #1d4ed8)',
+                    'Belum Menentukan' => 'var(--color-danger, #b91c1c)',
+                ];
+                $planHexColors = [
                     'Target Kuliah' => '#1e3a8a',
-                    'Target Bekerja' => '#059669',
-                    'Target Wirausaha' => '#d97706',
-                    'Kuliah & Kerja' => '#0d9488',
-                    'Belum Menentukan' => '#dc2626',
+                    'Target Bekerja' => '#047857',
+                    'Target Wirausaha' => '#b45309',
+                    'Kuliah & Kerja' => '#1d4ed8',
+                    'Belum Menentukan' => '#b91c1c',
                 ];
                 $circumference = 339.292; // 2 * pi * 54
                 $cumulativeOffset = 0;
@@ -144,21 +145,21 @@
                     <svg viewBox="0 0 140 140" width="140" height="140" style="transform: rotate(-90deg);">
                         <!-- Background Circle Ring -->
                         <circle cx="70" cy="70" r="54" fill="transparent" stroke="#f1f5f9" stroke-width="20" />
-                        @if($totalGradeXII > 0)
+                        @if($totalPlanStudents > 0)
                             @foreach($futurePlanChartLabels as $idx => $label)
                                 @php
                                     $val = $futurePlanChartData[$idx] ?? 0;
-                                    $fraction = $totalGradeXII > 0 ? ($val / $totalGradeXII) : 0;
+                                    $fraction = $totalPlanStudents > 0 ? ($val / $totalPlanStudents) : 0;
                                     $dashArray = ($fraction * $circumference) . ' ' . $circumference;
                                     $dashOffset = -$cumulativeOffset;
-                                    $color = $planColors[$label] ?? '#64748b';
+                                    $hexColor = $planHexColors[$label] ?? '#b91c1c';
                                     if ($val > 0) {
                                         $cumulativeOffset += ($fraction * $circumference);
                                     }
                                 @endphp
                                 @if($val > 0)
                                     <circle cx="70" cy="70" r="54" fill="transparent"
-                                            stroke="{{ $color }}"
+                                            stroke="{{ $hexColor }}"
                                             stroke-width="20"
                                             stroke-dasharray="{{ $dashArray }}"
                                             stroke-dashoffset="{{ $dashOffset }}" />
@@ -170,11 +171,11 @@
                     </svg>
                     <!-- Center Metric Text -->
                     <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
-                        <span style="font-size: 22px; font-weight: 800; color: var(--color-text-main); line-height: 1;">
-                            {{ $totalGradeXII }}
+                        <span style="font-size: 24px; font-weight: 800; color: var(--color-text-main); line-height: 1;">
+                            {{ $totalPlanStudents }}
                         </span>
                         <span style="font-size: 10px; font-weight: 600; color: var(--color-text-muted); margin-top: 2px;">
-                            Siswa XII
+                            Siswa Binaan
                         </span>
                     </div>
                 </div>
@@ -184,11 +185,11 @@
                     @foreach($futurePlanChartLabels as $idx => $label)
                         @php
                             $val = $futurePlanChartData[$idx] ?? 0;
-                            $percent = $totalGradeXII > 0 ? round(($val / $totalGradeXII) * 100) : 0;
-                            $color = $planColors[$label] ?? '#64748b';
+                            $percent = $totalPlanStudents > 0 ? round(($val / $totalPlanStudents) * 100) : 0;
+                            $color = $planColors[$label] ?? 'var(--color-danger, #b91c1c)';
                         @endphp
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px;">
-                            <div style="display: flex; align-items: center; gap: 6px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 2px 0;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: {{ $color }}; flex-shrink: 0;"></span>
                                 <span style="color: var(--color-text-main); font-weight: 500;">{{ $label }}</span>
                             </div>

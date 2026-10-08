@@ -110,6 +110,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
 
     // 23 - 25. Kelulusan & Alumni (Tracer Study)
     Route::get('/alumni', [GuruAlumniController::class, 'index'])->name('alumni.index');
+    Route::put('/alumni/{id}', [GuruAlumniController::class, 'update'])->name('alumni.update');
+    Route::delete('/alumni/{id}', [GuruAlumniController::class, 'destroy'])->name('alumni.destroy');
     Route::post('/siswa/{studentId}/graduate', [GuruAlumniController::class, 'graduateStudent'])->name('alumni.graduate');
     Route::post('/alumni/{id}/toggle-showcase', [GuruAlumniController::class, 'toggleShowcase'])->name('alumni.toggle_showcase');
 

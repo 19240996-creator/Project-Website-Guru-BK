@@ -102,4 +102,64 @@ class AlumniController extends Controller
 
         return back()->with('success', 'Status tampilan jejak alumni berhasil diubah.');
     }
+
+    public function update(Request $request, $id)
+    {
+        $tracking = AlumniTracking::with('student')->findOrFail($id);
+
+        $validated = $request->validate([
+            'graduation_year' => 'required|digits:4',
+            'tracking_period' => 'required|in:3_bulan,6_bulan,12_bulan,24_bulan',
+            'current_status' => 'required|in:bekerja,kuliah,wirausaha,mencari_kerja,belum_bekerja,belum_terlacak',
+            'institution_or_company' => 'nullable|string|max:255',
+            'major_or_position' => 'nullable|string|max:255',
+            'monthly_income_range' => 'nullable|string|max:100',
+            'notes' => 'nullable|string',
+            'allow_public_showcase' => 'nullable|boolean',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('alumni_photos', 'public');
+            $tracking->photo = $photoPath;
+            if ($tracking->student) {
+                $tracking->student->update(['avatar' => $photoPath]);
+                if ($tracking->student->user) {
+                    $tracking->student->user->update(['avatar' => $photoPath]);
+                }
+            }
+        }
+
+        $tracking->graduation_year = $validated['graduation_year'];
+        $tracking->tracking_period = $validated['tracking_period'];
+        $tracking->current_status = $validated['current_status'];
+        $tracking->institution_or_company = $validated['institution_or_company'] ?? null;
+        $tracking->major_or_position = $validated['major_or_position'] ?? null;
+        $tracking->monthly_income_range = $validated['monthly_income_range'] ?? null;
+        $tracking->notes = $validated['notes'] ?? null;
+        $tracking->allow_public_showcase = $request->has('allow_public_showcase');
+        $tracking->save();
+
+        $studentName = $tracking->student ? $tracking->student->name : 'Alumni';
+        AuditLog::log('UPDATE_ALUMNI', 'AlumniTracking', $tracking->id, "Memperbarui data pelacakan alumni {$studentName} ({$tracking->code}).");
+
+        return back()->with('success', "Data pelacakan alumni {$studentName} berhasil diperbarui.");
+    }
+
+    public function destroy($id)
+    {
+        $tracking = AlumniTracking::with('student')->findOrFail($id);
+        $studentName = $tracking->student ? $tracking->student->name : 'Alumni';
+        $code = $tracking->code;
+
+        if ($tracking->student && $tracking->student->status === 'lulus') {
+            $tracking->student->update(['status' => 'aktif']);
+        }
+
+        $tracking->delete();
+
+        AuditLog::log('DELETE_ALUMNI', 'AlumniTracking', $id, "Menghapus data pelacakan alumni {$studentName} ({$code}).");
+
+        return back()->with('success', "Data pelacakan alumni {$studentName} berhasil dihapus.");
+    }
 }

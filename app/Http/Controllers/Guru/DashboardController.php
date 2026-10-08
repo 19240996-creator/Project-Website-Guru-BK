@@ -37,21 +37,19 @@ class DashboardController extends Controller
             ->where('target_date', '<=', $today)
             ->count();
 
-        // Future Plan distributions for grade XII
-        $gradeXIIStudents = Student::where('status', 'aktif')
-            ->whereHas('studentClass', function ($q) {
-                $q->where('grade', 'XII');
-            })->get();
+        // Future Plan distributions for active students (harmonized with Peminatan & Masa Depan)
+        $allActiveStudents = Student::where('status', 'aktif')
+            ->with(['studentClass', 'futurePlan'])
+            ->get();
 
-        $totalGradeXII = $gradeXIIStudents->count();
+        $totalPlanStudents = $allActiveStudents->count();
+        $totalGradeXII = $totalPlanStudents;
 
-        $plans = StudentFuturePlan::whereIn('student_id', $gradeXIIStudents->pluck('id'))->get();
-        $collegeCount = $plans->where('primary_goal', 'kuliah')->count();
-        $workCount = $plans->where('primary_goal', 'bekerja')->count();
-        $businessCount = $plans->where('primary_goal', 'wirausaha')->count();
-        
-        $studentsWithPlanIds = $plans->where('primary_goal', '!=', 'belum_menentukan')->pluck('student_id')->unique();
-        $undecidedGradeXIICount = $gradeXIIStudents->whereNotIn('id', $studentsWithPlanIds)->count();
+        $collegeCount = $allActiveStudents->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'kuliah')->count();
+        $workCount = $allActiveStudents->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'bekerja')->count();
+        $businessCount = $allActiveStudents->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'wirausaha')->count();
+        $workAndStudyCount = $allActiveStudents->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'kuliah_kerja')->count();
+        $undecidedGradeXIICount = $allActiveStudents->filter(fn($s) => !$s->futurePlan || $s->futurePlan->primary_goal === 'belum_menentukan')->count();
 
         $activePartnersCount = Partner::where('partnership_status', 'aktif')->count();
         $activeOpportunitiesCount = Opportunity::where('status', 'dipublikasikan')->count();
@@ -158,16 +156,34 @@ class DashboardController extends Controller
             ->get();
 
         $counselor = auth()->user();
-        $counselorCounselingsCount = Counseling::where('counselor_id', $counselor->id)->count();
+        $counselorCounselingsCount = $counselor ? Counseling::where('counselor_id', $counselor->id)->count() : 0;
         $activeAcademicYear = AcademicYear::where('is_active', true)->first();
 
         // Chart 1: Kategori Kasus Bimbingan & Konseling (Column Chart)
-        $counselingCategories = CounselingCategory::withCount('counselings')->get();
-        $categoryChartLabels = $counselingCategories->pluck('name')->toArray();
-        $categoryChartData = $counselingCategories->pluck('counselings_count')->toArray();
+        $counselingCategories = CounselingCategory::withCount('counselings')
+            ->orderBy('id', 'asc')
+            ->get();
 
-        // Chart 2: Peta Rencana Masa Depan Siswa Kelas XII (Pie Chart)
-        $workAndStudyCount = $plans->where('primary_goal', 'kuliah_kerja')->count();
+        $categoryShortNameMap = [
+            'Masalah Belajar & Akademik' => 'Belajar',
+            'Pengembangan Pribadi' => 'Pribadi',
+            'Hubungan Sosial & Teman Sebaya' => 'Sosial',
+            'Keluarga & Lingkungan Rumah' => 'Keluarga',
+            'Perencanaan Karier & Masa Depan' => 'Karier',
+        ];
+
+        $categoryChartLabels = [];
+        $categoryChartFullNames = [];
+        $categoryChartData = [];
+
+        foreach ($counselingCategories as $cat) {
+            $short = $categoryShortNameMap[$cat->name] ?? \Illuminate\Support\Str::limit($cat->name, 10);
+            $categoryChartLabels[] = $short;
+            $categoryChartFullNames[] = $cat->name;
+            $categoryChartData[] = (int) $cat->counselings_count;
+        }
+
+        // Chart 2: Peta Rencana Masa Depan Siswa (Pie / Donut Chart)
         $futurePlanChartLabels = [
             'Target Kuliah',
             'Target Bekerja',
@@ -205,9 +221,11 @@ class DashboardController extends Controller
             'counselorCounselingsCount',
             'activeAcademicYear',
             'categoryChartLabels',
+            'categoryChartFullNames',
             'categoryChartData',
             'futurePlanChartLabels',
-            'futurePlanChartData'
+            'futurePlanChartData',
+            'totalPlanStudents'
         ));
     }
 }

@@ -16,6 +16,10 @@ class SystemVerificationTest extends TestCase
         $response = $this->get('/login');
         $response->assertStatus(200);
         $response->assertSee('SIM BK', false);
+        $response->assertSee('Username', false);
+        $response->assertSee('Password', false);
+        $response->assertSee('Masukkan username', false);
+        $response->assertSee('Masukkan password', false);
     }
 
     public function test_guru_bk_can_login_and_access_dashboard()
@@ -33,8 +37,19 @@ class SystemVerificationTest extends TestCase
         $response->assertSee('counselingCategoryColumnChart', false);
         $response->assertSee('futurePlanPieChart', false);
         $response->assertSee('Distribusi Kategori Layanan Konseling', false);
+        $response->assertSee('kasus', false);
+        $response->assertSee('Belajar', false);
+        $response->assertSee('Pribadi', false);
+        $response->assertSee('Sosial', false);
+        $response->assertSee('Keluarga', false);
+        $response->assertSee('Karier', false);
         $response->assertSee('Peta Rencana Masa Depan Kelas XII', false);
         $response->assertSee('<svg viewBox="0 0 140 140"', false);
+        $response->assertSee('Target Kuliah', false);
+        $response->assertSee('Target Bekerja', false);
+        $response->assertSee('Target Wirausaha', false);
+        $response->assertSee('Belum Menentukan', false);
+        $response->assertSee('5', false);
     }
 
     public function test_guru_bk_can_access_and_update_profile()
@@ -258,6 +273,27 @@ class SystemVerificationTest extends TestCase
         $this->assertStringContainsString('Nabila Putri Cahyani', $content);
     }
 
+    public function test_guru_bk_student_list_has_active_pagination(): void
+    {
+        $guru = User::where('username', 'gurubk')->first();
+
+        // 1. Visit student index with default per_page=5
+        $response = $this->actingAs($guru)->get('/guru/siswa?per_page=5');
+        $response->assertStatus(200);
+        $response->assertSee('pagination-container', false);
+        $response->assertSee('pagination-list', false);
+        $response->assertSee('Menampilkan', false);
+        $response->assertSee('data siswa', false);
+        $response->assertSee('Baris per Halaman', false);
+        $response->assertSee('?per_page=5&amp;page=2', false);
+
+        // 2. Navigate to page 2
+        $page2Response = $this->actingAs($guru)->get('/guru/siswa?per_page=5&page=2');
+        $page2Response->assertStatus(200);
+        $page2Response->assertSee('pagination-container', false);
+        $page2Response->assertSee('?per_page=5&amp;page=1', false);
+    }
+
     public function test_guru_bk_can_mass_promote_students_to_next_class()
     {
         $guru = User::where('username', 'gurubk')->first();
@@ -469,5 +505,154 @@ class SystemVerificationTest extends TestCase
         $auditPageResponse = $this->actingAs($guru)->get('/guru/audit');
         $auditPageResponse->assertStatus(200);
         $auditPageResponse->assertSee($updatedTitle, false);
+    }
+
+    public function test_guru_bk_can_edit_and_delete_alumni_tracking()
+    {
+        $guru = User::where('username', 'gurubk')->first();
+        $this->assertNotNull($guru);
+
+        // 1. Alumni index page displays action buttons and modals
+        $indexResponse = $this->actingAs($guru)->get('/guru/alumni');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Ubah', false);
+        $indexResponse->assertSee('Hapus', false);
+        $indexResponse->assertSee('editAlumniModal', false);
+        $indexResponse->assertSee('deleteAlumniModal', false);
+
+        // Get an existing alumni tracking record or find one
+        $tracking = \App\Models\AlumniTracking::first();
+        $this->assertNotNull($tracking);
+
+        // 2. Perform UPDATE on alumni tracking
+        $updatedCompany = 'PT Teknologi Nusantara Global';
+        $updatedPosition = 'Software Engineer Junior';
+
+        $responseUpdate = $this->actingAs($guru)->put("/guru/alumni/{$tracking->id}", [
+            'graduation_year' => $tracking->graduation_year,
+            'tracking_period' => '12_bulan',
+            'current_status' => 'bekerja',
+            'institution_or_company' => $updatedCompany,
+            'major_or_position' => $updatedPosition,
+            'monthly_income_range' => '5_sd_10_juta',
+            'notes' => 'Catatan pelacakan diperbarui oleh konselor',
+            'allow_public_showcase' => '1',
+        ]);
+
+        $responseUpdate->assertRedirect();
+        $responseUpdate->assertSessionHas('success');
+
+        $tracking->refresh();
+        $this->assertEquals('bekerja', $tracking->current_status);
+        $this->assertEquals('12_bulan', $tracking->tracking_period);
+        $this->assertEquals($updatedCompany, $tracking->institution_or_company);
+        $this->assertEquals($updatedPosition, $tracking->major_or_position);
+        $this->assertTrue((bool)$tracking->allow_public_showcase);
+
+        // Verify Audit Log for UPDATE_ALUMNI
+        $updateLog = \App\Models\AuditLog::where('action', 'UPDATE_ALUMNI')
+            ->where('entity_id', $tracking->id)
+            ->latest()
+            ->first();
+        $this->assertNotNull($updateLog);
+        $this->assertStringContainsString($tracking->code, $updateLog->description);
+
+        // 3. Create a temporary tracking record to test DELETE cleanly
+        $student = Student::whereDoesntHave('alumniTracking')->first();
+        if (!$student) {
+            $student = Student::latest()->first();
+        }
+
+        $tempTracking = \App\Models\AlumniTracking::create([
+            'student_id' => $student->id,
+            'code' => 'ALS-TEST-' . rand(1000, 9999),
+            'graduation_year' => 2026,
+            'tracking_period' => '6_bulan',
+            'current_status' => 'belum_terlacak',
+        ]);
+
+        $deleteId = $tempTracking->id;
+        $deleteCode = $tempTracking->code;
+
+        $responseDelete = $this->actingAs($guru)->delete("/guru/alumni/{$deleteId}");
+        $responseDelete->assertRedirect();
+        $responseDelete->assertSessionHas('success');
+
+        $this->assertNull(\App\Models\AlumniTracking::find($deleteId));
+
+        // Verify Audit Log for DELETE_ALUMNI
+        $deleteLog = \App\Models\AuditLog::where('action', 'DELETE_ALUMNI')
+            ->where('entity_id', $deleteId)
+            ->latest()
+            ->first();
+        $this->assertNotNull($deleteLog);
+        $this->assertStringContainsString($deleteCode, $deleteLog->description);
+    }
+
+    public function test_guru_bk_must_schedule_before_filling_confidential_notes()
+    {
+        $guru = User::where('username', 'gurubk')->first();
+        $this->assertNotNull($guru);
+
+        // Find or create unscheduled counseling session
+        $counseling = Counseling::whereNull('scheduled_date')->first();
+        if (!$counseling) {
+            $student = Student::first();
+            $counseling = Counseling::create([
+                'code' => 'KSL-TEST-' . rand(1000, 9999),
+                'student_id' => $student->id,
+                'topic' => 'Tes Konseling Belum Terjadwal',
+                'story' => 'Deskripsi konsultasi siswa untuk pengujian alur wajib jadwal.',
+                'urgency' => 'sedang',
+                'status' => 'diajukan',
+                'confidential_level' => 'rahasia',
+            ]);
+        }
+
+        // 1. Visit show page and verify warnings & locked state are displayed
+        $responseShow = $this->actingAs($guru)->get("/guru/konseling/{$counseling->id}");
+        $responseShow->assertStatus(200);
+        $responseShow->assertSee('Peringatan: Jadwal Sesi Pertemuan Belum Ditetapkan!', false);
+        $responseShow->assertSee('Formulir Catatan Terkunci Sementara', false);
+        $responseShow->assertSee('scheduleRequiredModal', false);
+
+        // 2. Try to submit internal notes without scheduling - must be rejected with warning
+        $attemptNotes = $this->actingAs($guru)->post("/guru/konseling/{$counseling->id}/notes", [
+            'status' => 'dilaksanakan',
+            'confidential_level' => 'rahasia',
+            'counselor_notes' => 'Catatan sebelum ada jadwal - tidak boleh tersimpan.',
+        ]);
+
+        $attemptNotes->assertRedirect();
+        $attemptNotes->assertSessionHas('warning');
+
+        $counseling->refresh();
+        $this->assertNotEquals('Catatan sebelum ada jadwal - tidak boleh tersimpan.', $counseling->counselor_notes);
+
+        // 3. Now schedule the counseling session
+        $scheduleResponse = $this->actingAs($guru)->post("/guru/konseling/{$counseling->id}/schedule", [
+            'scheduled_date' => date('Y-m-d'),
+            'scheduled_time' => '10:30',
+            'scheduled_location' => 'Ruang Konseling BK 1',
+        ]);
+        $scheduleResponse->assertRedirect();
+        $scheduleResponse->assertSessionHas('success');
+
+        $counseling->refresh();
+        $this->assertNotNull($counseling->scheduled_date);
+        $this->assertEquals('dijadwalkan', $counseling->status);
+
+        // 4. Now internal notes can be submitted successfully
+        $validNotes = $this->actingAs($guru)->post("/guru/konseling/{$counseling->id}/notes", [
+            'status' => 'dilaksanakan',
+            'confidential_level' => 'rahasia',
+            'counselor_notes' => 'Catatan setelah jadwal ditetapkan berhasil tersimpan.',
+        ]);
+        $validNotes->assertRedirect();
+        $validNotes->assertSessionHas('success');
+
+        $counseling->refresh();
+        $this->assertEquals('Catatan setelah jadwal ditetapkan berhasil tersimpan.', $counseling->counselor_notes);
+        $this->assertEquals('dilaksanakan', $counseling->status);
     }
 }

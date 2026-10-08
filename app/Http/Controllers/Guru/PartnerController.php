@@ -140,7 +140,12 @@ class PartnerController extends Controller
             ]);
         }
 
-        $code = 'KGT-' . date('Y') . '-' . str_pad(PartnerActivity::count() + 1, 5, '0', STR_PAD_LEFT);
+        $seq = (int) (PartnerActivity::max('id') ?? 0);
+        do {
+            $seq++;
+            $code = 'KGT-' . date('Y') . '-' . str_pad($seq, 5, '0', STR_PAD_LEFT);
+        } while (PartnerActivity::where('code', $code)->exists());
+
         $validated['code'] = $code;
 
         $act = PartnerActivity::create($validated);

@@ -4,7 +4,7 @@
 @section('header_title', 'Data & Administrasi Siswa')
 
 @section('content')
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: gap: 12px;">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
     <div>
         <h2 style="font-size: 20px; font-weight: 800; color: var(--color-text-main);">Daftar Siswa Bimbingan</h2>
         <p style="font-size: 13px; color: var(--color-text-muted);">
@@ -30,7 +30,7 @@
 <!-- Filter Bar -->
 <div class="card" style="margin-bottom: 20px;">
     <div class="card-body" style="padding: 16px 20px;">
-        <form action="{{ route('guru.siswa.index') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) 100px; gap: 12px; align-items: flex-end;">
+        <form action="{{ route('guru.siswa.index') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) 100px; gap: 12px; align-items: flex-end;">
             <div>
                 <label class="form-label" style="font-size: 12px;">Cari Nama / NISN / NIS</label>
                 <input type="text" name="q" class="form-control" style="min-height: 38px; font-size: 13px;" value="{{ request('q') }}" placeholder="Ketik kata kunci...">
@@ -64,6 +64,16 @@
                     <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                     <option value="lulus" {{ request('status') == 'lulus' ? 'selected' : '' }}>Lulus</option>
                     <option value="pindah" {{ request('status') == 'pindah' ? 'selected' : '' }}>Pindah</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px;">Baris per Halaman</label>
+                <select name="per_page" class="form-select" style="min-height: 38px; font-size: 13px;" onchange="this.form.submit()">
+                    <option value="5" {{ request('per_page', '5') == '5' ? 'selected' : '' }}>5 Siswa</option>
+                    <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10 Siswa</option>
+                    <option value="25" {{ request('per_page') == '25' ? 'selected' : '' }}>25 Siswa</option>
+                    <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 Siswa</option>
                 </select>
             </div>
 
@@ -145,9 +155,7 @@
                 </table>
             </div>
 
-            <div style="padding: 16px 20px;">
-                {{ $students->links() }}
-            </div>
+            {{ $students->links() }}
         @else
             <div class="empty-state">
                 <p class="empty-state-title">Data Siswa Tidak Ditemukan</p>

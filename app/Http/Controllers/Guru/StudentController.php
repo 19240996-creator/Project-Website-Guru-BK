@@ -47,7 +47,12 @@ class StudentController extends Controller
             $query->where('status', $request->status);
         }
 
-        $students = $query->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 5);
+        if (!in_array($perPage, [5, 10, 25, 50])) {
+            $perPage = 5;
+        }
+
+        $students = $query->paginate($perPage)->withQueryString();
         $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
         $majors = StudentClass::whereNotNull('major')
             ->where('major', '!=', '')

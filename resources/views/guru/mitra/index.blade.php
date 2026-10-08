@@ -61,12 +61,12 @@
                 <table class="table">
                     <thead class="table-thead-navy">
                         <tr>
-                            <th>Kode & Nama Mitra</th>
-                            <th>Tipe & Kategori</th>
-                            <th>Kota & Kontak</th>
-                            <th>Status Kerja Sama (MoU)</th>
-                            <th>Kegiatan & Peluang</th>
-                            <th style="text-align: right;">Aksi</th>
+                            <th style="width: 26%;">Kode & Nama Mitra</th>
+                            <th style="width: 15%;">Tipe & Kategori</th>
+                            <th style="width: 20%;">Kota & Kontak</th>
+                            <th style="width: 14%; text-align: center;">Status Kerja Sama (MoU)</th>
+                            <th style="width: 13%;">Kegiatan & Peluang</th>
+                            <th style="width: 12%; text-align: center; min-width: 130px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,7 +86,7 @@
                                     {{ $p->city ?: '-' }}<br>
                                     <small style="color: var(--color-text-subtle);">PIC: {{ $p->contact_person ?: '-' }} ({{ $p->phone ?: '-' }})</small>
                                 </td>
-                                <td>
+                                <td style="text-align: center;">
                                     <span class="badge badge-{{ $p->partnership_status === 'aktif' ? 'success' : 'warning' }}">
                                         {{ ucfirst(str_replace('_', ' ', $p->partnership_status)) }}
                                     </span>
@@ -97,8 +97,8 @@
                                         {{ $p->opportunities_count }} Peluang Dipublikasikan
                                     </small>
                                 </td>
-                                <td style="text-align: right;">
-                                    <a href="{{ route('guru.mitra.show', $p->id) }}" class="btn btn-secondary btn-sm">
+                                <td style="text-align: center; vertical-align: middle;">
+                                    <a href="{{ route('guru.mitra.show', $p->id) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;">
                                         Detail & Agenda
                                     </a>
                                 </td>
@@ -108,9 +108,7 @@
                 </table>
             </div>
 
-            <div style="padding: 16px 20px;">
-                {{ $partners->links() }}
-            </div>
+            {{ $partners->links() }}
         @else
             <div class="empty-state">
                 <p class="empty-state-title">Belum Ada Data Mitra</p>
