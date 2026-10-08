@@ -47,25 +47,44 @@ class AlumniController extends Controller
             'monthly_income_range' => 'nullable|string|max:100',
             'notes' => 'nullable|string',
             'allow_public_showcase' => 'nullable|boolean',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:3072',
         ]);
 
-        $student->update(['status' => 'lulus']);
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('alumni_photos', 'public');
+            $student->avatar = $photoPath;
+            if ($student->user) {
+                $student->user->update(['avatar' => $photoPath]);
+            }
+        }
+
+        $student->status = 'lulus';
+        $student->save();
 
         $code = 'ALS-' . $validated['graduation_year'] . '-' . str_pad(AlumniTracking::count() + 1, 5, '0', STR_PAD_LEFT);
 
+        $trackingData = [
+            'code' => $code,
+            'graduation_year' => $validated['graduation_year'],
+            'tracking_period' => '6_bulan',
+            'current_status' => $validated['current_status'],
+            'institution_or_company' => $validated['institution_or_company'] ?? null,
+            'major_or_position' => $validated['major_or_position'] ?? null,
+            'monthly_income_range' => $validated['monthly_income_range'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'allow_public_showcase' => $request->has('allow_public_showcase'),
+        ];
+
+        if ($photoPath) {
+            $trackingData['photo'] = $photoPath;
+        } elseif ($student->avatar) {
+            $trackingData['photo'] = $student->avatar;
+        }
+
         AlumniTracking::updateOrCreate(
             ['student_id' => $student->id],
-            [
-                'code' => $code,
-                'graduation_year' => $validated['graduation_year'],
-                'tracking_period' => '6_bulan',
-                'current_status' => $validated['current_status'],
-                'institution_or_company' => $validated['institution_or_company'],
-                'major_or_position' => $validated['major_or_position'],
-                'monthly_income_range' => $validated['monthly_income_range'],
-                'notes' => $validated['notes'],
-                'allow_public_showcase' => $request->has('allow_public_showcase'),
-            ]
+            $trackingData
         );
 
         AuditLog::log('KELULUSAN', 'Student', $student->id, "Mengubah status siswa {$student->name} menjadi lulus dan membuat data pelacakan alumni.");

@@ -16,6 +16,7 @@ class AlumniTracking extends Model
         'major_or_position',
         'monthly_income_range',
         'notes',
+        'photo',
         'allow_public_showcase',
     ];
 

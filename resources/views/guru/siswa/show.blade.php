@@ -1,14 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Profil 360° - ' . $student->name)
-@section('header_title', 'Profil Siswa 360 Derajat')
+@section('title', 'Profil Siswa - ' . $student->name)
+@section('header_title', 'Profil Siswa')
 
 @section('content')
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        <div class="user-avatar-initial" style="width: 54px; height: 54px; font-size: 20px;">
-            {{ strtoupper(substr($student->name, 0, 1)) }}
-        </div>
+        @if($student->avatar)
+            <img src="{{ asset('storage/' . $student->avatar) }}" alt="{{ $student->name }}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary-border);">
+        @else
+            <div class="user-avatar-initial" style="width: 54px; height: 54px; font-size: 20px;">
+                {{ strtoupper(substr($student->name, 0, 1)) }}
+            </div>
+        @endif
         <div>
             <h2 style="font-size: 20px; font-weight: 800; color: var(--color-text-main);">{{ $student->name }}</h2>
             <div style="font-size: 13px; color: var(--color-text-muted); display: flex; gap: 12px; align-items: center; margin-top: 2px;">
@@ -20,7 +24,7 @@
             </div>
         </div>
     </div>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 10px; align-items: center;">
         <a href="{{ route('guru.siswa.edit', $student->id) }}" class="btn btn-secondary">
             Edit Data Profil
         </a>
@@ -29,15 +33,18 @@
                 Luluskan Menjadi Alumni
             </button>
         @endif
+        <button type="button" class="btn btn-danger" onclick="openDeleteStudentModal('{{ $student->id }}', '{{ addslashes($student->name) }}', '{{ $student->nisn }}')" title="Hapus Data Siswa">
+            Hapus Siswa
+        </button>
     </div>
 </div>
 
 <div class="grid-2" style="margin-bottom: 24px;">
     <!-- Bagian 1: Identitas & Keluarga -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 class="card-title">1. Identitas Pribadi & Keluarga</h3>
-            <span class="badge badge-primary">Tingkat Perhatian: {{ ucfirst(str_replace('_', ' ', $student->attention_level)) }}</span>
+            <span class="badge badge-translucent">Tingkat Perhatian: {{ ucfirst(str_replace('_', ' ', $student->attention_level)) }}</span>
         </div>
         <div class="card-body">
             <table class="table" style="font-size: 13px;">
@@ -83,9 +90,9 @@
 
     <!-- Bagian 2: Rencana Masa Depan & Peminatan Karier -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 class="card-title">2. Peminatan & Rencana Masa Depan</h3>
-            <span class="badge badge-secondary">Tersimpan</span>
+            <span class="badge badge-translucent">Tersimpan</span>
         </div>
         <div class="card-body">
             @if($student->futurePlan)
@@ -176,7 +183,7 @@
 <div class="grid-2" style="margin-bottom: 24px;">
     <!-- Bagian 3: Riwayat Bimbingan & Konseling Siswa -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 class="card-title">3. Riwayat Layanan Konseling ({{ $student->counselings->count() }})</h3>
             <a href="{{ route('guru.konseling.index', ['q' => $student->nisn]) }}" class="btn btn-secondary btn-sm">Lihat Semua</a>
         </div>
@@ -184,29 +191,29 @@
             @if($student->counselings->count() > 0)
                 <div class="table-responsive">
                     <table class="table">
-                        <thead>
+                        <thead class="table-thead-navy">
                             <tr>
-                                <th>Kode & Tanggal</th>
-                                <th>Topik & Kategori</th>
-                                <th>Status</th>
-                                <th style="text-align: right;">Aksi</th>
+                                <th style="width: 28%; text-align: left;">Kode & Tanggal</th>
+                                <th style="width: 38%; text-align: left;">Topik & Kategori</th>
+                                <th style="width: 20%; text-align: center;">Status</th>
+                                <th style="width: 14%; text-align: center;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($student->counselings as $c)
                                 <tr>
-                                    <td>
+                                    <td style="text-align: left;">
                                         <strong>{{ $c->code }}</strong><br>
                                         <small class="text-muted">{{ $c->created_at->translatedFormat('d M Y') }}</small>
                                     </td>
-                                    <td>
+                                    <td style="text-align: left;">
                                         <div style="font-weight: 600;">{{ $c->topic }}</div>
                                         <small style="color: var(--color-text-subtle);">{{ $c->category ? $c->category->name : '-' }}</small>
                                     </td>
-                                    <td>
-                                        <span class="badge badge-primary">{{ ucfirst(str_replace('_', ' ', $c->status)) }}</span>
+                                    <td style="text-align: center;">
+                                        <span class="badge badge-primary" style="justify-content: center;">{{ ucfirst(str_replace('_', ' ', $c->status)) }}</span>
                                     </td>
-                                    <td style="text-align: right;">
+                                    <td style="text-align: center;">
                                         <a href="{{ route('guru.konseling.show', $c->id) }}" class="btn btn-secondary btn-sm">Buka</a>
                                     </td>
                                 </tr>
@@ -225,7 +232,7 @@
 
     <!-- Bagian 4: Hasil Asesmen & Prestasi -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">4. Hasil Asesmen & Prestasi Siswa</h3>
         </div>
         <div class="card-body">
@@ -266,22 +273,58 @@
 </div>
 
 <!-- Modal Luluskan Siswa (Section 24) -->
-<div id="graduateModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; overflow-y: auto;">
-    <div style="max-width: 500px; margin: 60px auto; background: #fff; padding: 24px; border-radius: var(--radius-md);">
-        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 12px;">Luluskan Siswa Menjadi Alumni</h3>
-        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">
+<div id="graduateModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 100; overflow-y: auto; backdrop-filter: blur(2px);">
+    <div style="max-width: 520px; margin: 40px auto; background: var(--color-surface); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: var(--color-text-main);">Luluskan Siswa Menjadi Alumni</h3>
+            <button type="button" onclick="closeGraduateModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--color-text-subtle); line-height: 1;">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px; line-height: 1.5;">
             Sistem akan mengubah status siswa menjadi <strong>Lulus</strong> dan membuka rekam jejak pelacakan alumni (Tracer Study).
         </p>
 
-        <form action="{{ route('guru.alumni.graduate', $student->id) }}" method="POST">
+        <form action="{{ route('guru.alumni.graduate', $student->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
+            
+            <!-- Upload Foto Alumni -->
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="form-label" style="font-weight: 700; color: var(--color-text-main);">Foto Formal / Pasfoto Alumni</label>
+                <div style="border: 2px dashed var(--color-primary-border); background-color: var(--color-bg); padding: 16px; border-radius: var(--radius-md); text-align: center;">
+                    <div id="photoPreviewArea" style="display: none; margin-bottom: 10px;">
+                        <img id="photoPreviewImg" src="#" alt="Pratinjau Foto" style="width: 76px; height: 76px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary); margin: 0 auto 8px auto; display: block;">
+                        <div id="photoPreviewName" style="font-size: 12px; font-weight: 600; color: var(--color-text-main);"></div>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="clearPhotoSelection()" style="margin-top: 6px; padding: 3px 8px; font-size: 11px;">
+                            Ganti / Hapus Foto
+                        </button>
+                    </div>
+
+                    <div id="photoPromptArea">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-primary); margin: 0 auto 6px auto; display: block;">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <div style="font-size: 13px; font-weight: 600; color: var(--color-text-main);">
+                            Unggah Foto Profil / Kelulusan
+                        </div>
+                        <div style="font-size: 11px; color: var(--color-text-subtle); margin-top: 2px;">
+                            Format JPG, PNG, atau WebP (Maks. 3 MB)
+                        </div>
+                        <label for="alumniPhotoInput" class="btn btn-secondary btn-sm" style="margin-top: 10px; cursor: pointer; display: inline-block;">
+                            Pilih Berkas Foto
+                        </label>
+                    </div>
+                    <input type="file" id="alumniPhotoInput" name="photo" accept="image/jpeg,image/png,image/jpg,image/webp" style="display: none;" onchange="previewAlumniPhoto(event)">
+                </div>
+            </div>
+
             <div class="form-group">
-                <label class="form-label">Tahun Kelulusan</label>
+                <label class="form-label">Tahun Kelulusan *</label>
                 <input type="number" name="graduation_year" class="form-control" value="{{ date('Y') }}" required>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Status Terkini Setelah Lulus</label>
+                <label class="form-label">Status Terkini Setelah Lulus *</label>
                 <select name="current_status" class="form-select" required>
                     <option value="bekerja">Bekerja</option>
                     <option value="kuliah">Kuliah</option>
@@ -293,19 +336,129 @@
 
             <div class="form-group">
                 <label class="form-label">Instansi / Kampus / Perusahaan</label>
-                <input type="text" name="institution_or_company" class="form-control" placeholder="Contoh: ITB atau PT Telkom">
+                <input type="text" name="institution_or_company" class="form-control" placeholder="Contoh: ITB atau PT Telkom Indonesia">
             </div>
 
             <div class="form-group">
                 <label class="form-label">Program Studi / Posisi Pekerjaan</label>
-                <input type="text" name="major_or_position" class="form-control" placeholder="Contoh: Teknik Komputer atau Junior Developer">
+                <input type="text" name="major_or_position" class="form-control" placeholder="Contoh: Teknik Informatika atau Software Engineer">
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('graduateModal').style.display = 'none';">Batal</button>
-                <button type="submit" class="btn btn-primary">Simpan Kelulusan</button>
+            <div class="form-group">
+                <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-main); cursor: pointer;">
+                    <input type="checkbox" name="allow_public_showcase" value="1" checked>
+                    <span>Tampilkan di Galeri Inspirasi Alumni untuk adik kelas</span>
+                </label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px;">
+                <button type="button" class="btn btn-secondary" onclick="closeGraduateModal()">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan & Luluskan Siswa</button>
             </div>
         </form>
+    </div>
+</div>
+
+<script>
+function closeGraduateModal() {
+    document.getElementById('graduateModal').style.display = 'none';
+}
+
+function previewAlumniPhoto(event) {
+    const file = event.target.files[0];
+    if (file) {
+        if (file.size > 3 * 1024 * 1024) {
+            alert('Ukuran file foto maksimal adalah 3 MB.');
+            event.target.value = '';
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('photoPreviewImg').src = e.target.result;
+            document.getElementById('photoPreviewName').textContent = file.name;
+            document.getElementById('photoPreviewArea').style.display = 'block';
+            document.getElementById('photoPromptArea').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function clearPhotoSelection() {
+    const input = document.getElementById('alumniPhotoInput');
+    input.value = '';
+    document.getElementById('photoPreviewImg').src = '#';
+    document.getElementById('photoPreviewName').textContent = '';
+    document.getElementById('photoPreviewArea').style.display = 'none';
+    document.getElementById('photoPromptArea').style.display = 'block';
+}
+
+function openDeleteStudentModal(studentId, studentName, studentNisn) {
+    var modal = document.getElementById('deleteStudentModal');
+    var form = document.getElementById('deleteStudentForm');
+    var nameSpan = document.getElementById('deleteStudentNameText');
+    var nisnSpan = document.getElementById('deleteStudentNisnText');
+
+    if (modal && form) {
+        form.action = '/guru/siswa/' + studentId;
+        if (nameSpan) nameSpan.textContent = studentName;
+        if (nisnSpan) nisnSpan.textContent = 'NISN: ' + studentNisn;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteStudentModal() {
+    var modal = document.getElementById('deleteStudentModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function handleDeleteBackdropClick(event) {
+    if (event.target === document.getElementById('deleteStudentModal')) {
+        closeDeleteStudentModal();
+    }
+}
+</script>
+
+<!-- Modal Konfirmasi Hapus Data Siswa -->
+<div id="deleteStudentModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteStudentModalTitle" onclick="handleDeleteBackdropClick(event)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteStudentModalTitle" class="modal-title">Konfirmasi Hapus Data Siswa</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus data siswa <strong id="deleteStudentNameText" style="color: var(--color-text-main);"></strong> (<span id="deleteStudentNisnText" style="color: var(--color-text-subtle);"></span>)?
+            </p>
+            <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; line-height: 1.45;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Perhatian: Seluruh riwayat bimbingan konseling, hasil asesmen, dan akun login siswa ini akan dihapus secara permanen dan tidak dapat dipulihkan.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteStudentModal()">
+                Batal
+            </button>
+            <form id="deleteStudentForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Data
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 @endsection

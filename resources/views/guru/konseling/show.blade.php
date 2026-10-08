@@ -25,7 +25,7 @@
 <div class="grid-2" style="margin-bottom: 24px;">
     <!-- Kartu Informasi Siswa & Permohonan -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 class="card-title">Permohonan Siswa</h3>
             <a href="{{ route('guru.siswa.show', $counseling->student_id) }}" class="btn btn-secondary btn-sm" target="_blank">
                 Lihat Profil Siswa
@@ -70,7 +70,7 @@
 
     <!-- Panel Penjadwalan & Waktu Sesi -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <h3 class="card-title">Penjadwalan Sesi Konseling</h3>
             @if($counseling->scheduled_date)
                 <span class="badge badge-success">Sudah Ditetapkan</span>
@@ -112,18 +112,23 @@
 </div>
 
 <!-- SECTION 11: CATATAN INTERNAL GURU BK & STATUS WORKFLOW -->
-<div class="card" style="border-top: 3px solid var(--color-danger);">
-    <div class="card-header">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-danger);"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            <h3 class="card-title">Catatan Internal Konseling & Privasi Rahasia Guru BK</h3>
+<div class="card" style="border-top: 3px solid var(--color-primary);">
+    <div class="card-header card-header-navy" style="display: flex; flex-direction: column; gap: 12px; padding: 20px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #93c5fd;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <h3 class="card-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Catatan Internal Konseling & Privasi Rahasia Guru BK</h3>
+            </div>
+            <span class="badge badge-danger">Kerahasiaan: {{ strtoupper($counseling->confidential_level) }}</span>
         </div>
-        <span class="badge badge-danger">Kerahasiaan: {{ strtoupper($counseling->confidential_level) }}</span>
+        <p style="font-size: 13px; color: #e2e8f0; margin: 0; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #93c5fd; flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>
+                <strong style="color: #ffffff; font-weight: 700;">Prinsip Privasi BK:</strong> Catatan interpretasi internal, kronologi kasus, dan analisis risiko profesional yang Anda simpan di bawah ini <strong style="color: #ffffff;">TIDAK AKAN PERNAH</strong> ditampilkan kepada siswa pada tampilan antarmuka mereka.
+            </span>
+        </p>
     </div>
     <div class="card-body">
-        <div class="alert alert-warning" style="font-size: 12px; margin-bottom: 20px;">
-            <strong>Prinsip Privasi BK:</strong> Catatan interpretasi internal, kronologi kasus, dan analisis risiko profesional yang Anda simpan di bawah ini <strong>TIDAK AKAN PERNAH</strong> ditampilkan kepada siswa pada tampilan antarmuka mereka.
-        </div>
 
         <form action="{{ route('guru.konseling.notes', $counseling->id) }}" method="POST">
             @csrf
@@ -170,7 +175,7 @@
 
 <!-- SECTION 12: TINDAK LANJUT OTOMATIS (FOLLOW-UP ITEMS) -->
 <div class="card">
-    <div class="card-header">
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <h3 class="card-title">Agenda Tindak Lanjut Kasus ({{ $counseling->followUps->count() }})</h3>
         <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('addFollowUpModal').style.display = 'block';">
             + Tambah Tindak Lanjut
@@ -180,7 +185,7 @@
         @if($counseling->followUps->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Tindakan yang Perlu Dilakukan</th>
                             <th>Target Tanggal</th>

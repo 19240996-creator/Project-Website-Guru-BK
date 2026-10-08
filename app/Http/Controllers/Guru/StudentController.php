@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\StudentAchievement;
 use App\Models\AuditLog;
 use App\Models\AcademicYear;
+use App\Models\AlumniTracking;
 
 class StudentController extends Controller
 {
@@ -53,8 +54,9 @@ class StudentController extends Controller
             ->distinct()
             ->orderBy('major')
             ->pluck('major');
+        $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
 
-        return view('guru.siswa.index', compact('students', 'classes', 'majors'));
+        return view('guru.siswa.index', compact('students', 'classes', 'majors', 'allStudents'));
     }
 
     public function show($id)
@@ -129,7 +131,131 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
         $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
-        return view('guru.siswa.edit', compact('student', 'classes'));
+        $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+        return view('guru.siswa.edit', compact('student', 'classes', 'allStudents'));
+    }
+
+    public function massPromote(Request $request)
+    {
+        $validated = $request->validate([
+            'student_ids' => 'required|array|min:1',
+            'student_ids.*' => 'exists:students,id',
+            'target_class' => 'nullable|string',
+            'target_class_id' => 'nullable',
+        ], [
+            'student_ids.required' => 'Pilih minimal satu siswa untuk dinaikkan kelas atau dijadikan alumni.',
+            'student_ids.min' => 'Pilih minimal satu siswa untuk dinaikkan kelas atau dijadikan alumni.',
+        ]);
+
+        $rawTarget = $request->input('target_class') ?: $request->input('target_class_id');
+        if (!$rawTarget) {
+            return redirect()->back()->withErrors(['target_class' => 'Pilih kelas tujuan kenaikan kelas (10, 11, 12, atau Alumni).']);
+        }
+
+        $isAlumni = in_array(strtolower((string) $rawTarget), ['alumni', 'lulus']);
+        $targetGrade = null;
+        $gradeLabel = '';
+        if ($isAlumni) {
+            $gradeLabel = 'Alumni (Lulus)';
+        } elseif (in_array((string) $rawTarget, ['10', 'grade:10', 'grade:X', 'X'])) {
+            $targetGrade = 'X';
+            $gradeLabel = 'Kelas 10 (Tingkat X)';
+        } elseif (in_array((string) $rawTarget, ['11', 'grade:11', 'grade:XI', 'XI'])) {
+            $targetGrade = 'XI';
+            $gradeLabel = 'Kelas 11 (Tingkat XI)';
+        } elseif (in_array((string) $rawTarget, ['12', 'grade:12', 'grade:XII', 'XII'])) {
+            $targetGrade = 'XII';
+            $gradeLabel = 'Kelas 12 (Tingkat XII)';
+        }
+
+        $students = Student::with(['studentClass', 'futurePlan', 'alumniTracking'])->whereIn('id', $validated['student_ids'])->get();
+        $count = $students->count();
+
+        DB::transaction(function () use ($students, $isAlumni, $targetGrade, $rawTarget, $count) {
+            if ($isAlumni) {
+                $gradYear = (int) date('Y');
+                foreach ($students as $student) {
+                    $student->status = 'lulus';
+                    $student->save();
+
+                    if (!$student->alumniTracking) {
+                        $latestPlan = $student->futurePlan;
+                        $currentStatus = 'belum_terlacak';
+                        $institutionOrCompany = null;
+                        $majorOrPosition = null;
+
+                        if ($latestPlan && in_array($latestPlan->career_category, ['bekerja', 'kuliah', 'wirausaha'])) {
+                            $currentStatus = $latestPlan->career_category;
+                            $institutionOrCompany = $latestPlan->target_name;
+                            $majorOrPosition = $latestPlan->major_or_position;
+                        }
+
+                        $code = 'ALS-' . $gradYear . '-' . str_pad(AlumniTracking::count() + 1, 5, '0', STR_PAD_LEFT);
+                        AlumniTracking::create([
+                            'code' => $code,
+                            'student_id' => $student->id,
+                            'graduation_year' => $gradYear,
+                            'tracking_period' => '6_bulan',
+                            'current_status' => $currentStatus,
+                            'institution_or_company' => $institutionOrCompany,
+                            'major_or_position' => $majorOrPosition,
+                            'notes' => 'Status kelulusan massal via kenaikan kelas BK.',
+                            'allow_public_showcase' => false,
+                        ]);
+                    }
+                }
+
+                AuditLog::log(
+                    'PERBARUI',
+                    'Student',
+                    null,
+                    "Kenaikan kelas massal: {$count} siswa berhasil diubah statusnya menjadi Alumni (Lulus)."
+                );
+            } else {
+                foreach ($students as $student) {
+                    $targetClassId = null;
+
+                    if ($targetGrade) {
+                        $currentMajor = $student->studentClass ? $student->studentClass->major : null;
+                        $matchedClass = null;
+                        if ($currentMajor) {
+                            $matchedClass = StudentClass::where('grade', $targetGrade)
+                                ->where('major', $currentMajor)
+                                ->first();
+                        }
+                        if (!$matchedClass) {
+                            $matchedClass = StudentClass::where('grade', $targetGrade)->first();
+                        }
+                        if ($matchedClass) {
+                            $targetClassId = $matchedClass->id;
+                        }
+                    } else {
+                        $targetClassId = (int) $rawTarget;
+                    }
+
+                    if ($targetClassId) {
+                        $student->update([
+                            'student_class_id' => $targetClassId,
+                            'status' => 'aktif',
+                        ]);
+                    }
+                }
+
+                $label = $targetGrade ? "Tingkat {$targetGrade}" : "ID Kelas {$rawTarget}";
+                AuditLog::log(
+                    'PERBARUI',
+                    'Student',
+                    null,
+                    "Kenaikan kelas massal: {$count} siswa berhasil dinaikkan ke {$label}."
+                );
+            }
+        });
+
+        $displayTarget = $gradeLabel ?: "kelas tujuan yang dipilih";
+        return redirect()->back()->with(
+            'success',
+            "Berhasil memproses kenaikan kelas massal untuk {$count} siswa ke {$displayTarget}. Data kelas siswa di profil dan seluruh sistem telah otomatis berubah."
+        );
     }
 
     public function update(Request $request, $id)
@@ -155,6 +281,33 @@ class StudentController extends Controller
         ]);
 
         $student->update($validated);
+
+        if ($student->status === 'lulus' && !$student->alumniTracking) {
+            $gradYear = (int) date('Y');
+            $latestPlan = $student->futurePlan;
+            $currentStatus = 'belum_terlacak';
+            $institutionOrCompany = null;
+            $majorOrPosition = null;
+
+            if ($latestPlan && in_array($latestPlan->career_category, ['bekerja', 'kuliah', 'wirausaha'])) {
+                $currentStatus = $latestPlan->career_category;
+                $institutionOrCompany = $latestPlan->target_name;
+                $majorOrPosition = $latestPlan->major_or_position;
+            }
+
+            $code = 'ALS-' . $gradYear . '-' . str_pad(AlumniTracking::count() + 1, 5, '0', STR_PAD_LEFT);
+            AlumniTracking::create([
+                'code' => $code,
+                'student_id' => $student->id,
+                'graduation_year' => $gradYear,
+                'tracking_period' => '6_bulan',
+                'current_status' => $currentStatus,
+                'institution_or_company' => $institutionOrCompany,
+                'major_or_position' => $majorOrPosition,
+                'notes' => 'Status siswa diperbarui menjadi Alumni (Lulus).',
+                'allow_public_showcase' => false,
+            ]);
+        }
 
         if ($student->user) {
             $student->user->update([
@@ -287,5 +440,23 @@ class StudentController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function destroy($id)
+    {
+        $student = Student::findOrFail($id);
+        $studentName = $student->name;
+        $studentNisn = $student->nisn;
+
+        // Jika siswa memiliki akun user, hapus akun loginnya
+        if ($student->user) {
+            $student->user->delete();
+        }
+
+        $student->delete();
+
+        AuditLog::log('HAPUS', 'Student', $id, "Menghapus data siswa {$studentName} (NISN: {$studentNisn}) beserta seluruh data terkait.");
+
+        return redirect()->route('guru.siswa.index')->with('success', "Data siswa {$studentName} berhasil dihapus dari sistem.");
     }
 }

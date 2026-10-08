@@ -91,9 +91,15 @@
         <div class="card" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-                    <div class="user-avatar-initial" style="background: #1e3a8a; width: 42px; height: 42px; font-size: 15px;">
-                        {{ strtoupper(substr($als->student ? $als->student->name : 'A', 0, 1)) }}
-                    </div>
+                    @if($als->photo)
+                        <img src="{{ asset('storage/' . $als->photo) }}" alt="{{ $als->student ? $als->student->name : 'Alumni' }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary-border); flex-shrink: 0;">
+                    @elseif($als->student && $als->student->avatar)
+                        <img src="{{ asset('storage/' . $als->student->avatar) }}" alt="{{ $als->student->name }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary-border); flex-shrink: 0;">
+                    @else
+                        <div class="user-avatar-initial" style="background: var(--color-primary); width: 44px; height: 44px; font-size: 15px; flex-shrink: 0;">
+                            {{ strtoupper(substr($als->student ? $als->student->name : 'A', 0, 1)) }}
+                        </div>
+                    @endif
                     <div>
                         <div style="font-weight: 700; font-size: 14px; color: var(--color-text-main);">
                             {{ $als->student ? $als->student->name : 'Alumni' }}

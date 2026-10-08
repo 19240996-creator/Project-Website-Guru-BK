@@ -11,7 +11,11 @@
             Basis data siswa terpadu untuk pencatatan profil, rekam jejak konseling, dan perencanaan karier.
         </p>
     </div>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <a href="{{ route('guru.siswa.edit', $students->first() ? $students->first()->id : 1) }}?tab=mass" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Kenaikan Kelas Massal</span>
+        </a>
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('importSection').scrollIntoView({ behavior: 'smooth' });">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>Impor Data Siswa</span>
@@ -80,55 +84,60 @@
     <div class="card-body" style="padding: 0;">
         @if($students->count() > 0)
             <div class="table-responsive">
-                <table class="table">
-                    <thead>
+                <table class="table" style="min-width: 960px; width: 100%;">
+                    <thead class="table-thead-navy">
                         <tr>
-                            <th>Identitas Siswa</th>
-                            <th>Kelas & Jurusan</th>
-                            <th>Kontak</th>
-                            <th>Status Perhatian</th>
-                            <th>Status Siswa</th>
-                            <th style="text-align: right;">Tindakan</th>
+                            <th style="width: 22%; text-align: left;">Identitas Siswa</th>
+                            <th style="width: 20%; text-align: left;">Kelas & Jurusan</th>
+                            <th style="width: 16%; text-align: left;">Kontak</th>
+                            <th style="width: 14%; text-align: center;">Status Perhatian</th>
+                            <th style="width: 11%; text-align: center;">Status Siswa</th>
+                            <th style="width: 17%; text-align: center;">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($students as $s)
                             <tr>
-                                <td>
-                                    <div style="font-weight: 700; color: var(--color-text-main);">{{ $s->name }}</div>
-                                    <small style="color: var(--color-text-subtle);">NISN: {{ $s->nisn }} | NIS: {{ $s->nis }}</small>
+                                <td style="text-align: left;">
+                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $s->name }}</div>
+                                    <div style="font-size: 12px; color: var(--color-text-subtle); line-height: 1.4; margin-top: 2px;">NISN: {{ $s->nisn }} | NIS: {{ $s->nis }}</div>
                                 </td>
-                                <td>
-                                    <strong>{{ $s->studentClass ? $s->studentClass->name : '-' }}</strong><br>
-                                    <small style="color: var(--color-text-muted);">{{ $s->studentClass ? $s->studentClass->major : '-' }}</small>
+                                <td style="text-align: left;">
+                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $s->studentClass ? $s->studentClass->name : '-' }}</div>
+                                    <div style="font-size: 12px; color: var(--color-text-muted); line-height: 1.4; margin-top: 2px;">{{ $s->studentClass ? $s->studentClass->major : '-' }}</div>
                                 </td>
-                                <td>
-                                    {{ $s->phone ?: '-' }}<br>
-                                    <small style="color: var(--color-text-subtle);">Ortu: {{ $s->parent_name ?: '-' }}</small>
+                                <td style="text-align: left;">
+                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $s->phone ?: '-' }}</div>
+                                    <div style="font-size: 12px; color: var(--color-text-subtle); line-height: 1.4; margin-top: 2px;">Ortu: {{ $s->parent_name ?: '-' }}</div>
                                 </td>
-                                <td>
+                                <td style="text-align: center;">
                                     @if($s->attention_level === 'normal')
-                                        <span class="badge badge-secondary">Normal</span>
+                                        <span class="badge badge-secondary" style="min-width: 80px; justify-content: center;">Normal</span>
                                     @elseif($s->attention_level === 'perlu_perhatian')
-                                        <span class="badge badge-warning">Perlu Perhatian</span>
+                                        <span class="badge badge-warning" style="min-width: 80px; justify-content: center;">Perlu Perhatian</span>
                                     @elseif($s->attention_level === 'prioritas')
-                                        <span class="badge badge-danger">Prioritas</span>
+                                        <span class="badge badge-danger" style="min-width: 80px; justify-content: center;">Prioritas</span>
                                     @else
-                                        <span class="badge badge-danger">Segera Ditindaklanjuti</span>
+                                        <span class="badge badge-danger" style="min-width: 80px; justify-content: center;">Segera Ditindaklanjuti</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <span class="badge badge-{{ $s->status === 'aktif' ? 'success' : 'secondary' }}">
+                                <td style="text-align: center;">
+                                    <span class="badge badge-{{ $s->status === 'aktif' ? 'success' : 'secondary' }}" style="min-width: 68px; justify-content: center;">
                                         {{ ucfirst($s->status) }}
                                     </span>
                                 </td>
-                                <td style="text-align: right;">
-                                    <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Lihat Profil">
-                                        Profil
-                                    </a>
-                                    <a href="{{ route('guru.siswa.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit">
-                                        Ubah
-                                    </a>
+                                <td style="text-align: center; white-space: nowrap;">
+                                    <div style="display: inline-flex; gap: 6px; align-items: center; justify-content: center;">
+                                        <a href="{{ route('guru.siswa.show', $s->id) }}" class="btn btn-secondary btn-sm" title="Lihat Profil">
+                                            Profil
+                                        </a>
+                                        <a href="{{ route('guru.siswa.edit', $s->id) }}" class="btn btn-secondary btn-sm" title="Edit">
+                                            Ubah
+                                        </a>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="openDeleteStudentModal('{{ $s->id }}', '{{ addslashes($s->name) }}', '{{ $s->nisn }}')" title="Hapus Data Siswa">
+                                            Hapus
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -150,17 +159,23 @@
 
 <!-- Section Impor CSV / Excel (Section 2 Blueprint) -->
 <div id="importSection" class="card" style="margin-top: 32px;">
-    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <h3 class="card-title">Impor Data Siswa Secara Massal (Format CSV / Excel)</h3>
-        <a href="{{ route('guru.siswa.template') }}" class="btn btn-secondary btn-sm" title="Unduh Template Format Impor CSV / Excel">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>Unduh Template CSV</span>
-        </a>
+    <div class="card-header card-header-navy" style="display: flex; flex-direction: column; gap: 12px; padding: 20px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <h3 class="card-title" style="margin: 0; font-size: 16px; font-weight: 700; color: #ffffff;">Impor Data Siswa Secara Massal (Format CSV / Excel)</h3>
+            <a href="{{ route('guru.siswa.template') }}" class="btn btn-secondary btn-sm" title="Unduh Template Format Impor CSV / Excel">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Unduh Template CSV</span>
+            </a>
+        </div>
+        <p style="font-size: 13px; color: #e2e8f0; margin: 0; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #93c5fd; flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>
+                <strong style="color: #ffffff; font-weight: 700;">Petunjuk Aturan Impor Data:</strong>
+                Sesuai aturan sistem, pilih kelas terlebih dahulu sebelum mengimpor file. Sistem akan otomatis membuatkan akun login siswa dengan username NISN dan kata sandi default <code style="background: rgba(255, 255, 255, 0.2); color: #ffffff; padding: 2px 6px; border-radius: var(--radius-sm); font-weight: 600;">password123</code>.
+            </span>
+        </p>
     </div>
     <div class="card-body">
-        <p style="font-size: 13px; color: var(--color-text-muted); margin-bottom: 16px;">
-            Sesuai aturan sistem, pilih kelas terlebih dahulu sebelum mengimpor file. Sistem akan otomatis membuatkan akun login siswa dengan username NISN dan kata sandi default <code>password123</code>.
-        </p>
 
         <form action="{{ route('guru.siswa.import') }}" method="POST" enctype="multipart/form-data" style="max-width: 600px;">
             @csrf
@@ -254,4 +269,81 @@
         </script>
     </div>
 </div>
+
+<!-- Modal Konfirmasi Hapus Data Siswa (Antislop Compliant) -->
+<div id="deleteStudentModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteStudentModalTitle" onclick="handleDeleteBackdropClick(event)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteStudentModalTitle" class="modal-title">Konfirmasi Hapus Data Siswa</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus data siswa <strong id="deleteStudentNameText" style="color: var(--color-text-main);"></strong> (<span id="deleteStudentNisnText" style="color: var(--color-text-subtle);"></span>)?
+            </p>
+            <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; line-height: 1.45;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Perhatian: Seluruh riwayat bimbingan konseling, hasil asesmen, dan akun login siswa ini akan dihapus secara permanen dan tidak dapat dipulihkan.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteStudentModal()">
+                Batal
+            </button>
+            <form id="deleteStudentForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Data
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteStudentModal(studentId, studentName, studentNisn) {
+        var modal = document.getElementById('deleteStudentModal');
+        var form = document.getElementById('deleteStudentForm');
+        var nameSpan = document.getElementById('deleteStudentNameText');
+        var nisnSpan = document.getElementById('deleteStudentNisnText');
+
+        if (modal && form) {
+            form.action = '/guru/siswa/' + studentId;
+            if (nameSpan) nameSpan.textContent = studentName;
+            if (nisnSpan) nisnSpan.textContent = 'NISN: ' + studentNisn;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeDeleteStudentModal() {
+        var modal = document.getElementById('deleteStudentModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleDeleteBackdropClick(event) {
+        if (event.target === document.getElementById('deleteStudentModal')) {
+            closeDeleteStudentModal();
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteStudentModal();
+        }
+    });
+</script>
 @endsection

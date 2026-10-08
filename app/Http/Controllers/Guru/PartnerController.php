@@ -106,12 +106,24 @@ class PartnerController extends Controller
             'start_time' => 'required',
             'end_time' => 'required|after:start_time',
             'room_location' => 'required|string|max:255',
-            'target_class_id' => 'nullable|exists:student_classes,id',
+            'target_class_id' => 'nullable',
+            'target_class_ids' => 'nullable|array',
+            'target_class_ids.*' => 'exists:student_classes,id',
             'max_participants' => 'required|integer|min:1',
             'pic_name' => 'nullable|string|max:255',
             'status' => 'required|in:rencana,menunggu_konfirmasi,terkonfirmasi,terlaksana,ditunda,dibatalkan',
             'notes' => 'nullable|string',
         ]);
+
+        $targetClassIds = [];
+        if (!empty($validated['target_class_ids'])) {
+            $targetClassIds = array_values(array_unique(array_map('intval', $validated['target_class_ids'])));
+        } elseif (!empty($validated['target_class_id'])) {
+            $targetClassIds = [(int) $validated['target_class_id']];
+        }
+
+        $validated['target_class_ids'] = !empty($targetClassIds) ? $targetClassIds : null;
+        $validated['target_class_id'] = !empty($targetClassIds) ? $targetClassIds[0] : null;
 
         // Anti-conflict schedule check engine!
         $conflicts = PartnerActivity::checkConflicts(
@@ -119,7 +131,7 @@ class PartnerController extends Controller
             $validated['start_time'],
             $validated['end_time'],
             $validated['room_location'],
-            $validated['target_class_id'] ?? null
+            $targetClassIds
         );
 
         if (!empty($conflicts)) {
@@ -135,5 +147,83 @@ class PartnerController extends Controller
         AuditLog::log('SIMPAN', 'PartnerActivity', $act->id, "Menjadwalkan kegiatan mitra {$act->title} pada {$act->date}.");
 
         return back()->with('success', 'Agenda kegiatan mitra berhasil dijadwalkan tanpa benturan jadwal.');
+    }
+
+    public function updateActivity(Request $request, $id)
+    {
+        $activity = PartnerActivity::findOrFail($id);
+
+        $validated = $request->validate([
+            'partner_id' => 'required|exists:partners,id',
+            'title' => 'required|string|max:255',
+            'activity_type' => 'required|in:campus_visit,seminar,sosialisasi,kunjungan_industri,magang,rekrutmen,pelatihan',
+            'date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+            'room_location' => 'required|string|max:255',
+            'target_class_id' => 'nullable',
+            'target_class_ids' => 'nullable|array',
+            'target_class_ids.*' => 'exists:student_classes,id',
+            'max_participants' => 'required|integer|min:1',
+            'pic_name' => 'nullable|string|max:255',
+            'status' => 'required|in:rencana,menunggu_konfirmasi,terkonfirmasi,terlaksana,ditunda,dibatalkan',
+            'notes' => 'nullable|string',
+        ]);
+
+        $targetClassIds = [];
+        if (!empty($validated['target_class_ids'])) {
+            $targetClassIds = array_values(array_unique(array_map('intval', $validated['target_class_ids'])));
+        } elseif (!empty($validated['target_class_id'])) {
+            $targetClassIds = [(int) $validated['target_class_id']];
+        }
+
+        $validated['target_class_ids'] = !empty($targetClassIds) ? $targetClassIds : null;
+        $validated['target_class_id'] = !empty($targetClassIds) ? $targetClassIds[0] : null;
+
+        // Anti-conflict schedule check engine (excluding this activity itself)
+        $conflicts = PartnerActivity::checkConflicts(
+            $validated['date'],
+            $validated['start_time'],
+            $validated['end_time'],
+            $validated['room_location'],
+            $targetClassIds,
+            (int) $activity->id
+        );
+
+        if (!empty($conflicts)) {
+            return back()->withInput()->withErrors([
+                'schedule_conflict' => 'Peringatan Benturan Jadwal: ' . implode(' ', $conflicts),
+            ]);
+        }
+
+        $activity->update($validated);
+
+        AuditLog::log(
+            'PERBARUI',
+            'PartnerActivity',
+            $activity->id,
+            "Memperbarui agenda kegiatan mitra '{$activity->title}' ({$activity->code}) pada {$activity->date->translatedFormat('d M Y')}."
+        );
+
+        return back()->with('success', "Agenda kegiatan mitra {$activity->code} berhasil diperbarui.");
+    }
+
+    public function destroyActivity($id)
+    {
+        $activity = PartnerActivity::findOrFail($id);
+        $title = $activity->title;
+        $code = $activity->code;
+        $actId = $activity->id;
+
+        $activity->delete();
+
+        AuditLog::log(
+            'HAPUS',
+            'PartnerActivity',
+            $actId,
+            "Menghapus agenda kegiatan mitra '{$title}' ({$code})."
+        );
+
+        return back()->with('success', "Agenda kegiatan mitra {$code} berhasil dihapus dari sistem.");
     }
 }

@@ -51,7 +51,10 @@ class DashboardController extends Controller
             ->whereNotIn('status', ['dibatalkan'])
             ->where(function ($q) use ($student) {
                 $q->where('target_class_id', $student->student_class_id)
-                  ->orWhereNull('target_class_id');
+                  ->orWhereJsonContains('target_class_ids', (int) $student->student_class_id)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('target_class_id')->whereNull('target_class_ids');
+                  });
             })
             ->take(3)
             ->get();

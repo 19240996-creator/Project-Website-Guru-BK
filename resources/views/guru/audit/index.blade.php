@@ -59,9 +59,7 @@
                 </table>
             </div>
 
-            <div style="padding: 16px 20px;">
-                {{ $logs->links() }}
-            </div>
+            {{ $logs->links() }}
         @else
             <div class="empty-state">
                 <p class="empty-state-title">Belum Ada Aktivitas</p>

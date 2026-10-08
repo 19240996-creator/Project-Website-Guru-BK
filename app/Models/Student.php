@@ -13,6 +13,7 @@ class Student extends Model
         'nisn',
         'name',
         'gender',
+        'avatar',
         'birth_place',
         'birth_date',
         'status',

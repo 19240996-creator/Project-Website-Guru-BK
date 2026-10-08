@@ -56,11 +56,13 @@ class AssessmentController extends Controller
         $answeredCount = 0;
         foreach ($answers as $questionId => $optionId) {
             $opt = AssessmentOption::find($optionId);
-            if ($opt && isset($dimensions[$opt->dimension_code])) {
-                $code = $opt->dimension_code;
-                $dimensions[$code]['count']++;
-                $dimensions[$code]['score'] += $opt->score_value;
-                $totalScore += $opt->score_value;
+            if ($opt) {
+                $code = $opt->dimension_code ? strtoupper($opt->dimension_code) : null;
+                if ($code && isset($dimensions[$code])) {
+                    $dimensions[$code]['count']++;
+                    $dimensions[$code]['score'] += $opt->score_value;
+                }
+                $totalScore += (int) $opt->score_value;
                 $answeredCount++;
             }
         }

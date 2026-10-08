@@ -137,12 +137,30 @@ a:hover {
 }
 
 .nav-group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--color-text-subtle);
-  padding: 12px 12px 6px 12px;
+  color: #ffffff;
+  background-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  margin: 16px 0 6px 0;
+}
+
+.nav-group-label:first-child {
+  margin-top: 0;
+}
+
+.nav-group-label-icon {
+  display: inline-flex;
+  align-items: center;
+  color: #ffffff;
+  opacity: 0.9;
+  flex-shrink: 0;
 }
 
 .nav-item {
@@ -285,7 +303,7 @@ a:hover {
 
 .card-header-navy {
   background-color: var(--color-primary);
-  border-bottom: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
@@ -467,6 +485,7 @@ a:hover {
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 3px 8px;
   font-size: 11px;
   font-weight: 600;
@@ -546,6 +565,46 @@ a:hover {
 
 .table tbody tr:hover {
   background-color: #fbfcfe;
+}
+
+/* Callout & Notice Navy Block */
+.notice-navy {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notice-navy-icon {
+  color: #93c5fd;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.notice-navy-content {
+  color: #f1f5f9;
+}
+
+.notice-navy-content strong {
+  color: #ffffff;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.notice-navy-content code {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 12px;
 }
 
 /* Forms */
@@ -1000,6 +1059,108 @@ textarea.form-control {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+/* Pagination Design System (Antislop Compliant) */
+.pagination-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  font-size: 13px;
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.pagination-info {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.pagination-info strong {
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.pagination-list {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pagination-item {
+  display: inline-flex;
+}
+
+.pagination-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-main);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+
+.pagination-link:hover:not(.disabled):not(.active) {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pagination-link.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  cursor: default;
+}
+
+.pagination-link.disabled {
+  color: var(--color-text-subtle);
+  background-color: #f8fafc;
+  border-color: var(--color-border);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 34px;
+  color: var(--color-text-subtle);
+  font-size: 13px;
+  user-select: none;
+}
+
+.pagination-link svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Containment for vendor pagination SVGs */
+nav[role="navigation"] svg {
+  width: 14px !important;
+  max-width: 14px !important;
+  height: 14px !important;
+  max-height: 14px !important;
+  display: inline-block !important;
+  vertical-align: middle;
 }
 
 /* Responsive Styles */

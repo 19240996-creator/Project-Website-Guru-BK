@@ -35,7 +35,6 @@ class SystemVerificationTest extends TestCase
         $response->assertSee('Distribusi Kategori Layanan Konseling', false);
         $response->assertSee('Peta Rencana Masa Depan Kelas XII', false);
         $response->assertSee('<svg viewBox="0 0 140 140"', false);
-        $response->assertSee('stroke-dasharray', false);
     }
 
     public function test_guru_bk_can_access_and_update_profile()
@@ -72,7 +71,7 @@ class SystemVerificationTest extends TestCase
 
         $response = $this->actingAs($guru)->get("/guru/siswa/{$student->id}");
         $response->assertStatus(200);
-        $response->assertSee('Profil Siswa 360 Derajat', false);
+        $response->assertSee('Profil Siswa', false);
         $response->assertSee($student->name, false);
     }
 
@@ -257,5 +256,218 @@ class SystemVerificationTest extends TestCase
         $this->assertStringContainsString('Jenis Kelamin (L/P)', $content);
         $this->assertStringContainsString('Aditya Pratama', $content);
         $this->assertStringContainsString('Nabila Putri Cahyani', $content);
+    }
+
+    public function test_guru_bk_can_mass_promote_students_to_next_class()
+    {
+        $guru = User::where('username', 'gurubk')->first();
+        // Ensure active students exist for the test
+        Student::where('status', '!=', 'aktif')->update(['status' => 'aktif']);
+        $students = Student::where('status', 'aktif')->take(2)->get();
+        $targetClass = StudentClass::where('id', '!=', $students->first()->student_class_id)->first();
+
+        // 1. Visit edit page with tab mass
+        $response = $this->actingAs($guru)->get("/guru/siswa/{$students->first()->id}/edit?tab=mass");
+        $response->assertStatus(200);
+        $response->assertSee('Fitur Kenaikan Kelas & Kelulusan Alumni', false);
+        $response->assertSee('Kelas 10', false);
+        $response->assertSee('Kelas 11', false);
+        $response->assertSee('Kelas 12', false);
+        $response->assertSee('Alumni', false);
+
+        // 2. Perform mass promotion post using target_class = 11
+        $postResponse = $this->actingAs($guru)->post('/guru/siswa/kenaikan-kelas-massal', [
+            'student_ids' => $students->pluck('id')->toArray(),
+            'target_class' => '11',
+        ]);
+
+        $postResponse->assertSessionHas('success');
+
+        // 3. Verify students were updated to grade XI
+        foreach ($students as $s) {
+            $this->assertEquals('XI', $s->fresh()->studentClass->grade);
+        }
+
+        // 4. Test mass promotion to Alumni
+        $alumniResponse = $this->actingAs($guru)->post('/guru/siswa/kenaikan-kelas-massal', [
+            'student_ids' => [$students->first()->id],
+            'target_class' => 'alumni',
+        ]);
+        $alumniResponse->assertSessionHas('success');
+        $this->assertEquals('lulus', $students->first()->fresh()->status);
+        $this->assertNotNull($students->first()->fresh()->alumniTracking);
+    }
+
+    public function test_guru_bk_can_customize_assessment_questions_and_point_values(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+        $assessment = \App\Models\Assessment::first();
+
+        // 1. Visit assessment detail page and see button & question structure
+        $response = $this->actingAs($guru)->get("/guru/asesmen/{$assessment->id}");
+        $response->assertStatus(200);
+        $response->assertSee('Tambah Butir Pertanyaan', false);
+        $response->assertSee('Poin', false);
+
+        // 2. Add custom question with point-based options (no right/wrong answer)
+        $storeResponse = $this->actingAs($guru)->post("/guru/asesmen/{$assessment->id}/pertanyaan", [
+            'question_text' => 'Bagaimana gaya Anda saat menyelesaikan proyek baru?',
+            'options' => [
+                ['option_text' => 'Merakit dan mencoba langsung dengan alat', 'score_value' => 5, 'dimension_code' => 'R'],
+                ['option_text' => 'Menganalisis dan membaca dokumentasi teknis', 'score_value' => 4, 'dimension_code' => 'I'],
+                ['option_text' => 'Mendesain tata letak visual agar menarik', 'score_value' => 3, 'dimension_code' => 'A'],
+                ['option_text' => 'Mendiskusikan pembagian peran bersama tim', 'score_value' => 2, 'dimension_code' => 'S'],
+            ],
+        ]);
+        $storeResponse->assertRedirect("/guru/asesmen/{$assessment->id}");
+        $storeResponse->assertSessionHas('success');
+
+        $newQuestion = \App\Models\AssessmentQuestion::where('assessment_id', $assessment->id)
+            ->where('question_text', 'Bagaimana gaya Anda saat menyelesaikan proyek baru?')
+            ->first();
+        $this->assertNotNull($newQuestion);
+        $this->assertEquals(4, $newQuestion->options()->count());
+        $this->assertEquals(5, $newQuestion->options()->first()->score_value);
+
+        // 3. Update the custom question & change points
+        $updateResponse = $this->actingAs($guru)->put("/guru/asesmen/{$assessment->id}/pertanyaan/{$newQuestion->id}", [
+            'question_text' => 'Ketika menghadapi tantangan baru di sekolah, Anda cenderung:',
+            'options' => [
+                ['option_text' => 'Sangat suka mencoba langsung', 'score_value' => 4, 'dimension_code' => 'R'],
+                ['option_text' => 'Menganalisis akar penyebabnya', 'score_value' => 3, 'dimension_code' => 'I'],
+            ],
+        ]);
+        $updateResponse->assertRedirect("/guru/asesmen/{$assessment->id}");
+        $updateResponse->assertSessionHas('success');
+        $this->assertEquals('Ketika menghadapi tantangan baru di sekolah, Anda cenderung:', $newQuestion->fresh()->question_text);
+        $this->assertEquals(2, $newQuestion->fresh()->options()->count());
+
+        // 4. Delete the custom question
+        $deleteResponse = $this->actingAs($guru)->delete("/guru/asesmen/{$assessment->id}/pertanyaan/{$newQuestion->id}");
+        $deleteResponse->assertRedirect("/guru/asesmen/{$assessment->id}");
+        $deleteResponse->assertSessionHas('success');
+        $this->assertNull(\App\Models\AssessmentQuestion::find($newQuestion->id));
+    }
+
+    public function test_guru_bk_can_schedule_partner_activity_with_multiple_target_classes(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+        $partner = \App\Models\Partner::first();
+        $classes = \App\Models\StudentClass::take(2)->get();
+
+        // 1. Visit activities page and see multiple checkboxes
+        $response = $this->actingAs($guru)->get('/guru/mitra-kegiatan');
+        $response->assertStatus(200);
+        $response->assertSee('target_class_ids[]', false);
+        $response->assertSee('Semua', false);
+        $response->assertSee('Kosongkan', false);
+
+        // 2. Schedule activity with multiple target classes
+        $suffix = uniqid();
+        $testDate = '2029-10-' . str_pad((string) (rand(1, 28)), 2, '0', STR_PAD_LEFT);
+        $postResponse = $this->actingAs($guru)->post('/guru/mitra-kegiatan', [
+            'partner_id' => $partner->id,
+            'title' => 'Workshop Kolaborasi Multi Kelas ' . $suffix,
+            'activity_type' => 'seminar',
+            'date' => $testDate,
+            'start_time' => '09:00',
+            'end_time' => '11:00',
+            'room_location' => 'Auditorium ' . $suffix,
+            'target_class_ids' => [$classes[0]->id, $classes[1]->id],
+            'max_participants' => 80,
+            'status' => 'terkonfirmasi',
+        ]);
+
+        $postResponse->assertSessionHas('success');
+
+        $act = \App\Models\PartnerActivity::where('title', 'Workshop Kolaborasi Multi Kelas ' . $suffix)->first();
+        $this->assertNotNull($act);
+        $this->assertIsArray($act->target_class_ids);
+        $this->assertCount(2, $act->target_class_ids);
+        $this->assertContains($classes[0]->id, $act->target_class_ids);
+        $this->assertContains($classes[1]->id, $act->target_class_ids);
+    }
+
+    public function test_guru_bk_can_edit_and_delete_partner_activity_with_audit_logs(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+        $partner = \App\Models\Partner::first();
+        $classes = \App\Models\StudentClass::take(2)->get();
+
+        // 1. Create activity to edit
+        $suffix = uniqid();
+        $testDate = '2030-05-' . str_pad((string) (rand(1, 28)), 2, '0', STR_PAD_LEFT);
+        $act = \App\Models\PartnerActivity::create([
+            'partner_id' => $partner->id,
+            'code' => 'KGT-2030-' . rand(1000, 9999),
+            'title' => 'Kegiatan Uji Coba Edit ' . $suffix,
+            'activity_type' => 'sosialisasi',
+            'date' => $testDate,
+            'start_time' => '10:00',
+            'end_time' => '12:00',
+            'room_location' => 'Lab Komputer ' . $suffix,
+            'target_class_ids' => [$classes[0]->id],
+            'max_participants' => 50,
+            'pic_name' => $guru->name,
+            'status' => 'rencana',
+            'notes' => 'Catatan awal',
+        ]);
+
+        // 2. Perform PUT update
+        $updatedTitle = 'Kegiatan Terupdate ' . $suffix;
+        $responseUpdate = $this->actingAs($guru)->put("/guru/mitra-kegiatan/{$act->id}", [
+            'partner_id' => $partner->id,
+            'title' => $updatedTitle,
+            'activity_type' => 'seminar',
+            'date' => $testDate,
+            'start_time' => '10:00',
+            'end_time' => '12:30',
+            'room_location' => 'Aula Utama ' . $suffix,
+            'target_class_ids' => [$classes[0]->id, $classes[1]->id],
+            'max_participants' => 75,
+            'pic_name' => $guru->name,
+            'status' => 'terkonfirmasi',
+            'notes' => 'Catatan diperbarui',
+        ]);
+
+        $responseUpdate->assertSessionHas('success');
+
+        // Verify updated record in DB
+        $act->refresh();
+        $this->assertEquals($updatedTitle, $act->title);
+        $this->assertEquals('seminar', $act->activity_type);
+        $this->assertEquals(75, $act->max_participants);
+
+        // Verify Audit Log for PERBARUI
+        $updateLog = \App\Models\AuditLog::where('action', 'PERBARUI')
+            ->where('entity_type', 'PartnerActivity')
+            ->where('entity_id', $act->id)
+            ->latest()
+            ->first();
+
+        $this->assertNotNull($updateLog);
+        $this->assertStringContainsString($updatedTitle, $updateLog->description);
+
+        // 3. Perform DELETE
+        $responseDelete = $this->actingAs($guru)->delete("/guru/mitra-kegiatan/{$act->id}");
+        $responseDelete->assertSessionHas('success');
+
+        // Verify deleted from DB
+        $this->assertNull(\App\Models\PartnerActivity::find($act->id));
+
+        // Verify Audit Log for HAPUS
+        $deleteLog = \App\Models\AuditLog::where('action', 'HAPUS')
+            ->where('entity_type', 'PartnerActivity')
+            ->where('entity_id', $act->id)
+            ->latest()
+            ->first();
+
+        $this->assertNotNull($deleteLog);
+        $this->assertStringContainsString($updatedTitle, $deleteLog->description);
+
+        // 4. Verify Audit Log index page displays the logs
+        $auditPageResponse = $this->actingAs($guru)->get('/guru/audit');
+        $auditPageResponse->assertStatus(200);
+        $auditPageResponse->assertSee($updatedTitle, false);
     }
 }

@@ -67,9 +67,11 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::post('/siswa', [GuruStudentController::class, 'store'])->name('siswa.store');
     Route::post('/siswa/import', [GuruStudentController::class, 'import'])->name('siswa.import');
     Route::get('/siswa/template-impor', [GuruStudentController::class, 'downloadTemplate'])->name('siswa.template');
+    Route::post('/siswa/kenaikan-kelas-massal', [GuruStudentController::class, 'massPromote'])->name('siswa.mass_promote');
     Route::get('/siswa/{id}', [GuruStudentController::class, 'show'])->name('siswa.show');
     Route::get('/siswa/{id}/edit', [GuruStudentController::class, 'edit'])->name('siswa.edit');
     Route::put('/siswa/{id}', [GuruStudentController::class, 'update'])->name('siswa.update');
+    Route::delete('/siswa/{id}', [GuruStudentController::class, 'destroy'])->name('siswa.destroy');
 
     // 7 - 12. Bimbingan & Konseling
     Route::get('/konseling', [GuruCounselingController::class, 'index'])->name('konseling.index');
@@ -84,6 +86,9 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::get('/asesmen/{id}', [GuruAssessmentController::class, 'show'])->name('asesmen.show');
     Route::get('/asesmen/hasil/{id}', [GuruAssessmentController::class, 'showResult'])->name('asesmen.result');
     Route::post('/asesmen/hasil/{id}/update', [GuruAssessmentController::class, 'updateResult'])->name('asesmen.result.update');
+    Route::post('/asesmen/{id}/pertanyaan', [GuruAssessmentController::class, 'storeQuestion'])->name('asesmen.pertanyaan.store');
+    Route::put('/asesmen/{id}/pertanyaan/{questionId}', [GuruAssessmentController::class, 'updateQuestion'])->name('asesmen.pertanyaan.update');
+    Route::delete('/asesmen/{id}/pertanyaan/{questionId}', [GuruAssessmentController::class, 'destroyQuestion'])->name('asesmen.pertanyaan.destroy');
 
     // 14 - 15. Peminatan & Rencana Masa Depan
     Route::get('/peminatan', [GuruFuturePlanController::class, 'index'])->name('peminatan.index');
@@ -94,6 +99,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::get('/mitra/{id}', [GuruPartnerController::class, 'show'])->name('mitra.show');
     Route::get('/mitra-kegiatan', [GuruPartnerController::class, 'activities'])->name('mitra.activities');
     Route::post('/mitra-kegiatan', [GuruPartnerController::class, 'storeActivity'])->name('mitra.activity.store');
+    Route::put('/mitra-kegiatan/{id}', [GuruPartnerController::class, 'updateActivity'])->name('mitra.activity.update');
+    Route::delete('/mitra-kegiatan/{id}', [GuruPartnerController::class, 'destroyActivity'])->name('mitra.activity.destroy');
 
     // 19. Peluang Siswa
     Route::get('/peluang', [GuruOpportunityController::class, 'index'])->name('peluang.index');

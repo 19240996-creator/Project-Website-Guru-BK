@@ -50,7 +50,7 @@
         @if($opportunity->registrations->count() > 0)
             <div class="table-responsive">
                 <table class="table">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th>Identitas Siswa</th>
                             <th>Kelas</th>

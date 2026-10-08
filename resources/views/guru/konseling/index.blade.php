@@ -74,57 +74,57 @@
     <div class="card-body" style="padding: 0;">
         @if($counselings->count() > 0)
             <div class="table-responsive">
-                <table class="table">
+                <table class="table" style="min-width: 960px; width: 100%;">
                     <thead class="table-thead-navy">
                         <tr>
-                            <th>Nomor & Tanggal</th>
-                            <th>Identitas Siswa</th>
-                            <th>Topik & Kategori</th>
-                            <th>Urgensi</th>
-                            <th>Status & Jadwal</th>
-                            <th style="text-align: right;">Aksi</th>
+                            <th style="width: 15%; text-align: left;">Nomor & Tanggal</th>
+                            <th style="width: 17%; text-align: left;">Identitas Siswa</th>
+                            <th style="width: 26%; text-align: left;">Topik & Kategori</th>
+                            <th style="width: 11%; text-align: center;">Urgensi</th>
+                            <th style="width: 18%; text-align: center;">Status & Jadwal</th>
+                            <th style="width: 13%; text-align: center;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($counselings as $c)
                             <tr>
-                                <td>
-                                    <strong>{{ $c->code }}</strong><br>
-                                    <small style="color: var(--color-text-subtle);">{{ $c->created_at->translatedFormat('d M Y, H:i') }}</small>
+                                <td style="text-align: left;">
+                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $c->code }}</div>
+                                    <div style="font-size: 12px; color: var(--color-text-subtle); line-height: 1.4; margin-top: 2px;">{{ $c->created_at->translatedFormat('d M Y, H:i') }}</div>
                                 </td>
-                                <td>
-                                    <strong>{{ $c->student ? $c->student->name : '-' }}</strong><br>
-                                    <small style="color: var(--color-text-muted);">{{ $c->student && $c->student->studentClass ? $c->student->studentClass->name : '-' }}</small>
+                                <td style="text-align: left;">
+                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $c->student ? $c->student->name : '-' }}</div>
+                                    <div style="font-size: 12px; color: var(--color-text-muted); line-height: 1.4; margin-top: 2px;">{{ $c->student && $c->student->studentClass ? $c->student->studentClass->name : '-' }}</div>
                                 </td>
-                                <td>
-                                    <div style="font-weight: 600; color: var(--color-text-main);">{{ $c->topic }}</div>
-                                    <small style="color: var(--color-text-subtle);">{{ $c->category ? $c->category->name : 'Umum' }}</small>
+                                <td style="text-align: left;">
+                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $c->topic }}</div>
+                                    <div style="font-size: 12px; color: var(--color-text-subtle); line-height: 1.4; margin-top: 2px;">{{ $c->category ? $c->category->name : 'Umum' }}</div>
                                 </td>
-                                <td>
+                                <td style="text-align: center;">
                                     @if($c->urgency === 'mendesak' || $c->urgency === 'tinggi')
-                                        <span class="badge badge-danger">{{ ucfirst($c->urgency) }}</span>
+                                        <span class="badge badge-danger" style="min-width: 68px; justify-content: center;">{{ ucfirst($c->urgency) }}</span>
                                     @elseif($c->urgency === 'sedang')
-                                        <span class="badge badge-warning">Sedang</span>
+                                        <span class="badge badge-warning" style="min-width: 68px; justify-content: center;">Sedang</span>
                                     @else
-                                        <span class="badge badge-secondary">Rendah</span>
+                                        <span class="badge badge-secondary" style="min-width: 68px; justify-content: center;">Rendah</span>
                                     @endif
                                 </td>
-                                <td>
+                                <td style="text-align: center;">
                                     @if($c->status === 'diajukan')
-                                        <span class="badge badge-warning">Diajukan Siswa</span>
+                                        <span class="badge badge-warning" style="min-width: 100px; justify-content: center;">Diajukan Siswa</span>
                                     @elseif($c->status === 'dijadwalkan')
-                                        <span class="badge badge-primary">
+                                        <span class="badge badge-primary" style="padding: 4px 10px; justify-content: center;">
                                             Dijadwalkan: {{ $c->scheduled_date ? $c->scheduled_date->format('d/m/Y') : '-' }} ({{ substr($c->scheduled_time, 0, 5) }} WIB)
                                         </span>
                                     @elseif($c->status === 'tindak_lanjut')
-                                        <span class="badge badge-danger">Tindak Lanjut</span>
+                                        <span class="badge badge-danger" style="min-width: 100px; justify-content: center;">Tindak Lanjut</span>
                                     @elseif($c->status === 'selesai')
-                                        <span class="badge badge-success">Selesai</span>
+                                        <span class="badge badge-success" style="min-width: 80px; justify-content: center;">Selesai</span>
                                     @else
-                                        <span class="badge badge-secondary">{{ ucfirst(str_replace('_', ' ', $c->status)) }}</span>
+                                        <span class="badge badge-secondary" style="min-width: 80px; justify-content: center;">{{ ucfirst(str_replace('_', ' ', $c->status)) }}</span>
                                     @endif
                                 </td>
-                                <td style="text-align: right;">
+                                <td style="text-align: center; white-space: nowrap;">
                                     <a href="{{ route('guru.konseling.show', $c->id) }}" class="btn btn-secondary btn-sm">
                                         Proses & Catatan
                                     </a>

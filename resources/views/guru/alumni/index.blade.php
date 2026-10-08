@@ -63,8 +63,21 @@
                         @foreach($alumni as $als)
                             <tr>
                                 <td>
-                                    <strong>{{ $als->student ? $als->student->name : '-' }}</strong><br>
-                                    <small style="color: var(--color-text-subtle);">{{ $als->code }} | NISN: {{ $als->student ? $als->student->nisn : '-' }}</small>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        @if($als->photo)
+                                            <img src="{{ asset('storage/' . $als->photo) }}" alt="{{ $als->student ? $als->student->name : 'Alumni' }}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border); flex-shrink: 0;">
+                                        @elseif($als->student && $als->student->avatar)
+                                            <img src="{{ asset('storage/' . $als->student->avatar) }}" alt="{{ $als->student->name }}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border); flex-shrink: 0;">
+                                        @else
+                                            <div class="user-avatar-initial" style="width: 38px; height: 38px; font-size: 13px; flex-shrink: 0;">
+                                                {{ strtoupper(substr($als->student ? $als->student->name : 'A', 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <strong>{{ $als->student ? $als->student->name : '-' }}</strong><br>
+                                            <small style="color: var(--color-text-subtle);">{{ $als->code }} | NISN: {{ $als->student ? $als->student->nisn : '-' }}</small>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td>
                                     Lulus Tahun: <strong>{{ $als->graduation_year }}</strong><br>
