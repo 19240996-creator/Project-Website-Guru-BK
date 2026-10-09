@@ -97,9 +97,27 @@ jobs:
           # Langsung arahkan ke root public_html domain target
           APP_DIR=/home/u932929768/domains/dico-ruangbk.my.id/public_html
           
+          echo "==> Memeriksa dan menyinkronkan berkas rilis dari FTP ke $APP_DIR"
+          for UPLOAD_DIR in /home/u932929768/crm /home/u932929768/domains/dico-ruangbk.my.id/public_html/crm /home/u932929768/public_html/crm; do
+            if [ -d "$UPLOAD_DIR" ] && [ "$UPLOAD_DIR" != "$APP_DIR" ]; then
+              echo "==> Sinkronisasi berkas dari $UPLOAD_DIR ke $APP_DIR"
+              cp -rf "$UPLOAD_DIR"/* "$APP_DIR/" 2>/dev/null || true
+            fi
+          done
+
+          HERO_IMG=$(find /home/u932929768 -name "counselor-hero.jpg" 2>/dev/null | grep -v "$APP_DIR" | head -n 1 || true)
+          if [ -n "$HERO_IMG" ]; then
+            SRC_BASE=$(echo "$HERO_IMG" | sed 's|/public/images/counselor-hero.jpg||')
+            echo "==> Terdeteksi berkas rilis di $SRC_BASE, menyalin ke $APP_DIR"
+            cp -rf "$SRC_BASE"/* "$APP_DIR/" 2>/dev/null || true
+          fi
+
           echo "==> Menyiapkan aplikasi di $APP_DIR"
           cd "$APP_DIR"
           
           $PHP artisan optimize:clear
+          $PHP artisan view:clear
+          $PHP artisan config:clear
+          $PHP artisan route:clear
           $PHP artisan migrate --force
           $PHP artisan optimize
