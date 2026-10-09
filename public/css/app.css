@@ -675,6 +675,21 @@ body.sidebar-locked {
   color: #FFFFFF;
 }
 
+.btn-warning {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+  color: #FFFFFF !important;
+  font-weight: 700;
+  border: 1px solid #B45309;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.28);
+}
+
+.btn-warning:hover {
+  background: linear-gradient(180deg, #FBBF24 0%, #E59819 100%);
+  color: #FFFFFF !important;
+  border-color: #92400E;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.38);
+}
+
 .btn-gold {
   background-color: var(--color-gold);
   color: var(--color-navy);
