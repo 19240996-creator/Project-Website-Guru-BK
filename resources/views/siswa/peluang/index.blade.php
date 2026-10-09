@@ -41,10 +41,10 @@
         @endphp
         <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; position: relative;">
             <div>
-                <div class="card-header" style="background: #ffffff; border-bottom: 1px solid var(--color-border);">
-                    <span class="badge badge-primary">{{ ucfirst(str_replace('_', ' ', $op->type)) }}</span>
+                <div class="card-header card-header-navy">
+                    <span class="badge badge-light-navy">{{ ucfirst(str_replace('_', ' ', $op->type)) }}</span>
                     @if($isRecommended)
-                        <span class="badge badge-success">Cocok dengan Rute Anda</span>
+                        <span class="badge badge-translucent">Cocok dengan Rute Anda</span>
                     @endif
                 </div>
                 <div class="card-body">

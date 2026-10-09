@@ -13,10 +13,10 @@
 
     <!-- Formulir Pembaruan Rencana Masa Depan -->
     <div class="card" style="margin-bottom: 28px;">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Pilih Arah Pilihan Utama Anda</h3>
             @if($currentPlan)
-                <span style="font-size: 13px; font-weight: 600; color: var(--color-text-muted);">
+                <span style="font-size: 13px; font-weight: 600; color: #bfdbfe;">
                     Versi ke-{{ $currentPlan->version }} (Aktif)
                 </span>
             @endif
@@ -185,15 +185,15 @@
     </div>
 
     <!-- Riwayat Versi Rencana Siswa -->
-    @if($student->futurePlans->count() > 0)
+    @if($history->count() > 0)
         <div class="card">
-            <div class="card-header">
+            <div class="card-header card-header-navy">
                 <h3 class="card-title">Riwayat Perubahan Pilihan Cita-cita</h3>
             </div>
             <div class="card-body" style="padding: 0;">
                 <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+                    <table class="table" style="margin-bottom: 0;">
+                        <thead class="table-thead-navy">
                             <tr>
                                 <th style="width: 110px; white-space: nowrap;">Versi</th>
                                 <th style="width: 190px; white-space: nowrap;">Pilihan Utama</th>
@@ -202,7 +202,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($student->futurePlans as $p)
+                            @foreach($history as $p)
                                 <tr>
                                     <td style="white-space: nowrap; vertical-align: middle;">
                                         <strong style="color: var(--color-text-main); font-size: 13px;">Versi {{ $p->version }}</strong>
@@ -243,6 +243,9 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="card-footer" style="background-color: #ffffff;">
+                {{ $history->links() }}
             </div>
         </div>
     @endif

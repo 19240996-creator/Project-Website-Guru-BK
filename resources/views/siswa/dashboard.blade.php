@@ -29,7 +29,7 @@
 <div class="grid-2" style="margin-bottom: 24px;">
     <!-- Sesi Konseling Saya Terkini -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Layanan Bimbingan Konseling Saya</h3>
             <a href="{{ route('siswa.konseling.index') }}" class="btn btn-secondary btn-sm">Lihat Semua</a>
         </div>
@@ -70,7 +70,7 @@
 
     <!-- Rute Masa Depan Saya (Section 38) -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Rencana Masa Depan Saya</h3>
             <a href="{{ route('siswa.rencana.show') }}" class="btn btn-secondary btn-sm">Perbarui Rute</a>
         </div>
@@ -134,7 +134,7 @@
 <div class="grid-2">
     <!-- Asesmen Diri Tersedia -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Asesmen Minat & Kepribadian</h3>
             <a href="{{ route('siswa.asesmen.index') }}" class="btn btn-secondary btn-sm">Semua Asesmen</a>
         </div>
@@ -167,7 +167,7 @@
 
     <!-- Peluang & Beasiswa Pilihan -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Peluang Beasiswa & Magang Terbaru</h3>
             <a href="{{ route('siswa.peluang.index') }}" class="btn btn-secondary btn-sm">Buka Semua Peluang</a>
         </div>

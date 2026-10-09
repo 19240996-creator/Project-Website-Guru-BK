@@ -22,7 +22,7 @@
         @if($counselings->count() > 0)
             <div class="table-responsive">
                 <table class="table" style="width: 100%; border-collapse: collapse;">
-                    <thead>
+                    <thead class="table-thead-navy">
                         <tr>
                             <th style="width: 160px; text-align: left; white-space: nowrap;">Permohonan</th>
                             <th style="min-width: 250px; text-align: left;">Topik Konsultasi</th>

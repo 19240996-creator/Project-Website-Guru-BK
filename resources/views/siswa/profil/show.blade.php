@@ -13,9 +13,9 @@
 <div class="grid-2">
     <!-- Data Akademik & Sekolah -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Identitas Pokok Siswa</h3>
-            <span class="badge badge-success">{{ ucfirst($student->status) }}</span>
+            <span class="badge badge-translucent">{{ ucfirst($student->status) }}</span>
         </div>
         <div class="card-body">
             <table class="table" style="font-size: 13px;">
@@ -57,7 +57,7 @@
 
     <!-- Pembaruan Kontak Mandiri -->
     <div class="card">
-        <div class="card-header">
+        <div class="card-header card-header-navy">
             <h3 class="card-title">Perbarui Kontak Mandiri</h3>
         </div>
         <div class="card-body">

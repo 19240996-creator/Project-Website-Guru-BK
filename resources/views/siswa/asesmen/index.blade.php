@@ -17,9 +17,9 @@
         @endphp
         <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
             <div>
-                <div class="card-header">
+                <div class="card-header card-header-navy">
                     <h3 class="card-title">{{ $asm->title }}</h3>
-                    <span class="badge badge-primary">{{ $asm->category }}</span>
+                    <span class="badge badge-translucent">{{ $asm->category }}</span>
                 </div>
                 <div class="card-body">
                     <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 16px;">

@@ -12,13 +12,14 @@ class FuturePlanController extends Controller
 {
     public function show()
     {
-        $student = auth()->user()->student->load(['futurePlans' => fn($q) => $q->latest()]);
+        $student = auth()->user()->student;
+        $history = $student->futurePlans()->latest()->paginate(5);
         $currentPlan = $student->futurePlan;
 
         $campusPartners = Partner::where('type', 'perguruan_tinggi')->get();
         $companyPartners = Partner::where('type', 'perusahaan')->get();
 
-        return view('siswa.rencana.show', compact('student', 'currentPlan', 'campusPartners', 'companyPartners'));
+        return view('siswa.rencana.show', compact('student', 'currentPlan', 'campusPartners', 'companyPartners', 'history'));
     }
 
     public function update(Request $request)

@@ -127,6 +127,10 @@ class SystemVerificationTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Ruang BK', false);
         $response->assertSee('Rencana Masa Depan Saya', false);
+        $response->assertSee('Layanan Bimbingan Konseling Saya', false);
+        $response->assertSee('Asesmen Minat & Kepribadian', false);
+        $response->assertSee('Peluang Beasiswa & Magang Terbaru', false);
+        $response->assertSee('card-header-navy', false);
     }
 
     public function test_siswa_cannot_access_guru_routes()
@@ -189,6 +193,17 @@ class SystemVerificationTest extends TestCase
             'work_target_field' => 'Junior Web Developer',
             'work_target_company' => 'Software House Nusantara',
         ]);
+    }
+
+    public function test_siswa_can_view_assessment_index_with_navy_card_header()
+    {
+        $siswaUser = User::where('username', '0071234561')->first();
+
+        $response = $this->actingAs($siswaUser)->get('/siswa/asesmen');
+        $response->assertStatus(200);
+        $response->assertSee('Asesmen Minat Karier RIASEC', false);
+        $response->assertSee('card-header card-header-navy', false);
+        $response->assertSee('badge-translucent', false);
     }
 
     public function test_siswa_can_access_assessment_take_page_without_sql_error()

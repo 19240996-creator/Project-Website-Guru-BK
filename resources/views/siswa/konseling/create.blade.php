@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="card" style="max-width: 820px; margin: 0 auto;">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center;">
         <h3 class="card-title">Formulir Pengajuan Layanan Konseling</h3>
-        <a href="{{ route('siswa.konseling.index') }}" class="btn btn-secondary btn-sm">Batal</a>
+        <a href="{{ route('siswa.konseling.index') }}" class="btn btn-secondary btn-sm" style="background: rgba(255, 255, 255, 0.15); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.35);">Batal</a>
     </div>
     <div class="card-body" style="padding: 24px 28px;">
         <div class="alert alert-info" style="font-size: 13px; margin-bottom: 24px;">
