@@ -1,0 +1,105 @@
+name: Update Laravel ke Hostinger Subdomain
+
+on:
+  push:
+    branches:
+      - main # Pastikan ini sesuai dengan nama branch Anda (main atau master)
+
+jobs:
+  laravel-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚚 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🐘 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3' # Menggunakan PHP 8.3 sesuai hosting Hostinger
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, curl, zip
+        coverage: none
+
+    - name: 📦 Install Composer Dependencies
+      run: |
+        composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 🎨 Build Frontend Assets
+      run: |
+        npm ci
+        npm run build
+
+    - name: 🚀 Sync Files ke Hostinger
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./
+        # 1. PENYESUAIAN PATH KE SUBDOMAIN:
+        server-dir: ./crm/
+
+        # 2. PENYESUAIAN EXCLUDE (SANGAT PENTING):
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          .env
+          .env.example
+          tests/**
+          README.md
+          storage/**
+          bootstrap/cache/**
+          vendor/**
+
+    # Setelah file ter-upload (FTP tak bisa menjalankan artisan), langkah ini SSH
+    # ke server untuk KEDUA app: pasang dependensi composer, bangun ulang cache
+    # framework, jalankan migrasi. Pakai jalur absolut PHP 8.3 agar konsisten
+    # (bukan `php`).
+    #
+    # COMPOSER DI SERVER — wajib: vendor/ sengaja TIDAK ikut FTP (puluhan ribu
+    # berkas), jadi paket baru di composer.json (mis. laravel/sanctum) hanya
+    # sampai ke server lewat langkah ini. Tanpa ini, kode baru terunggah tapi
+    # paketnya tidak, dan SELURUH situs 500 ("Class ... not found").
+    # composer.phar disimpan di luar public_html dan dijalankan dengan PHP 8.3
+    # yang sama dengan artisan — composer bawaan hosting bisa memakai versi PHP
+    # lain lalu menolak Laravel 13. Unduhannya diverifikasi checksum resmi.
+    #
+    # --no-scripts: PHP di hosting mematikan proc_open, jadi composer tak bisa
+    # menjalankan skrip post-autoload-dump (`@php artisan package:discover` =
+    # subproses). Dua hal yang dikerjakan skrip itu dilakukan manual di bawah:
+    # hapus cache kompilasi lama (manifest paket lama bisa menyebut provider
+    # paket yang baru dihapus → artisan gagal boot), lalu package:discover
+    # langsung lewat artisan (tanpa subproses).
+    #
+    # Tiap app diproses di subshell `set -e` sendiri: berhenti di galat pertama
+    # app itu, TAPI app berikutnya tetap diproses — satu app yang gagal tak
+    # boleh membiarkan app lain setengah ter-deploy (kode baru, migrasi belum).
+    # Job tetap gagal di akhir bila ada app yang gagal. (`script_stop` sudah
+    # dihapus di ssh-action v1.x dan dulu diabaikan diam-diam.)
+    - name: 🧹 Post-Deploy via SSH (cache + migrasi)
+      uses: appleboy/ssh-action@v1.2.2
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        port: ${{ secrets.SSH_PORT }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          set -e
+          PHP=/opt/alt/php83/usr/bin/php
+          if [ ! -f "$PHP" ]; then PHP=php; fi
+          
+          # Langsung arahkan ke root public_html domain target
+          APP_DIR=/home/u932929768/domains/dico-ruangbk.my.id/public_html
+          
+          echo "==> Menyiapkan aplikasi di $APP_DIR"
+          cd "$APP_DIR"
+          
+          $PHP artisan optimize:clear
+          $PHP artisan migrate --force
+          $PHP artisan optimize
