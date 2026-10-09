@@ -298,6 +298,7 @@ class StudentController extends Controller
 
         $oldPhone = $student->phone;
         $oldNisn = $student->nisn;
+        $oldNis = $student->nis;
 
         $student->update($validated);
 
@@ -328,7 +329,7 @@ class StudentController extends Controller
             ]);
         }
 
-        // Sinkronisasi akun login siswa jika nomor HP atau data akun berubah
+        // Sinkronisasi akun login siswa jika nomor HP, NISN, atau NIS berubah
         $studentPassword = (!empty($validated['phone'])) ? $validated['phone'] : $validated['nisn'];
 
         if ($student->user) {
@@ -339,8 +340,8 @@ class StudentController extends Controller
                 'phone' => $validated['phone'],
             ];
 
-            // Jika nomor HP atau NISN siswa diubah, perbarui kata sandi ke nomor baru agar nomor lama tidak dapat login lagi
-            if ($validated['phone'] !== $oldPhone || $validated['nisn'] !== $oldNisn) {
+            // Jika nomor HP, NISN, atau NIS siswa diubah, perbarui kata sandi ke nomor baru agar nomor lama tidak dapat login lagi
+            if ($validated['phone'] !== $oldPhone || $validated['nisn'] !== $oldNisn || $validated['nis'] !== $oldNis) {
                 $userData['password'] = Hash::make($studentPassword);
             }
 
