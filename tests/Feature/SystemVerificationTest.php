@@ -224,6 +224,9 @@ class SystemVerificationTest extends TestCase
         $indexResponse->assertSee('Klik untuk memasukkan jurusan manual', false);
 
         // 2. Perform import with grade and manual custom major
+        \App\Models\Student::where('nisn', '0081234599')->orWhere('nis', '25261099')->delete();
+        \App\Models\User::where('username', '0081234599')->delete();
+
         $csvContent = "NIS,NISN,Nama Lengkap,Jenis Kelamin,No. HP\n25261099,0081234599,Bintang Pratama,L,081234567899\n";
         $file = UploadedFile::fake()->createWithContent('siswa_baru.csv', $csvContent);
 
@@ -247,6 +250,35 @@ class SystemVerificationTest extends TestCase
             'nisn' => '0081234599',
             'name' => 'Bintang Pratama',
         ]);
+
+        // 3. Verify student user account password is set to phone number
+        $studentUser = User::where('username', '0081234599')->first();
+        $this->assertNotNull($studentUser);
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('081234567899', $studentUser->password));
+
+        // 4. Verify student can log in using NISN as username and phone number as password
+        $this->post('/logout');
+        $loginResponse = $this->post('/login', [
+            'login' => '0081234599',
+            'password' => '081234567899',
+        ]);
+        $loginResponse->assertRedirect(route('siswa.dashboard'));
+
+        // 5. Verify importing multiple students with the same NIS succeeds
+        \App\Models\Student::whereIn('nisn', ['0089999001', '0089999002'])->delete();
+        \App\Models\User::whereIn('username', ['0089999001', '0089999002'])->delete();
+
+        $multiCsv = "NIS,NISN,Nama Lengkap,Jenis Kelamin,No. HP\n20239999,0089999001,Siswa Satu,L,081111110001\n20239999,0089999002,Siswa Dua,P,081111110002\n";
+        $multiFile = UploadedFile::fake()->createWithContent('siswa_multi.csv', $multiCsv);
+
+        $multiImportResponse = $this->actingAs($guru)->post('/guru/siswa/import', [
+            'grade' => 'X',
+            'major' => 'Desain Komunikasi Visual',
+            'csv_file' => $multiFile,
+        ]);
+        $multiImportResponse->assertRedirect(route('guru.siswa.index'));
+        $this->assertDatabaseHas('students', ['nisn' => '0089999001', 'nis' => '20239999']);
+        $this->assertDatabaseHas('students', ['nisn' => '0089999002', 'nis' => '20239999']);
     }
 
     public function test_guru_bk_can_download_student_import_template()

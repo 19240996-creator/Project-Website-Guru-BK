@@ -102,7 +102,7 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nis' => 'required|string|unique:students,nis',
+            'nis' => 'required|string',
             'nisn' => 'required|string|unique:students,nisn',
             'name' => 'required|string|max:255',
             'gender' => 'required|in:L,P',
@@ -119,12 +119,15 @@ class StudentController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
+            // Password login siswa menggunakan No. HP siswa (atau NISN jika No. HP kosong)
+            $studentPassword = (!empty($validated['phone'])) ? $validated['phone'] : $validated['nisn'];
+
             // Create user account for student
             $user = User::create([
                 'name' => $validated['name'],
                 'username' => $validated['nisn'],
                 'email' => $validated['nisn'] . '@siswa.sch.id',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make($studentPassword),
                 'role' => 'siswa',
                 'phone' => $validated['phone'],
                 'is_active' => true,
@@ -276,7 +279,7 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
 
         $validated = $request->validate([
-            'nis' => 'required|string|unique:students,nis,' . $student->id,
+            'nis' => 'required|string',
             'nisn' => 'required|string|unique:students,nisn,' . $student->id,
             'name' => 'required|string|max:255',
             'gender' => 'required|in:L,P',
@@ -354,7 +357,7 @@ class StudentController extends Controller
                 'academic_year_id' => $academicYear ? $academicYear->id : null,
                 'grade' => $grade,
                 'major' => $major,
-                'name' => "{$grade} {$major} 1",
+                'name' => "{$grade} {$major}",
             ]);
 
             AuditLog::log('TAMBAH', 'StudentClass', null, "Menambahkan master jurusan baru: {$major}.");
@@ -441,14 +444,11 @@ class StudentController extends Controller
                 ->first();
 
             if (!$studentClass) {
-                $countExisting = StudentClass::where('grade', $grade)->where('major', $major)->count();
-                $className = "{$grade} {$major}" . ($countExisting > 0 ? ' ' . ($countExisting + 1) : '');
-
                 $studentClass = StudentClass::create([
                     'academic_year_id' => $academicYear ? $academicYear->id : null,
                     'grade' => $grade,
                     'major' => $major,
-                    'name' => $className,
+                    'name' => "{$grade} {$major}",
                 ]);
             }
 
@@ -456,56 +456,126 @@ class StudentController extends Controller
         }
 
         $file = $request->file('csv_file');
-        $handle = fopen($file->getRealPath(), 'r');
-        $header = fgetcsv($handle, 1000, ',');
+        $filePath = $file->getRealPath();
+
+        // Otomatis deteksi pemisah kolom (delimiter): koma (,), titik koma (;), atau tab (\t)
+        $delimiter = ',';
+        $sampleHandle = fopen($filePath, 'r');
+        if ($sampleHandle) {
+            $firstLine = fgets($sampleHandle);
+            fclose($sampleHandle);
+            if ($firstLine !== false) {
+                $commaCount = substr_count($firstLine, ',');
+                $semicolonCount = substr_count($firstLine, ';');
+                $tabCount = substr_count($firstLine, "\t");
+                if ($semicolonCount > $commaCount && $semicolonCount > $tabCount) {
+                    $delimiter = ';';
+                } elseif ($tabCount > $commaCount && $tabCount > $semicolonCount) {
+                    $delimiter = "\t";
+                }
+            }
+        }
+
+        $handle = fopen($filePath, 'r');
+        $header = fgetcsv($handle, 1000, $delimiter);
 
         $imported = 0;
+        $updated = 0;
 
-        while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+        while (($row = fgetcsv($handle, 1000, $delimiter)) !== false) {
+            // Abaikan baris kosong
+            if (!is_array($row) || count(array_filter($row)) === 0) continue;
             if (count($row) < 3) continue;
 
-            $nis = trim($row[0]);
-            $nisn = trim($row[1]);
+            $nis = trim(str_replace("\xEF\xBB\xBF", '', $row[0]));
+            $nisn = trim(str_replace("\xEF\xBB\xBF", '', $row[1]));
             $name = trim($row[2]);
             $gender = isset($row[3]) && in_array(strtoupper(trim($row[3])), ['L', 'P']) ? strtoupper(trim($row[3])) : 'L';
             $phone = isset($row[4]) ? trim($row[4]) : null;
 
             if (empty($nis) || empty($nisn) || empty($name)) continue;
 
-            // Prevent duplicate NIS / NISN
-            $existing = Student::where('nis', $nis)->orWhere('nisn', $nisn)->first();
-            if ($existing) continue;
+            // Password akun login siswa diambil dari No. HP siswa yang di-upload
+            // Jika kolom No. HP tidak terisi, gunakan NISN siswa sebagai password
+            $studentPassword = (!empty($phone)) ? $phone : $nisn;
 
-            $user = User::create([
-                'name' => $name,
-                'username' => $nisn,
-                'email' => $nisn . '@siswa.sch.id',
-                'password' => Hash::make('password123'),
-                'role' => 'siswa',
-                'phone' => $phone,
-                'is_active' => true,
-            ]);
+            // Cek apakah siswa dengan NISN ini sudah terdaftar
+            $existing = Student::where('nisn', $nisn)->first();
 
-            Student::create([
-                'user_id' => $user->id,
-                'student_class_id' => $classId,
-                'nis' => $nis,
-                'nisn' => $nisn,
-                'name' => $name,
-                'gender' => $gender,
-                'phone' => $phone,
-                'status' => 'aktif',
-                'attention_level' => 'normal',
-            ]);
+            if ($existing) {
+                // Perbarui data siswa dan kelasnya
+                $existing->update([
+                    'student_class_id' => $classId,
+                    'nis' => $nis,
+                    'name' => $name,
+                    'gender' => $gender,
+                    'phone' => $phone,
+                    'status' => 'aktif',
+                ]);
 
-            $imported++;
+                // Sinkronisasi akun user siswa
+                if ($existing->user) {
+                    $existing->user->update([
+                        'name' => $name,
+                        'phone' => $phone,
+                        'password' => Hash::make($studentPassword),
+                        'is_active' => true,
+                    ]);
+                } else {
+                    $user = User::create([
+                        'name' => $name,
+                        'username' => $nisn,
+                        'email' => $nisn . '@siswa.sch.id',
+                        'password' => Hash::make($studentPassword),
+                        'role' => 'siswa',
+                        'phone' => $phone,
+                        'is_active' => true,
+                    ]);
+                    $existing->update(['user_id' => $user->id]);
+                }
+
+                $updated++;
+            } else {
+                // Buat akun user login baru
+                $user = User::create([
+                    'name' => $name,
+                    'username' => $nisn,
+                    'email' => $nisn . '@siswa.sch.id',
+                    'password' => Hash::make($studentPassword),
+                    'role' => 'siswa',
+                    'phone' => $phone,
+                    'is_active' => true,
+                ]);
+
+                Student::create([
+                    'user_id' => $user->id,
+                    'student_class_id' => $classId,
+                    'nis' => $nis,
+                    'nisn' => $nisn,
+                    'name' => $name,
+                    'gender' => $gender,
+                    'phone' => $phone,
+                    'status' => 'aktif',
+                    'attention_level' => 'normal',
+                ]);
+
+                $imported++;
+            }
         }
 
         fclose($handle);
 
-        AuditLog::log('IMPORT', 'Student', null, "Melakukan impor massal {$imported} data siswa ke kelas ID {$classId}.");
+        $totalProcessed = $imported + $updated;
+        AuditLog::log('IMPORT', 'Student', null, "Melakukan impor massal {$totalProcessed} data siswa ({$imported} baru, {$updated} diperbarui) ke kelas ID {$classId}.");
 
-        return redirect()->route('guru.siswa.index')->with('success', "Berhasil mengimpor {$imported} data siswa beserta pembuatan akun login default.");
+        $msg = "Berhasil memproses {$totalProcessed} data siswa";
+        if ($updated > 0) {
+            $msg .= " ({$imported} data baru ditambahkan, {$updated} data diperbarui).";
+        } else {
+            $msg .= ". Akun login dibuat dengan username NISN dan kata sandi No. HP siswa.";
+        }
+
+        return redirect()->route('guru.siswa.index')->with('success', $msg);
     }
 
     public function downloadTemplate()

@@ -255,7 +255,7 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #93c5fd; flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             <span>
                 <strong style="color: #ffffff; font-weight: 700;">Petunjuk Aturan Impor Data:</strong>
-                Sesuai aturan sistem, pilih kelas terlebih dahulu sebelum mengimpor file. Sistem akan otomatis membuatkan akun login siswa dengan username NISN dan kata sandi default <code style="background: rgba(255, 255, 255, 0.2); color: #ffffff; padding: 2px 6px; border-radius: var(--radius-sm); font-weight: 600;">password123</code>.
+                Sesuai aturan sistem, pilih kelas terlebih dahulu sebelum mengimpor file. Sistem akan otomatis membuatkan akun login siswa dengan username <strong style="color: #ffffff;">NISN</strong> dan kata sandi menggunakan <strong style="color: #ffffff;">No. HP</strong> siswa yang diunggah.
             </span>
         </p>
     </div>
