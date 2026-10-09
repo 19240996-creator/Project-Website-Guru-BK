@@ -1,200 +1,309 @@
 @extends('layouts.siswa')
 
 @section('title', 'Ruang BK - ' . $student->name)
+@section('header_title', 'Ruang Mandiri Siswa')
 
 @section('content')
-<!-- Hero Welcome Section -->
-<div style="background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: #ffffff; padding: 32px 28px; border-radius: var(--radius-lg); margin-bottom: 24px; box-shadow: var(--shadow-md);">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 20px;">
-                Ruang Mandiri Siswa
-            </span>
-            <h1 style="font-size: 22px; font-weight: 800; margin-top: 10px;">Halo, {{ $student->name }}!</h1>
-            <p style="font-size: 13px; color: #cbd5e1; margin-top: 4px; max-width: 620px; line-height: 1.5;">
-                Selamat datang di platform pendampingan BK. Kenali minat dan bakatmu, konsultasikan cita-citamu, dan temukan rute terbaik menuju perguruan tinggi atau dunia kerja idamanmu.
+<!-- Hero Welcome Student Section with Student Photo Cutout & Quote -->
+<div class="hero-banner-executive" style="background: linear-gradient(135deg, #0B1630 0%, #152E63 55%, #1F4594 100%);">
+    <div class="hero-banner-inner">
+        <div class="hero-banner-text">
+            <h1 class="hero-banner-heading" style="font-size: 26px; margin-bottom: 6px;">
+                Halo, {{ $student->name }}!
+            </h1>
+            <p class="hero-banner-desc">
+                Kenali potensimu, rencanakan masa depanmu, dan terus berkembang bersama RUANG BK.
             </p>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <a href="{{ route('siswa.konseling.create') }}" class="btn btn-secondary" style="background: #ffffff; color: #1e3a8a; border: none; font-weight: 700;">
-                + Ajukan Konseling
-            </a>
-            <a href="{{ route('siswa.rencana.show') }}" class="btn" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3); font-weight: 600;">
-                Rute Masa Depan
-            </a>
+        <div class="hero-banner-visual">
+            <img src="{{ asset('images/student-hero.jpg') }}" alt="{{ $student->name }}" class="hero-banner-photo" />
+            <div class="hero-banner-quote-badge">
+                &ldquo;Langkah kecil hari ini, bisa menjadi awal dari masa depan yang besar.&rdquo;
+            </div>
         </div>
     </div>
 </div>
 
-<div class="grid-2" style="margin-bottom: 24px;">
-    <!-- Sesi Konseling Saya Terkini -->
-    <div class="card">
-        <div class="card-header card-header-navy">
-            <h3 class="card-title">Layanan Bimbingan Konseling Saya</h3>
-            <a href="{{ route('siswa.konseling.index') }}" class="btn btn-secondary btn-sm">Lihat Semua</a>
+<!-- 4 Quick Access Service Cards Row matching Reference UI -->
+<div class="student-quick-grid">
+    <!-- Card 1: Bimbingan & Konseling -->
+    <a href="{{ route('siswa.konseling.index') }}" class="student-quick-card">
+        <div class="stat-icon-pill blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+        <div>
+            <div class="student-quick-title">Bimbingan & Konseling</div>
+            <p class="student-quick-desc">Ajukan konseling dan lihat jadwalmu</p>
+        </div>
+    </a>
+
+    <!-- Card 2: Asesmen Diri -->
+    <a href="{{ route('siswa.asesmen.index') }}" class="student-quick-card">
+        <div class="stat-icon-pill green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><polyline points="9 12 11 14 15 10"></polyline></svg>
+        </div>
+        <div>
+            <div class="student-quick-title">Asesmen Diri</div>
+            <p class="student-quick-desc">Kenali minat, bakat dan potensimu</p>
+        </div>
+    </a>
+
+    <!-- Card 3: Peminatan & Masa Depan -->
+    <a href="{{ route('siswa.rencana.show') }}" class="student-quick-card">
+        <div class="stat-icon-pill amber">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <div>
+            <div class="student-quick-title">Peminatan & Masa Depan</div>
+            <p class="student-quick-desc">Tentukan rencana setelah lulus</p>
+        </div>
+    </a>
+
+    <!-- Card 4: Perguruan Tinggi & Industri -->
+    <a href="{{ route('siswa.peluang.index') }}" class="student-quick-card">
+        <div class="stat-icon-pill blue" style="background: #E0E7FF; color: #1E3A8A;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        </div>
+        <div>
+            <div class="student-quick-title">Perguruan Tinggi & Industri</div>
+            <p class="student-quick-desc">Informasi kampus dan dunia kerja</p>
+        </div>
+    </a>
+</div>
+
+<!-- Middle Section: 3 Status Cards Row matching Reference UI -->
+<div class="priority-three-grid" style="margin-bottom: 24px;">
+    <!-- Card 1: Status Pengajuan Konseling -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header-clean">
+            <h2 class="card-title-clean">Status Pengajuan Konseling</h2>
+            <a href="{{ route('siswa.konseling.index') }}" class="link-all-blue" title="Lihat Semua Status">
+                Lihat Semua
+            </a>
         </div>
         <div class="card-body">
             @if($upcomingCounseling)
-                <div style="padding: 16px; background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-md);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="badge badge-primary">{{ ucfirst(str_replace('_', ' ', $upcomingCounseling->status)) }}</span>
-                        <small style="color: var(--color-text-subtle);">{{ $upcomingCounseling->code }}</small>
-                    </div>
-                    <div style="font-weight: 700; font-size: 14px; color: var(--color-text-main); margin-bottom: 4px;">
-                        {{ $upcomingCounseling->topic }}
-                    </div>
-                    <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 12px;">
-                        Kategori: <strong>{{ $upcomingCounseling->category ? $upcomingCounseling->category->name : 'Umum' }}</strong>
-                    </p>
-
-                    @if($upcomingCounseling->status === 'dijadwalkan')
-                        <div style="padding: 10px 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius-sm); font-size: 12px; color: #1e3a8a; margin-bottom: 12px;">
-                            <strong>Jadwal Pertemuan Ditetapkan:</strong><br>
-                            {{ $upcomingCounseling->scheduled_date ? $upcomingCounseling->scheduled_date->translatedFormat('l, d F Y') : '-' }} pukul {{ substr($upcomingCounseling->scheduled_time, 0, 5) }} WIB di {{ $upcomingCounseling->scheduled_location }}
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #ECFDF5; color: #059669; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         </div>
-                    @endif
-
-                    <a href="{{ route('siswa.konseling.show', $upcomingCounseling->id) }}" class="btn btn-primary btn-sm" style="width: 100%;">
-                        Buka Rincian Sesi Konseling
+                        <div>
+                            <div style="font-weight: 700; font-size: 13.5px; color: var(--color-navy);">
+                                Konseling - {{ $upcomingCounseling->category ? $upcomingCounseling->category->name : 'Karier' }}
+                            </div>
+                            <div style="margin-top: 3px; display: flex; align-items: center; gap: 8px;">
+                                @if($upcomingCounseling->status === 'dijadwalkan')
+                                    <span class="badge badge-success" style="font-size: 10.5px; padding: 2px 7px;">Disetujui</span>
+                                @elseif($upcomingCounseling->status === 'diajukan')
+                                    <span class="badge badge-warning" style="font-size: 10.5px; padding: 2px 7px;">Menunggu Tinjauan</span>
+                                @else
+                                    <span class="badge badge-primary" style="font-size: 10.5px; padding: 2px 7px;">{{ ucfirst($upcomingCounseling->status) }}</span>
+                                @endif
+                                <span style="font-size: 11px; color: #94A3B8;">
+                                    Tanggal pengajuan: {{ $upcomingCounseling->created_at->translatedFormat('d M Y') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ route('siswa.konseling.show', $upcomingCounseling->id) }}" class="btn-detail-pill">
+                        Detail
                     </a>
                 </div>
             @else
-                <div class="empty-state" style="padding: 24px 16px;">
-                    <p class="empty-state-title">Tidak Ada Sesi Konseling Aktif</p>
-                    <p class="empty-state-desc">Punya hal yang ingin diceritakan mengenai belajar, karier, atau pertemanan? Guru BK selalu siap mendengarkan.</p>
-                    <a href="{{ route('siswa.konseling.create') }}" class="btn btn-secondary btn-sm">Ajukan Konseling Baru</a>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 36px; height: 36px; border-radius: 50%; background: #EEF4FF; color: #2447A8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13.5px; color: var(--color-navy);">Belum Ada Konseling Aktif</div>
+                            <div style="font-size: 11.5px; color: #64748B;">Butuh arahan akademik atau karier?</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('siswa.konseling.create') }}" class="btn-detail-pill">
+                        Ajukan
+                    </a>
                 </div>
             @endif
         </div>
     </div>
 
-    <!-- Rute Masa Depan Saya (Section 38) -->
-    <div class="card">
-        <div class="card-header card-header-navy">
-            <h3 class="card-title">Rencana Masa Depan Saya</h3>
-            <a href="{{ route('siswa.rencana.show') }}" class="btn btn-secondary btn-sm">Perbarui Rute</a>
+    <!-- Card 2: Jadwal Konseling -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header-clean">
+            <h2 class="card-title-clean">Jadwal Konseling</h2>
+            <a href="{{ route('siswa.konseling.index') }}" class="link-all-blue" title="Lihat Semua Jadwal">
+                Lihat Semua
+            </a>
         </div>
         <div class="card-body">
-            @if($student->futurePlan && $student->futurePlan->primary_goal !== 'belum_menentukan')
-                <div style="padding: 16px; background: #f0fdfa; border: 1px solid var(--color-accent-border); border-radius: var(--radius-md);">
-                    <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-accent); letter-spacing: 0.05em;">
-                        Pilihan Arah Karier:
+            @if($scheduledCounseling)
+                @php
+                    $schedDate = $scheduledCounseling->scheduled_date ? \Carbon\Carbon::parse($scheduledCounseling->scheduled_date) : \Carbon\Carbon::now();
+                @endphp
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="date-badge-box">
+                            <span class="date-badge-day">{{ $schedDate->format('d') }}</span>
+                            <span class="date-badge-month">{{ $schedDate->translatedFormat('M') }}</span>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13.5px; color: var(--color-navy);">
+                                Konseling - {{ $scheduledCounseling->category ? $scheduledCounseling->category->name : 'Karier' }}
+                            </div>
+                            <div style="font-size: 11.5px; color: #64748B; margin-top: 3px; display: flex; align-items: center; gap: 6px;">
+                                <span>{{ substr($scheduledCounseling->scheduled_time ?? '09:00', 0, 5) }} - 10:00</span>
+                                <span>&bull;</span>
+                                <span style="display: inline-flex; align-items: center; gap: 3px;">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                                    {{ $scheduledCounseling->scheduled_location ?: 'Online' }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div style="font-size: 16px; font-weight: 800; color: var(--color-text-main); margin-top: 4px; margin-bottom: 8px;">
-                        @if($student->futurePlan->primary_goal === 'kuliah')
-                            Melanjutkan Kuliah di Perguruan Tinggi
-                        @elseif($student->futurePlan->primary_goal === 'bekerja')
-                            Bekerja di Dunia Industri
-                        @elseif($student->futurePlan->primary_goal === 'wirausaha')
-                            Membangun Bisnis & Wirausaha
-                        @else
-                            Kuliah Sambil Bekerja
-                        @endif
-                    </div>
-
-                    @if($student->futurePlan->primary_goal === 'kuliah')
-                        <div style="font-size: 13px; color: var(--color-text-main);">
-                            Target: <strong>{{ $student->futurePlan->college_target ?: '-' }}</strong><br>
-                            Program Studi: {{ $student->futurePlan->study_program ?: '-' }} (Jalur {{ $student->futurePlan->entry_path ?: 'SNBP/SNBT' }})
-                        </div>
-                    @elseif($student->futurePlan->primary_goal === 'bekerja')
-                        <div style="font-size: 13px; color: var(--color-text-main);">
-                            Target Perusahaan: <strong>{{ $student->futurePlan->work_target_company ?: '-' }}</strong><br>
-                            Bidang: {{ $student->futurePlan->work_target_field ?: '-' }}
-                        </div>
-                    @elseif($student->futurePlan->primary_goal === 'kuliah_kerja')
-                        <div style="font-size: 13px; color: var(--color-text-main);">
-                            Target Kampus: <strong>{{ $student->futurePlan->college_target ?: '-' }}</strong> (Prodi: {{ $student->futurePlan->study_program ?: '-' }})<br>
-                            Target Karier: {{ $student->futurePlan->work_target_field ?: ($student->futurePlan->work_target_company ?: '-') }} ({{ $student->futurePlan->entry_path ?: 'Fleksibel' }})
-                        </div>
-                    @elseif($student->futurePlan->primary_goal === 'wirausaha')
-                        <div style="font-size: 13px; color: var(--color-text-main);">
-                            Bidang Usaha: <strong>{{ $student->futurePlan->business_field ?: '-' }}</strong><br>
-                            Ide: {{ $student->futurePlan->business_idea ?: '-' }}
-                        </div>
-                    @endif
-
-                    <div style="margin-top: 14px;">
-                        <a href="{{ route('siswa.rencana.show') }}" class="btn btn-accent btn-sm" style="width: 100%;">
-                            Lihat Rekomendasi Kampus & Peluang Terkait
-                        </a>
-                    </div>
+                    <a href="{{ route('siswa.konseling.show', $scheduledCounseling->id) }}" class="btn-detail-pill">
+                        Detail
+                    </a>
                 </div>
             @else
-                <div class="empty-state" style="padding: 24px 16px;">
-                    <p class="empty-state-title">Belum Menentukan Arah Masa Depan</p>
-                    <p class="empty-state-desc">Tentukan rute masa depan Anda (Kuliah, Bekerja, Kuliah Sambil Bekerja, atau Wirausaha) untuk mendapatkan rekomendasi beasiswa, magang, dan karier yang relevan.</p>
-                    <a href="{{ route('siswa.rencana.show') }}" class="btn btn-primary btn-sm">Tentukan Rute Karier</a>
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="date-badge-box">
+                            <span class="date-badge-day">{{ date('d') }}</span>
+                            <span class="date-badge-month">{{ date('M') }}</span>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13.5px; color: var(--color-navy);">Belum Ada Jadwal</div>
+                            <div style="font-size: 11.5px; color: #64748B;">Sesi konseling terjadwal akan tampil di sini</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('siswa.konseling.create') }}" class="btn-detail-pill">
+                        Jadwalkan
+                    </a>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Card 3: Rencana Masa Depan Saya (Progress Status) -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header-clean">
+            <h2 class="card-title-clean">Rencana Masa Depan Saya</h2>
+            <a href="{{ route('siswa.rencana.show') }}" class="link-all-blue" title="Lihat Rincian Rencana">
+                Lihat Detail
+            </a>
+        </div>
+        <div class="card-body">
+            @php
+                $planGoal = $student->futurePlan ? $student->futurePlan->primary_goal : 'belum_menentukan';
+                $goalLabelMap = [
+                    'kuliah' => 'Target Kuliah',
+                    'bekerja' => 'Target Bekerja',
+                    'kuliah_kerja' => 'Kuliah sambil Kerja',
+                    'wirausaha' => 'Target Wirausaha',
+                    'belum_menentukan' => 'Belum Menentukan',
+                ];
+                $goalLabel = $goalLabelMap[$planGoal] ?? 'Belum Menentukan';
+                $isConfigured = $planGoal !== 'belum_menentukan';
+            @endphp
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: {{ $isConfigured ? '#059669' : '#D97706' }};"></span>
+                    <strong style="font-size: 13.5px; color: var(--color-navy);">{{ $goalLabel }}</strong>
+                </div>
+                <span class="badge {{ $isConfigured ? 'badge-success' : 'badge-warning' }}" style="font-size: 10.5px;">
+                    {{ $isConfigured ? 'Terencana' : 'Belum Lengkap' }}
+                </span>
+            </div>
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 8px; background: #F1F5F9; border-radius: 9999px; overflow: hidden; margin-bottom: 8px;">
+                <div style="height: 100%; width: {{ $isConfigured ? '100%' : '25%' }}; background: linear-gradient(90deg, #2447A8 0%, #4778F5 100%); border-radius: 9999px;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #94A3B8;">
+                <span>Progres Rancangan Karier</span>
+                <span>{{ $isConfigured ? '100%' : '25%' }}</span>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="grid-2">
-    <!-- Asesmen Diri Tersedia -->
-    <div class="card">
-        <div class="card-header card-header-navy">
-            <h3 class="card-title">Asesmen Minat & Kepribadian</h3>
-            <a href="{{ route('siswa.asesmen.index') }}" class="btn btn-secondary btn-sm">Semua Asesmen</a>
+<!-- Bottom Section: 4 Pathway Cards + News Article Preview -->
+<div class="grid-2" style="margin-bottom: 24px;">
+    <!-- Left Column: Rencana Masa Depan Sayra (4 Pathway Cards) -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header-clean">
+            <div>
+                <h2 class="card-title-clean">Rencana Masa Depan Siswa</h2>
+                <p class="card-subtitle-clean">Pilih dan mantapkan target kariermu setelah lulus sekolah</p>
+            </div>
+            <a href="{{ route('siswa.rencana.show') }}" class="link-all-blue" title="Kelola Rencana">
+                Lihat Detail
+            </a>
         </div>
         <div class="card-body">
-            @foreach($availableAssessments as $asm)
-                @php
-                    $result = $asm->studentResults->first();
-                @endphp
-                <div style="padding: 12px; background: #f8fafc; border: 1px solid var(--color-border); border-radius: var(--radius-sm); margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <strong style="font-size: 13px;">{{ $asm->title }}</strong>
-                        @if($result)
-                            <span class="badge badge-success">Selesai: {{ $result->result_category }}</span>
-                        @else
-                            <span class="badge badge-warning">Belum Dikerjakan</span>
-                        @endif
+            @php
+                $activeGoal = $student->futurePlan ? $student->futurePlan->primary_goal : '';
+            @endphp
+            <div class="pathway-selector-grid">
+                <!-- 1. Kuliah -->
+                <a href="{{ route('siswa.rencana.show') }}" class="pathway-pill-card kuliah {{ $activeGoal === 'kuliah' ? 'active' : '' }}">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(36, 71, 168, 0.12); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
                     </div>
-                    <p style="font-size: 12px; color: var(--color-text-muted); margin-top: 4px;">{{ $asm->description }}</p>
-                    <div style="margin-top: 10px;">
-                        @if($result)
-                            <a href="{{ route('siswa.asesmen.result', $result->id) }}" class="btn btn-secondary btn-sm">Lihat Analisis Hasil</a>
-                        @else
-                            <a href="{{ route('siswa.asesmen.take', $asm->id) }}" class="btn btn-primary btn-sm">Kerjakan Asesmen Sekarang</a>
-                        @endif
+                    <span class="pathway-pill-card-title">Kuliah</span>
+                </a>
+
+                <!-- 2. Bekerja -->
+                <a href="{{ route('siswa.rencana.show') }}" class="pathway-pill-card bekerja {{ $activeGoal === 'bekerja' ? 'active' : '' }}">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(5, 150, 105, 0.12); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                     </div>
-                </div>
-            @endforeach
+                    <span class="pathway-pill-card-title">Bekerja</span>
+                </a>
+
+                <!-- 3. Kuliah sambil Kerja -->
+                <a href="{{ route('siswa.rencana.show') }}" class="pathway-pill-card kuliah-kerja {{ $activeGoal === 'kuliah_kerja' ? 'active' : '' }}">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(217, 119, 6, 0.12); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <span class="pathway-pill-card-title">Kuliah & Kerja</span>
+                </a>
+
+                <!-- 4. Wirausaha -->
+                <a href="{{ route('siswa.rencana.show') }}" class="pathway-pill-card wirausaha {{ $activeGoal === 'wirausaha' ? 'active' : '' }}">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(220, 38, 38, 0.12); display: flex; align-items: center; justify-content: center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </div>
+                    <span class="pathway-pill-card-title">Wirausaha</span>
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Peluang & Beasiswa Pilihan -->
-    <div class="card">
-        <div class="card-header card-header-navy">
-            <h3 class="card-title">Peluang Beasiswa & Magang Terbaru</h3>
-            <a href="{{ route('siswa.peluang.index') }}" class="btn btn-secondary btn-sm">Buka Semua Peluang</a>
+    <!-- Right Column: Artikel & Informasi Terbaru -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="card-header-clean">
+            <div>
+                <h2 class="card-title-clean">Artikel & Informasi Terbaru</h2>
+                <p class="card-subtitle-clean">Wawasan seputar perguruan tinggi, beasiswa, dan karier</p>
+            </div>
+            <a href="{{ route('siswa.peluang.index') }}" class="link-all-blue" title="Buka Semua Artikel">
+                Lihat Semua
+            </a>
         </div>
         <div class="card-body">
-            @if($opportunities->count() > 0)
-                <div style="display: flex; flex-direction: column; gap: 10px;">
-                    @foreach($opportunities as $op)
-                        <div style="padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: #ffffff;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <strong style="font-size: 13px;">{{ $op->title }}</strong>
-                                <span class="badge badge-secondary">{{ ucfirst(str_replace('_', ' ', $op->type)) }}</span>
-                            </div>
-                            <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">
-                                Mitra: {{ $op->partner ? $op->partner->name : 'Sekolah' }} | Batas: {{ $op->deadline ? $op->deadline->translatedFormat('d M Y') : 'Terbuka' }}
-                            </div>
-                            <div style="margin-top: 8px;">
-                                <a href="{{ route('siswa.peluang.show', $op->id) }}" class="btn btn-secondary btn-sm">Lihat Persyaratan & Daftar</a>
-                            </div>
-                        </div>
-                    @endforeach
+            <a href="{{ route('siswa.peluang.index') }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 16px; padding: 12px; border-radius: 12px; background: #F8FAFC; border: 1px solid #E2E8F0; transition: all var(--transition-fast);">
+                <img src="{{ asset('images/login-hero.jpg') }}" alt="Tips Perkuliahan" style="width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex-shrink: 0;" />
+                <div style="min-width: 0;">
+                    <div style="font-weight: 700; font-size: 13.5px; color: var(--color-navy); line-height: 1.35; margin-bottom: 4px;">
+                        Tips Menentukan Jurusan Kuliah Sesuai Minat dan Bakat
+                    </div>
+                    <div style="font-size: 11.5px; color: #64748B;">
+                        oleh Guru BK &bull; 7 Okt 2026
+                    </div>
                 </div>
-            @else
-                <div class="empty-state">
-                    <p class="empty-state-title">Belum Ada Peluang Aktif</p>
-                    <p class="empty-state-desc">Peluang terbaru dari mitra perguruan tinggi dan industri akan tampil di sini.</p>
-                </div>
-            @endif
+            </a>
         </div>
     </div>
 </div>

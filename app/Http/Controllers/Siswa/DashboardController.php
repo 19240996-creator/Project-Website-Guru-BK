@@ -27,8 +27,15 @@ class DashboardController extends Controller
 
         // 1. Upcoming or active counseling sessions
         $upcomingCounseling = Counseling::where('student_id', $student->id)
+            ->with('category')
             ->whereIn('status', ['diajukan', 'ditinjau', 'dijadwalkan', 'dilaksanakan', 'tindak_lanjut'])
             ->latest()
+            ->first();
+
+        $scheduledCounseling = Counseling::where('student_id', $student->id)
+            ->with('category')
+            ->whereIn('status', ['dijadwalkan', 'dilaksanakan'])
+            ->orderBy('scheduled_date', 'asc')
             ->first();
 
         // 2. Available Assessments
@@ -62,6 +69,7 @@ class DashboardController extends Controller
         return view('siswa.dashboard', compact(
             'student',
             'upcomingCounseling',
+            'scheduledCounseling',
             'availableAssessments',
             'opportunities',
             'myClassActivities'

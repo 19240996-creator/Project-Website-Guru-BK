@@ -14,6 +14,7 @@ use App\Models\Opportunity;
 use App\Models\AlumniTracking;
 use App\Models\AcademicYear;
 use App\Models\CounselingCategory;
+use App\Models\AuditLog;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -201,6 +202,24 @@ class DashboardController extends Controller
             array_splice($futurePlanChartData, 3, 0, $workAndStudyCount);
         }
 
+        // Section 3: Recent Priority Feeds matching reference UI
+        $recentCounselings = Counseling::with(['student.studentClass', 'category'])
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
+        $upcomingCounselings = Counseling::with(['student.studentClass', 'category'])
+            ->whereIn('status', ['dijadwalkan', 'diajukan'])
+            ->orderBy('scheduled_date', 'asc')
+            ->orderBy('scheduled_time', 'asc')
+            ->take(3)
+            ->get();
+
+        $recentActivities = AuditLog::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(3)
+            ->get();
+
         return view('guru.dashboard', compact(
             'totalStudents',
             'attentionStudentsCount',
@@ -225,7 +244,10 @@ class DashboardController extends Controller
             'categoryChartData',
             'futurePlanChartLabels',
             'futurePlanChartData',
-            'totalPlanStudents'
+            'totalPlanStudents',
+            'recentCounselings',
+            'upcomingCounselings',
+            'recentActivities'
         ));
     }
 }
