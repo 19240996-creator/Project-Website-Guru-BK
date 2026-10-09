@@ -59,4 +59,20 @@ class FuturePlanController extends Controller
 
         return back()->with('success', 'Rencana masa depan Anda berhasil disimpan dan riwayat tersimpan untuk bimbingan karier.');
     }
+
+    public function destroy($id)
+    {
+        $student = auth()->user()->student;
+        if (!$student) {
+            abort(403, 'Akses tidak sah.');
+        }
+
+        $plan = $student->futurePlans()->findOrFail($id);
+        $version = $plan->version;
+        $plan->delete();
+
+        AuditLog::log('HAPUS_RENCANA_MASA_DEPAN', 'StudentFuturePlan', $id, "Siswa {$student->name} menghapus riwayat rencana masa depan versi {$version}.");
+
+        return back()->with('success', "Riwayat rencana masa depan versi {$version} berhasil dihapus.");
+    }
 }

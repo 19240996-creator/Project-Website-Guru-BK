@@ -157,6 +157,7 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     // 38. Rute Masa Depan
     Route::get('/rencana-masa-depan', [SiswaFuturePlanController::class, 'show'])->name('rencana.show');
     Route::post('/rencana-masa-depan', [SiswaFuturePlanController::class, 'update'])->name('rencana.update');
+    Route::delete('/rencana-masa-depan/{id}', [SiswaFuturePlanController::class, 'destroy'])->name('rencana.destroy');
 
     // 19 - 20. Peluang & Pendaftaran
     Route::get('/peluang', [SiswaOpportunityController::class, 'index'])->name('peluang.index');

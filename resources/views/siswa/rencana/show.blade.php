@@ -199,6 +199,7 @@
                                 <th style="width: 190px; white-space: nowrap;">Pilihan Utama</th>
                                 <th style="min-width: 280px;">Target Spesifik</th>
                                 <th style="width: 200px; white-space: nowrap;">Waktu Pembaruan</th>
+                                <th style="width: 80px; text-align: center; white-space: nowrap;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -238,6 +239,16 @@
                                     <td style="white-space: nowrap; vertical-align: middle; color: var(--color-text-muted); font-size: 13px;">
                                         {{ $p->created_at->translatedFormat('d M Y, H:i') }} WIB
                                     </td>
+                                    <td style="text-align: center; vertical-align: middle; white-space: nowrap;">
+                                        <button type="button" class="btn-icon-danger" onclick="openDeletePlanModal({{ $p->id }}, 'Versi {{ $p->version }}', '{{ $p->created_at->translatedFormat('d M Y, H:i') }} WIB', '{{ $p->primary_goal === 'kuliah' ? 'Kuliah' : ($p->primary_goal === 'bekerja' ? 'Bekerja' : ($p->primary_goal === 'kuliah_kerja' ? 'Kuliah Sambil Bekerja' : ($p->primary_goal === 'wirausaha' ? 'Wirausaha' : ucfirst(str_replace('_', ' ', $p->primary_goal))))) }}')" title="Hapus Riwayat Versi {{ $p->version }}" aria-label="Hapus Riwayat Rencana">
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                                            </svg>
+                                        </button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -251,7 +262,84 @@
     @endif
 </div>
 
+<!-- Modal Konfirmasi Hapus Riwayat Rencana -->
+<div id="deletePlanModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deletePlanModalTitle" onclick="handleDeletePlanBackdrop(event)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deletePlanModalTitle" class="modal-title">Konfirmasi Hapus Riwayat Rencana</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus catatan riwayat pilihan rencana ini? Tindakan ini bersifat permanen.
+            </p>
+            <div style="background-color: var(--color-surface-hover); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 14px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <strong style="color: var(--color-navy); font-size: 13.5px;" id="deletePlanVersionPreview"></strong>
+                    <span style="color: var(--color-text-subtle); font-size: 11px;" id="deletePlanTimePreview"></span>
+                </div>
+                <div style="color: var(--color-text-muted); font-size: 12.5px;" id="deletePlanGoalPreview"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeletePlanModal()">
+                Batal
+            </button>
+            <form id="deletePlanForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Riwayat
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+    function openDeletePlanModal(id, versionText, timeText, goalText) {
+        var form = document.getElementById('deletePlanForm');
+        if (form) {
+            form.action = '{{ url("/siswa/rencana-masa-depan") }}/' + id;
+        }
+        var verEl = document.getElementById('deletePlanVersionPreview');
+        if (verEl) verEl.textContent = versionText;
+        var timeEl = document.getElementById('deletePlanTimePreview');
+        if (timeEl) timeEl.textContent = timeText;
+        var goalEl = document.getElementById('deletePlanGoalPreview');
+        if (goalEl) goalEl.textContent = 'Pilihan: ' + goalText;
+        var modal = document.getElementById('deletePlanModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeDeletePlanModal() {
+        var modal = document.getElementById('deletePlanModal');
+        if (modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleDeletePlanBackdrop(e) {
+        if (e.target.id === 'deletePlanModal') {
+            closeDeletePlanModal();
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeletePlanModal();
+        }
+    });
+
     function toggleSections(val) {
         var secKuliah = document.getElementById('sectionKuliah');
         var secBekerja = document.getElementById('sectionBekerja');
