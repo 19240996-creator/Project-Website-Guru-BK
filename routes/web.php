@@ -65,6 +65,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::get('/siswa', [GuruStudentController::class, 'index'])->name('siswa.index');
     Route::get('/siswa/tambah', [GuruStudentController::class, 'create'])->name('siswa.create');
     Route::post('/siswa', [GuruStudentController::class, 'store'])->name('siswa.store');
+    Route::post('/siswa/tambah-jurusan', [GuruStudentController::class, 'storeMajor'])->name('siswa.store_major');
+    Route::post('/siswa/hapus-jurusan', [GuruStudentController::class, 'destroyMajor'])->name('siswa.destroy_major');
     Route::post('/siswa/import', [GuruStudentController::class, 'import'])->name('siswa.import');
     Route::get('/siswa/template-impor', [GuruStudentController::class, 'downloadTemplate'])->name('siswa.template');
     Route::post('/siswa/kenaikan-kelas-massal', [GuruStudentController::class, 'massPromote'])->name('siswa.mass_promote');
@@ -83,6 +85,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
 
     // 6. Asesmen Siswa
     Route::get('/asesmen', [GuruAssessmentController::class, 'index'])->name('asesmen.index');
+    Route::post('/asesmen', [GuruAssessmentController::class, 'store'])->name('asesmen.store');
+    Route::delete('/asesmen/{id}', [GuruAssessmentController::class, 'destroy'])->name('asesmen.destroy');
     Route::get('/asesmen/{id}', [GuruAssessmentController::class, 'show'])->name('asesmen.show');
     Route::get('/asesmen/hasil/{id}', [GuruAssessmentController::class, 'showResult'])->name('asesmen.result');
     Route::post('/asesmen/hasil/{id}/update', [GuruAssessmentController::class, 'updateResult'])->name('asesmen.result.update');

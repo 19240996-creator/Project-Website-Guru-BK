@@ -30,7 +30,15 @@ class StudentController extends Controller
         }
 
         if ($request->filled('class_id')) {
-            $query->where('student_class_id', $request->class_id);
+            $classId = $request->class_id;
+            if (str_starts_with($classId, 'major:')) {
+                $majorName = substr($classId, 6);
+                $query->whereHas('studentClass', function ($q) use ($majorName) {
+                    $q->where('major', $majorName);
+                });
+            } else {
+                $query->where('student_class_id', $classId);
+            }
         }
 
         if ($request->filled('grade')) {
@@ -324,6 +332,85 @@ class StudentController extends Controller
         AuditLog::log('PERBARUI', 'Student', $student->id, "Memperbarui data siswa: {$student->name}.");
 
         return redirect()->route('guru.siswa.show', $student->id)->with('success', 'Data profil siswa berhasil diperbarui.');
+    }
+
+    public function storeMajor(Request $request)
+    {
+        $request->validate([
+            'major' => 'required|string|max:100',
+            'grade' => 'nullable|in:X,XI,XII',
+        ], [
+            'major.required' => 'Nama jurusan tidak boleh kosong.',
+        ]);
+
+        $major = trim($request->major);
+        $grade = $request->input('grade') ?: 'X';
+        $academicYear = AcademicYear::where('is_active', true)->first();
+
+        // Cari atau buat kelas dengan jurusan tersebut agar tersimpan di sistem
+        $existing = StudentClass::where('major', $major)->first();
+        if (!$existing) {
+            StudentClass::create([
+                'academic_year_id' => $academicYear ? $academicYear->id : null,
+                'grade' => $grade,
+                'major' => $major,
+                'name' => "{$grade} {$major} 1",
+            ]);
+
+            AuditLog::log('TAMBAH', 'StudentClass', null, "Menambahkan master jurusan baru: {$major}.");
+        }
+
+        $majors = StudentClass::whereNotNull('major')
+            ->where('major', '!=', '')
+            ->distinct()
+            ->orderBy('major')
+            ->pluck('major');
+
+        return response()->json([
+            'success' => true,
+            'message' => "Jurusan '{$major}' berhasil disimpan ke dalam daftar pilihan sistem.",
+            'major' => $major,
+            'majors' => $majors,
+        ]);
+    }
+
+    public function destroyMajor(Request $request)
+    {
+        $request->validate([
+            'major' => 'required|string|max:100',
+        ]);
+
+        $major = trim($request->major);
+
+        // Periksa apakah ada siswa yang sedang terdaftar di kelas dengan jurusan ini
+        $studentsCount = Student::whereHas('studentClass', function ($q) use ($major) {
+            $q->where('major', $major);
+        })->count();
+
+        if ($studentsCount > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "Pilihan jurusan/kelas '{$major}' tidak dapat dihapus karena masih digunakan oleh {$studentsCount} siswa di sistem.",
+            ], 422);
+        }
+
+        // Hapus kelas yang menggunakan jurusan ini
+        StudentClass::where('major', $major)->delete();
+
+        AuditLog::log('HAPUS', 'StudentClass', null, "Menghapus pilihan master jurusan/kelas: {$major}.");
+
+        $remainingMajors = StudentClass::whereNotNull('major')
+            ->where('major', '!=', '')
+            ->distinct()
+            ->orderBy('major')
+            ->pluck('major');
+
+        return response()->json([
+            'success' => true,
+            'message' => "Pilihan '{$major}' berhasil dihapus dari daftar sistem.",
+            'major' => $major,
+            'majors' => $remainingMajors,
+        ]);
     }
 
     public function import(Request $request)

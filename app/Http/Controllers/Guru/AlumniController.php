@@ -8,11 +8,27 @@ use App\Models\Student;
 use App\Models\AlumniTracking;
 use App\Models\AuditLog;
 
+use App\Models\StudentClass;
+
 class AlumniController extends Controller
 {
     public function index(Request $request)
     {
         $query = AlumniTracking::with(['student.studentClass'])->latest();
+
+        if ($request->filled('q')) {
+            $keyword = trim($request->q);
+            $query->where(function ($q) use ($keyword) {
+                $q->where('code', 'like', "%{$keyword}%")
+                    ->orWhere('institution_or_company', 'like', "%{$keyword}%")
+                    ->orWhere('major_or_position', 'like', "%{$keyword}%")
+                    ->orWhereHas('student', function ($sq) use ($keyword) {
+                        $sq->where('name', 'like', "%{$keyword}%")
+                            ->orWhere('nisn', 'like', "%{$keyword}%")
+                            ->orWhere('nis', 'like', "%{$keyword}%");
+                    });
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('current_status', $request->status);
@@ -20,6 +36,16 @@ class AlumniController extends Controller
 
         if ($request->filled('year')) {
             $query->where('graduation_year', $request->year);
+        }
+
+        if ($request->filled('major')) {
+            $query->whereHas('student.studentClass', function ($sq) use ($request) {
+                $sq->where('major', $request->major);
+            });
+        }
+
+        if ($request->filled('tracking_period')) {
+            $query->where('tracking_period', $request->tracking_period);
         }
 
         $alumni = $query->paginate(15)->withQueryString();
@@ -32,7 +58,24 @@ class AlumniController extends Controller
             'belum_terlacak' => AlumniTracking::where('current_status', 'belum_terlacak')->count(),
         ];
 
-        return view('guru.alumni.index', compact('alumni', 'stats'));
+        $availableYears = AlumniTracking::select('graduation_year')
+            ->distinct()
+            ->orderBy('graduation_year', 'desc')
+            ->pluck('graduation_year')
+            ->toArray();
+
+        $currentYear = (int) date('Y');
+        $defaultYears = range($currentYear, $currentYear - 4);
+        $years = collect(array_values(array_unique(array_merge($availableYears, $defaultYears))))->sortDesc();
+
+        $majors = StudentClass::select('major')
+            ->distinct()
+            ->whereNotNull('major')
+            ->where('major', '!=', '')
+            ->orderBy('major')
+            ->pluck('major');
+
+        return view('guru.alumni.index', compact('alumni', 'stats', 'years', 'majors'));
     }
 
     public function graduateStudent(Request $request, $studentId)

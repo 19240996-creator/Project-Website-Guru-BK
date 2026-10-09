@@ -18,7 +18,68 @@
     </div>
 </div>
 
+<!-- Filter Bar (Horizontal) -->
+<div class="card" style="margin-bottom: 20px;">
+    <div class="card-body" style="padding: 16px 20px;">
+        <form action="{{ route('guru.peluang.index') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) 100px; gap: 12px; align-items: flex-end;">
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Cari Peluang / Mitra / Kode</label>
+                <input type="text" name="q" class="form-control" style="min-height: 38px; font-size: 13px;" value="{{ request('q') }}" placeholder="Ketik kata kunci...">
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Tipe Peluang</label>
+                <select name="type" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Tipe</option>
+                    <option value="beasiswa" {{ request('type') === 'beasiswa' ? 'selected' : '' }}>Beasiswa</option>
+                    <option value="magang" {{ request('type') === 'magang' ? 'selected' : '' }}>Magang Industri</option>
+                    <option value="lowongan_kerja" {{ request('type') === 'lowongan_kerja' ? 'selected' : '' }}>Lowongan Kerja</option>
+                    <option value="pelatihan" {{ request('type') === 'pelatihan' ? 'selected' : '' }}>Pelatihan & Workshop</option>
+                    <option value="sertifikasi" {{ request('type') === 'sertifikasi' ? 'selected' : '' }}>Sertifikasi</option>
+                    <option value="kompetisi" {{ request('type') === 'kompetisi' ? 'selected' : '' }}>Kompetisi</option>
+                    <option value="campus_visit" {{ request('type') === 'campus_visit' ? 'selected' : '' }}>Campus Visit</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Mitra Penyelenggara</label>
+                <select name="partner_id" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Mitra</option>
+                    @foreach($partners as $p)
+                        <option value="{{ $p->id }}" {{ request('partner_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Status</label>
+                <select name="status" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Status</option>
+                    <option value="dipublikasikan" {{ request('status') === 'dipublikasikan' ? 'selected' : '' }}>Dipublikasikan</option>
+                    <option value="draf" {{ request('status') === 'draf' ? 'selected' : '' }}>Draf</option>
+                    <option value="ditutup" {{ request('status') === 'ditutup' ? 'selected' : '' }}>Ditutup</option>
+                    <option value="selesai" {{ request('status') === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-secondary" style="width: 100%; min-height: 38px;">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title" style="margin: 0;">Daftar Peluang & Program Karier (Total: {{ $opportunities->total() }})</h3>
+        @if(request()->hasAny(['q', 'type', 'partner_id', 'status']))
+            <a href="{{ route('guru.peluang.index') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px; color: #ffffff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);" title="Reset semua filter">
+                ✕ Reset Filter
+            </a>
+        @endif
+    </div>
     <div class="card-body" style="padding: 0;">
         @if($opportunities->count() > 0)
             <div class="table-responsive">
@@ -72,11 +133,16 @@
             </div>
 
             {{ $opportunities->links() }}
-            </div>
         @else
-            <div class="empty-state">
-                <p class="empty-state-title">Belum Ada Peluang Dipublikasikan</p>
-                <p class="empty-state-desc">Publikasikan informasi beasiswa atau magang industri untuk siswa.</p>
+            <div class="empty-state" style="padding: 40px 20px; text-align: center;">
+                <p class="empty-state-title" style="font-weight: 700; color: var(--color-text-main); font-size: 15px; margin-bottom: 6px;">Data Peluang Tidak Ditemukan</p>
+                <p class="empty-state-desc" style="font-size: 13px; color: var(--color-text-muted);">
+                    @if(request()->hasAny(['q', 'type', 'partner_id', 'status']))
+                        Tidak ada data peluang yang sesuai dengan filter pencarian Anda. Silakan coba kata kunci lain atau <a href="{{ route('guru.peluang.index') }}" style="color: var(--color-primary); text-decoration: underline;">reset filter</a>.
+                    @else
+                        Publikasikan informasi beasiswa atau magang industri untuk siswa.
+                    @endif
+                </p>
             </div>
         @endif
     </div>

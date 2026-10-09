@@ -398,9 +398,9 @@ class SystemVerificationTest extends TestCase
         $response->assertSee('Semua', false);
         $response->assertSee('Kosongkan', false);
 
-        // 2. Schedule activity with multiple target classes
         $suffix = uniqid();
         $testDate = '2029-10-' . str_pad((string) (rand(1, 28)), 2, '0', STR_PAD_LEFT);
+        \App\Models\PartnerActivity::where('date', $testDate)->delete();
         $postResponse = $this->actingAs($guru)->post('/guru/mitra-kegiatan', [
             'partner_id' => $partner->id,
             'title' => 'Workshop Kolaborasi Multi Kelas ' . $suffix,
@@ -655,4 +655,86 @@ class SystemVerificationTest extends TestCase
         $this->assertEquals('Catatan setelah jadwal ditetapkan berhasil tersimpan.', $counseling->counselor_notes);
         $this->assertEquals('dilaksanakan', $counseling->status);
     }
+
+    public function test_guru_bk_can_create_new_assessment_and_search_results(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+
+        // 1. Check assessment index page has create button & search input
+        $indexResponse = $this->actingAs($guru)->get('/guru/asesmen');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Buat Asesmen Baru', false);
+        $indexResponse->assertSee('Cari Siswa / NISN / Kelas', false);
+
+        // 2. Create a new custom assessment
+        $createResponse = $this->actingAs($guru)->post('/guru/asesmen', [
+            'title' => 'Asesmen Gaya Belajar VAK Uji Coba',
+            'category' => 'Gaya Belajar',
+            'description' => 'Instrumen untuk memetakan kecenderungan gaya belajar visual, auditori, dan kinestetik siswa.',
+            'instructions' => 'Jawab dengan jujur sesuai kebiasaan belajar Anda sehari-hari.',
+        ]);
+
+        $created = \App\Models\Assessment::where('title', 'Asesmen Gaya Belajar VAK Uji Coba')->first();
+        $this->assertNotNull($created);
+        $createResponse->assertRedirect("/guru/asesmen/{$created->id}");
+        $createResponse->assertSessionHas('success');
+
+        // 3. Search and filter results
+        $searchResponse = $this->actingAs($guru)->get('/guru/asesmen?q=Bintang&per_page=5');
+        $searchResponse->assertStatus(200);
+        $searchResponse->assertSee('Hasil Pengerjaan Asesmen Siswa Terbaru', false);
+
+        // 4. Delete the empty custom assessment
+        $deleteResponse = $this->actingAs($guru)->delete("/guru/asesmen/{$created->id}");
+        $deleteResponse->assertRedirect('/guru/asesmen');
+        $deleteResponse->assertSessionHas('success');
+        $this->assertNull(\App\Models\Assessment::find($created->id));
+    }
+
+    public function test_guru_bk_can_filter_alumni_with_horizontal_filters(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+
+        // 1. Visit alumni page without filter
+        $response = $this->actingAs($guru)->get('/guru/alumni');
+        $response->assertStatus(200);
+        $response->assertSee('Cari Alumni / Instansi / NISN', false);
+        $response->assertSee('Status Terkini', false);
+        $response->assertSee('Tahun Lulus', false);
+        $response->assertSee('Jurusan', false);
+        $response->assertSee('Periode Pelacakan', false);
+
+        // 2. Filter by status
+        $responseStatus = $this->actingAs($guru)->get('/guru/alumni?status=bekerja');
+        $responseStatus->assertStatus(200);
+        $responseStatus->assertSee('Reset Filter', false);
+
+        // 3. Filter by query
+        $responseQuery = $this->actingAs($guru)->get('/guru/alumni?q=Fajar');
+        $responseQuery->assertStatus(200);
+        $responseQuery->assertSee('Fajar Nugraha', false);
+    }
+
+    public function test_guru_bk_can_filter_audit_logs_with_horizontal_filters(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+
+        // 1. Visit audit page without filter
+        $response = $this->actingAs($guru)->get('/guru/audit');
+        $response->assertStatus(200);
+        $response->assertSee('Cari Deskripsi / IP / Pelaksana', false);
+        $response->assertSee('Kategori Aksi', false);
+        $response->assertSee('Entitas Data', false);
+        $response->assertSee('Tanggal Aktivitas', false);
+
+        // 2. Filter by action
+        $responseAction = $this->actingAs($guru)->get('/guru/audit?action=SIMPAN');
+        $responseAction->assertStatus(200);
+        $responseAction->assertSee('Reset Filter', false);
+
+        // 3. Filter by query
+        $responseQuery = $this->actingAs($guru)->get('/guru/audit?q=konseling');
+        $responseQuery->assertStatus(200);
+    }
 }
+

@@ -9,6 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}?v=1">
     <style>
+        :root {
+            --color-danger: #b91c1c;
+            --color-danger-bg: #fef2f2;
+            --color-danger-border: #fecaca;
+            --radius-md: 10px;
+        }
+
         *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
@@ -157,12 +164,13 @@
         }
 
         .error-message {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #b91c1c;
+            background-color: var(--color-danger-bg);
+            border: 1px solid var(--color-danger-border);
+            color: var(--color-danger);
             padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
             margin-bottom: 16px;
             line-height: 1.4;
         }

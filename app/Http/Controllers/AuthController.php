@@ -51,7 +51,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'login' => 'Kredensial yang dimasukkan tidak cocok dengan catatan sistem kami.',
+            'login' => 'Username atau password yang Anda masukkan salah.',
         ])->onlyInput('login');
     }
 

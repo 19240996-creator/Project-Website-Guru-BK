@@ -37,9 +37,78 @@
     </div>
 </div>
 
+<!-- Filter Bar (Horizontal) -->
+<div class="card" style="margin-bottom: 20px;">
+    <div class="card-body" style="padding: 16px 20px;">
+        <form action="{{ route('guru.alumni.index') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) 100px; gap: 12px; align-items: flex-end;">
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Cari Alumni / Instansi / NISN</label>
+                <input type="text" name="q" class="form-control" style="min-height: 38px; font-size: 13px;" value="{{ request('q') }}" placeholder="Ketik kata kunci...">
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Status Terkini</label>
+                <select name="status" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Status</option>
+                    <option value="bekerja" {{ request('status') === 'bekerja' ? 'selected' : '' }}>Bekerja</option>
+                    <option value="kuliah" {{ request('status') === 'kuliah' ? 'selected' : '' }}>Kuliah</option>
+                    <option value="wirausaha" {{ request('status') === 'wirausaha' ? 'selected' : '' }}>Wirausaha</option>
+                    <option value="mencari_kerja" {{ request('status') === 'mencari_kerja' ? 'selected' : '' }}>Mencari Kerja</option>
+                    <option value="belum_bekerja" {{ request('status') === 'belum_bekerja' ? 'selected' : '' }}>Belum Bekerja</option>
+                    <option value="belum_terlacak" {{ request('status') === 'belum_terlacak' ? 'selected' : '' }}>Belum Terlacak</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Tahun Lulus</label>
+                <select name="year" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Tahun</option>
+                    @foreach($years as $yr)
+                        <option value="{{ $yr }}" {{ request('year') == $yr ? 'selected' : '' }}>{{ $yr }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Jurusan</label>
+                <select name="major" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Jurusan</option>
+                    @foreach($majors as $mj)
+                        <option value="{{ $mj }}" {{ request('major') === $mj ? 'selected' : '' }}>{{ $mj }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Periode Pelacakan</label>
+                <select name="tracking_period" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Periode</option>
+                    <option value="3_bulan" {{ request('tracking_period') === '3_bulan' ? 'selected' : '' }}>3 Bulan</option>
+                    <option value="6_bulan" {{ request('tracking_period') === '6_bulan' ? 'selected' : '' }}>6 Bulan</option>
+                    <option value="12_bulan" {{ request('tracking_period') === '12_bulan' ? 'selected' : '' }}>12 Bulan</option>
+                    <option value="24_bulan" {{ request('tracking_period') === '24_bulan' ? 'selected' : '' }}>24 Bulan</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-secondary" style="width: 100%; min-height: 38px;">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
-    <div class="card-header card-header-navy">
-        <h3 class="card-title">Daftar Pelacakan Alumni ({{ $alumni->total() }})</h3>
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h3 class="card-title" style="margin: 0;">Daftar Pelacakan Alumni ({{ $alumni->total() }})</h3>
+            @if(request()->hasAny(['q', 'status', 'year', 'major', 'tracking_period']))
+                <a href="{{ route('guru.alumni.index') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px; color: #ffffff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    ✕ Reset Filter
+                </a>
+            @endif
+        </div>
         <a href="{{ route('guru.laporan.generate', ['package' => 'paket_c']) }}" target="_blank" class="btn btn-secondary btn-sm">
             Cetak Rekap Lulusan Kepala Sekolah
         </a>
@@ -150,8 +219,25 @@
             {{ $alumni->links() }}
         @else
             <div class="empty-state">
-                <p class="empty-state-title">Belum Ada Data Pelacakan Alumni</p>
-                <p class="empty-state-desc">Ubah status siswa kelas XII menjadi lulus melalui menu Profil Siswa 360° untuk mencatat pelacakan alumni.</p>
+                <p class="empty-state-title">
+                    @if(request()->hasAny(['q', 'status', 'year', 'major', 'tracking_period']))
+                        Tidak Ada Data Alumni yang Sesuai Filter
+                    @else
+                        Belum Ada Data Pelacakan Alumni
+                    @endif
+                </p>
+                <p class="empty-state-desc">
+                    @if(request()->hasAny(['q', 'status', 'year', 'major', 'tracking_period']))
+                        Coba sesuaikan kata kunci pencarian atau ubah kriteria filter yang Anda pilih.
+                    @else
+                        Ubah status siswa kelas XII menjadi lulus melalui menu Profil Siswa 360° untuk mencatat pelacakan alumni.
+                    @endif
+                </p>
+                @if(request()->hasAny(['q', 'status', 'year', 'major', 'tracking_period']))
+                    <div style="margin-top: 14px;">
+                        <a href="{{ route('guru.alumni.index') }}" class="btn btn-secondary btn-sm">Reset Filter</a>
+                    </div>
+                @endif
             </div>
         @endif
     </div>

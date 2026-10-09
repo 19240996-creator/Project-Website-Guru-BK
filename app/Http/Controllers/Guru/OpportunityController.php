@@ -15,8 +15,24 @@ class OpportunityController extends Controller
     {
         $query = Opportunity::with(['partner', 'registrations.student.studentClass'])->latest();
 
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function ($sub) use ($q) {
+                $sub->where('title', 'like', "%{$q}%")
+                    ->orWhere('code', 'like', "%{$q}%")
+                    ->orWhere('target_audience', 'like', "%{$q}%")
+                    ->orWhereHas('partner', function ($pq) use ($q) {
+                        $pq->where('name', 'like', "%{$q}%");
+                    });
+            });
+        }
+
         if ($request->filled('type')) {
             $query->where('type', $request->type);
+        }
+
+        if ($request->filled('partner_id')) {
+            $query->where('partner_id', $request->partner_id);
         }
 
         if ($request->filled('status')) {

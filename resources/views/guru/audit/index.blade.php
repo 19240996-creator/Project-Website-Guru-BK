@@ -11,9 +11,59 @@
     </p>
 </div>
 
+<!-- Filter Bar (Horizontal) -->
+<div class="card" style="margin-bottom: 20px;">
+    <div class="card-body" style="padding: 16px 20px;">
+        <form action="{{ route('guru.audit.index') }}" method="GET" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) 100px; gap: 12px; align-items: flex-end;">
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Cari Deskripsi / IP / Pelaksana</label>
+                <input type="text" name="q" class="form-control" style="min-height: 38px; font-size: 13px;" value="{{ request('q') }}" placeholder="Ketik kata kunci...">
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Kategori Aksi</label>
+                <select name="action" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Aksi</option>
+                    @foreach($actions as $act)
+                        <option value="{{ $act }}" {{ request('action') === $act ? 'selected' : '' }}>{{ str_replace('_', ' ', $act) }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Entitas Data</label>
+                <select name="entity_type" class="form-select" style="min-height: 38px; font-size: 13px;">
+                    <option value="">Semua Entitas</option>
+                    @foreach($entityTypes as $ent)
+                        <option value="{{ $ent }}" {{ request('entity_type') === $ent ? 'selected' : '' }}>{{ $ent }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-size: 12px; margin-bottom: 6px; display: block;">Tanggal Aktivitas</label>
+                <input type="date" name="date" class="form-control" style="min-height: 38px; font-size: 13px;" value="{{ request('date') }}">
+            </div>
+
+            <div>
+                <button type="submit" class="btn btn-secondary" style="width: 100%; min-height: 38px;">
+                    Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card">
-    <div class="card-header card-header-navy">
-        <h3 class="card-title">Catatan Riwayat Aktivitas Sistem</h3>
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <h3 class="card-title" style="margin: 0;">Catatan Riwayat Aktivitas Sistem</h3>
+            @if(request()->hasAny(['q', 'action', 'entity_type', 'date']))
+                <a href="{{ route('guru.audit.index') }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 4px 10px; color: #ffffff; border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1);">
+                    ✕ Reset Filter
+                </a>
+            @endif
+        </div>
         <span class="badge badge-translucent">Total: {{ $logs->total() }} Log</span>
     </div>
     <div class="card-body" style="padding: 0;">
@@ -62,8 +112,25 @@
             {{ $logs->links() }}
         @else
             <div class="empty-state">
-                <p class="empty-state-title">Belum Ada Aktivitas</p>
-                <p class="empty-state-desc">Aktivitas penting sistem akan terekam secara otomatis di sini.</p>
+                <p class="empty-state-title">
+                    @if(request()->hasAny(['q', 'action', 'entity_type', 'date']))
+                        Tidak Ada Log Aktivitas yang Sesuai Filter
+                    @else
+                        Belum Ada Aktivitas
+                    @endif
+                </p>
+                <p class="empty-state-desc">
+                    @if(request()->hasAny(['q', 'action', 'entity_type', 'date']))
+                        Coba sesuaikan kata kunci pencarian atau ubah kriteria filter yang Anda pilih.
+                    @else
+                        Aktivitas penting sistem akan terekam secara otomatis di sini.
+                    @endif
+                </p>
+                @if(request()->hasAny(['q', 'action', 'entity_type', 'date']))
+                    <div style="margin-top: 14px;">
+                        <a href="{{ route('guru.audit.index') }}" class="btn btn-secondary btn-sm">Reset Filter</a>
+                    </div>
+                @endif
             </div>
         @endif
     </div>
