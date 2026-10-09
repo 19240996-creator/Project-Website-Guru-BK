@@ -92,6 +92,7 @@
                     <div class="form-group">
                         <label class="form-label">No. Telepon / HP Siswa</label>
                         <input type="text" name="phone" class="form-control" value="{{ old('phone', $student->phone) }}">
+                        <small style="display: block; margin-top: 4px; font-size: 11px; color: var(--color-text-muted);">Kata sandi login siswa otomatis mengikuti nomor ini. Jika diganti, siswa wajib login menggunakan nomor baru.</small>
                     </div>
 
                     <div class="form-group">

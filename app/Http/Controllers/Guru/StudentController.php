@@ -296,6 +296,9 @@ class StudentController extends Controller
             'special_notes' => 'nullable|string',
         ]);
 
+        $oldPhone = $student->phone;
+        $oldNisn = $student->nisn;
+
         $student->update($validated);
 
         if ($student->status === 'lulus' && !$student->alumniTracking) {
@@ -325,16 +328,40 @@ class StudentController extends Controller
             ]);
         }
 
+        // Sinkronisasi akun login siswa jika nomor HP atau data akun berubah
+        $studentPassword = (!empty($validated['phone'])) ? $validated['phone'] : $validated['nisn'];
+
         if ($student->user) {
-            $student->user->update([
+            $userData = [
                 'name' => $validated['name'],
+                'username' => $validated['nisn'],
+                'email' => $validated['nisn'] . '@siswa.sch.id',
                 'phone' => $validated['phone'],
+            ];
+
+            // Jika nomor HP atau NISN siswa diubah, perbarui kata sandi ke nomor baru agar nomor lama tidak dapat login lagi
+            if ($validated['phone'] !== $oldPhone || $validated['nisn'] !== $oldNisn) {
+                $userData['password'] = Hash::make($studentPassword);
+            }
+
+            $student->user->update($userData);
+        } else {
+            // Jika user belum ada, buatkan otomatis
+            $user = User::create([
+                'name' => $validated['name'],
+                'username' => $validated['nisn'],
+                'email' => $validated['nisn'] . '@siswa.sch.id',
+                'password' => Hash::make($studentPassword),
+                'role' => 'siswa',
+                'phone' => $validated['phone'],
+                'is_active' => true,
             ]);
+            $student->update(['user_id' => $user->id]);
         }
 
         AuditLog::log('PERBARUI', 'Student', $student->id, "Memperbarui data siswa: {$student->name}.");
 
-        return redirect()->route('guru.siswa.show', $student->id)->with('success', 'Data profil siswa berhasil diperbarui.');
+        return redirect()->route('guru.siswa.show', $student->id)->with('success', 'Data profil siswa berhasil diperbarui. Akun login telah disinkronkan ke nomor baru.');
     }
 
     public function storeMajor(Request $request)

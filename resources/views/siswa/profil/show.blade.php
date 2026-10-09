@@ -68,7 +68,9 @@
                 <div class="form-group">
                     <label class="form-label">Nomor HP / WhatsApp Aktif</label>
                     <input type="text" name="phone" class="form-control" value="{{ old('phone', $student->phone) }}" placeholder="08..." required>
-                    <div class="form-hint">Digunakan guru BK untuk mengonfirmasi jadwal pertemuan bimbingan.</div>
+                    <div class="form-hint" style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 4px;">
+                        Digunakan guru BK untuk bimbingan &amp; otomatis menjadi kata sandi login Anda. Jika diganti, Anda wajib login memakai nomor baru ini.
+                    </div>
                 </div>
 
                 <div class="form-group">

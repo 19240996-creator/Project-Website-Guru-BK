@@ -25,33 +25,56 @@ class AuthController extends Controller
             'login' => 'required|string',
             'password' => 'required|string',
         ], [
-            'login.required' => 'Nomor Identitas (NISN), Username, atau Email wajib diisi.',
+            'login.required' => 'Nomor Identitas (NISN), No. HP, Username, atau Email wajib diisi.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
-        $loginInput = $credentials['login'];
-        $password = $credentials['password'];
+        $loginInput = trim($credentials['login']);
+        $password = trim($credentials['password']);
 
-        // Find user by username, email, or student NISN
-        $user = User::where('username', $loginInput)
-            ->orWhere('email', $loginInput)
-            ->orWhereHas('student', function ($q) use ($loginInput) {
-                $q->where('nisn', $loginInput)->orWhere('nis', $loginInput);
-            })
-            ->first();
+        // Cari user berdasarkan username, email, no_hp akun, atau NISN / NIS / No. HP siswa aktif
+        $digitsOnly = preg_replace('/[^0-9]/', '', $loginInput);
 
-        if ($user && Auth::attempt(['email' => $user->email, 'password' => $password])) {
-            $request->session()->regenerate();
+        $user = User::where(function ($query) use ($loginInput, $digitsOnly) {
+            $query->where('username', $loginInput)
+                ->orWhere('email', $loginInput)
+                ->orWhere('phone', $loginInput)
+                ->orWhereHas('student', function ($q) use ($loginInput, $digitsOnly) {
+                    $q->where('nisn', $loginInput)
+                        ->orWhere('nis', $loginInput)
+                        ->orWhere('phone', $loginInput);
+                    if (!empty($digitsOnly) && strlen($digitsOnly) >= 8) {
+                        $q->orWhere('phone', $digitsOnly);
+                    }
+                });
 
-            if ($user->role === 'guru_bk') {
-                return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $user->name);
-            } else {
-                return redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang di Ruang Konseling & Karier, ' . $user->name);
+            if (!empty($digitsOnly) && strlen($digitsOnly) >= 8) {
+                $query->orWhere('phone', $digitsOnly);
+            }
+        })->first();
+
+        if ($user) {
+            $authenticated = Auth::attempt(['email' => $user->email, 'password' => $password]);
+
+            // Jika gagal dan password berisi format nomor telepon (misal ada strip/spasi), coba juga dengan angka murni
+            $digitsOnlyPassword = preg_replace('/[^0-9]/', '', $password);
+            if (!$authenticated && !empty($digitsOnlyPassword) && $digitsOnlyPassword !== $password) {
+                $authenticated = Auth::attempt(['email' => $user->email, 'password' => $digitsOnlyPassword]);
+            }
+
+            if ($authenticated) {
+                $request->session()->regenerate();
+
+                if ($user->role === 'guru_bk') {
+                    return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $user->name);
+                } else {
+                    return redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang di Ruang Konseling & Karier, ' . $user->name);
+                }
             }
         }
 
         return back()->withErrors([
-            'login' => 'Username atau password yang Anda masukkan salah.',
+            'login' => 'Username, No. HP, NISN, atau kata sandi yang Anda masukkan salah.',
         ])->onlyInput('login');
     }
 

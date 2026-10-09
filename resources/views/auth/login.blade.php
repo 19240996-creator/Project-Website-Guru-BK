@@ -219,7 +219,7 @@
             <form action="{{ route('login.post') }}" method="POST">
                 @csrf
                 <div class="form-group">
-                    <label for="loginInput" class="form-label">Username</label>
+                    <label for="loginInput" class="form-label">Username / NISN / No. HP</label>
                     <div class="input-wrapper">
                         <span class="input-icon-left">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -227,7 +227,7 @@
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
                         </span>
-                        <input type="text" id="loginInput" name="login" class="input-control" value="{{ old('login') }}" placeholder="Masukkan username" required autofocus autocomplete="username">
+                        <input type="text" id="loginInput" name="login" class="input-control" value="{{ old('login') }}" placeholder="Masukkan NISN, No. HP, atau username" required autofocus autocomplete="username">
                     </div>
                 </div>
 
@@ -240,7 +240,7 @@
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                             </svg>
                         </span>
-                        <input type="password" id="passwordInput" name="password" class="input-control" placeholder="Masukkan password" required autocomplete="current-password">
+                        <input type="password" id="passwordInput" name="password" class="input-control" placeholder="Masukkan password (No. HP siswa)" required autocomplete="current-password">
                         <button type="button" class="password-toggle-btn" id="togglePasswordBtn" onclick="togglePasswordVisibility()" aria-label="Buka tutup password" title="Buka/Tutup Password">
                             <svg id="eyeOpenIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
