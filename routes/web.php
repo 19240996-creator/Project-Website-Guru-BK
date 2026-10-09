@@ -125,6 +125,9 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
 
     // 41. Audit Log
     Route::get('/audit', [GuruAuditLogController::class, 'index'])->name('audit.index');
+    Route::delete('/audit/bulk', [GuruAuditLogController::class, 'bulkDestroy'])->name('audit.bulk-destroy');
+    Route::post('/audit/clear', [GuruAuditLogController::class, 'clear'])->name('audit.clear');
+    Route::delete('/audit/{id}', [GuruAuditLogController::class, 'destroy'])->name('audit.destroy');
 });
 
 // ==========================================

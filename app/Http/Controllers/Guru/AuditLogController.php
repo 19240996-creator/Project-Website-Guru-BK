@@ -55,4 +55,52 @@ class AuditLogController extends Controller
 
         return view('guru.audit.index', compact('logs', 'actions', 'entityTypes'));
     }
+
+    public function destroy($id)
+    {
+        $log = AuditLog::findOrFail($id);
+        $desc = \Illuminate\Support\Str::limit($log->description, 50);
+        $log->delete();
+
+        return redirect()->route('guru.audit.index')
+            ->with('success', "Catatan log \"{$desc}\" berhasil dihapus.");
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:audit_logs,id',
+        ]);
+
+        $count = AuditLog::whereIn('id', $request->ids)->delete();
+
+        return redirect()->route('guru.audit.index')
+            ->with('success', "Sebanyak {$count} catatan audit log berhasil dihapus.");
+    }
+
+    public function clear(Request $request)
+    {
+        $request->validate([
+            'range' => 'required|string|in:all,older_30,older_90',
+        ]);
+
+        $count = 0;
+        if ($request->range === 'older_30') {
+            $cutoff = now()->subDays(30);
+            $count = AuditLog::where('created_at', '<', $cutoff)->delete();
+            $message = "Sebanyak {$count} catatan audit log yang lebih lama dari 30 hari berhasil dibersihkan.";
+        } elseif ($request->range === 'older_90') {
+            $cutoff = now()->subDays(90);
+            $count = AuditLog::where('created_at', '<', $cutoff)->delete();
+            $message = "Sebanyak {$count} catatan audit log yang lebih lama dari 90 hari berhasil dibersihkan.";
+        } else {
+            $count = AuditLog::count();
+            AuditLog::query()->delete();
+            $message = "Seluruh riwayat audit log ({$count} catatan) telah berhasil dibersihkan.";
+        }
+
+        return redirect()->route('guru.audit.index')->with('success', $message);
+    }
 }
+
