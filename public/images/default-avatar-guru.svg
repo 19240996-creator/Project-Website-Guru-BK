@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none">
+    <defs>
+        <linearGradient id="bgGradGuru" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0F172A"/>
+            <stop offset="100%" stop-color="#1E293B"/>
+        </linearGradient>
+        <linearGradient id="suitGradGuru" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1E3A8A"/>
+            <stop offset="100%" stop-color="#1E40AF"/>
+        </linearGradient>
+        <linearGradient id="counselorSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#94A3B8"/>
+            <stop offset="100%" stop-color="#64748B"/>
+        </linearGradient>
+    </defs>
+    <!-- Background Circle -->
+    <circle cx="60" cy="60" r="60" fill="url(#bgGradGuru)"/>
+    <circle cx="60" cy="60" r="58.5" stroke="#38BDF8" stroke-width="1.5" stroke-opacity="0.5"/>
+
+    <!-- Professional Blazer / Jacket -->
+    <path d="M22 108 C22 84 36 74 60 74 C84 74 98 84 98 108 C98 114 90 120 60 120 C30 120 22 114 22 108 Z" fill="url(#suitGradGuru)"/>
+    
+    <!-- White Inner Shirt -->
+    <path d="M48 74 L60 94 L72 74 Z" fill="#FFFFFF"/>
+    <!-- Navy Tie -->
+    <path d="M57 82 L60 106 L63 82 L60 80 Z" fill="#0F172A"/>
+
+    <!-- Neck -->
+    <rect x="52" y="58" width="16" height="18" rx="4" fill="url(#counselorSkin)"/>
+
+    <!-- Head -->
+    <ellipse cx="60" cy="45" rx="20" ry="22" fill="url(#counselorSkin)"/>
+
+    <!-- Professional Counselor Hair -->
+    <path d="M39 42 C39 26 48 20 60 20 C72 20 81 26 81 42 C79 32 72 25 60 25 C48 25 41 32 39 42 Z" fill="#0F172A"/>
+
+    <!-- Counselor Badge Pin -->
+    <circle cx="78" cy="88" r="4" fill="#38BDF8"/>
+    <circle cx="78" cy="88" r="2" fill="#FFFFFF"/>
+</svg>

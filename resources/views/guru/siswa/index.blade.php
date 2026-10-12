@@ -186,8 +186,13 @@
                         @foreach($students as $s)
                             <tr>
                                 <td style="text-align: left;">
-                                    <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $s->name }}</div>
-                                    <div style="font-size: 12px; color: var(--color-text-subtle); line-height: 1.4; margin-top: 2px;">NISN: {{ $s->nisn }} | NIS: {{ $s->nis }}</div>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <img src="{{ $s->avatar_url }}" alt="{{ $s->name }}" class="table-avatar-thumb" />
+                                        <div>
+                                            <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $s->name }}</div>
+                                            <div style="font-size: 12px; color: var(--color-text-subtle); line-height: 1.4; margin-top: 2px;">NISN: {{ $s->nisn }} | NIS: {{ $s->nis }}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td style="text-align: left;">
                                     <div style="font-weight: 700; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">{{ $s->studentClass ? $s->studentClass->name : '-' }}</div>

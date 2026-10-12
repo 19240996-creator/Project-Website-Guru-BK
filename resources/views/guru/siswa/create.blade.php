@@ -10,8 +10,35 @@
         <a href="{{ route('guru.siswa.index') }}" class="btn btn-secondary btn-sm">Kembali</a>
     </div>
     <div class="card-body">
-        <form action="{{ route('guru.siswa.store') }}" method="POST">
+        <form action="{{ route('guru.siswa.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
+
+            <!-- Foto Profil Siswa (Opsional) -->
+            <div class="form-group" style="margin-bottom: 24px; padding: 16px; background-color: var(--color-surface-subtle); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                <label class="form-label" style="display: block; font-weight: 700; margin-bottom: 8px;">Foto Profil Siswa (Opsional)</label>
+                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                    <div class="avatar-current-wrapper" style="width: 76px; height: 76px;">
+                        <img src="{{ asset('images/default-avatar-student.svg') }}" alt="Pratinjau Foto Siswa" id="studentCreateAvatarPreview">
+                    </div>
+                    <div style="flex: 1; min-width: 220px;">
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">
+                            Jika diunggah, foto langsung menjadi foto profil siswa. Jika dilewati, sistem otomatis menggunakan avatar default. Format JPG, JPEG, PNG, atau WebP (maksimal 5 MB).
+                        </p>
+                        <input type="hidden" name="cropped_image" id="studentCreateCroppedImage">
+                        <input type="file" name="photo" id="studentCreatePhotoInput" accept=".jpg,.jpeg,.png,.webp" style="display: none;" onchange="handleStudentCreatePhotoSelect(this)">
+                        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('studentCreatePhotoInput').click()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                <span>Pilih &amp; Potong Foto</span>
+                            </button>
+                            <button type="button" class="btn btn-danger-subtle" id="studentCreateAvatarResetBtn" style="display: none;" onclick="resetStudentCreatePhoto()">
+                                <span>Batal Gunakan Foto</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="grid-2">
                 <div class="form-group">
                     <label class="form-label">Nomor Induk Siswa (NIS) *</label>
@@ -112,4 +139,26 @@
         </form>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function handleStudentCreatePhotoSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    window.AvatarCropper.openForFile(input.files[0], {
+        onSave: function (base64) {
+            document.getElementById('studentCreateCroppedImage').value = base64;
+            document.getElementById('studentCreateAvatarPreview').src = base64;
+            document.getElementById('studentCreateAvatarResetBtn').style.display = 'inline-flex';
+        }
+    });
+}
+
+function resetStudentCreatePhoto() {
+    document.getElementById('studentCreateCroppedImage').value = '';
+    document.getElementById('studentCreatePhotoInput').value = '';
+    document.getElementById('studentCreateAvatarPreview').src = '{{ asset('images/default-avatar-student.svg') }}';
+    document.getElementById('studentCreateAvatarResetBtn').style.display = 'none';
+}
+</script>
 @endsection

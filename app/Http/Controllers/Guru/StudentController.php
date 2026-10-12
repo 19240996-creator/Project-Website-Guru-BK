@@ -116,9 +116,21 @@ class StudentController extends Controller
             'parent_job' => 'nullable|string|max:100',
             'attention_level' => 'required|in:normal,perlu_perhatian,prioritas,segera_ditindaklanjuti',
             'special_notes' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'cropped_image' => 'nullable|string',
+        ], [
+            'photo.image' => 'File yang diunggah harus berupa gambar.',
+            'photo.mimes' => 'Format foto siswa harus berupa JPG, JPEG, PNG, atau WebP.',
+            'photo.max' => 'Ukuran file foto siswa tidak boleh lebih dari 5 MB.',
         ]);
 
-        DB::transaction(function () use ($validated) {
+        $source = $request->input('cropped_image') ?: $request->file('photo');
+        $photoPath = null;
+        if ($source) {
+            $photoPath = \App\Services\AvatarService::storeAvatar($source, null);
+        }
+
+        DB::transaction(function () use ($validated, $photoPath) {
             // Password login siswa menggunakan No. HP siswa (atau NISN jika No. HP kosong)
             $studentPassword = (!empty($validated['phone'])) ? $validated['phone'] : $validated['nisn'];
 
@@ -129,18 +141,22 @@ class StudentController extends Controller
                 'email' => $validated['nisn'] . '@siswa.sch.id',
                 'password' => Hash::make($studentPassword),
                 'role' => 'siswa',
-                'phone' => $validated['phone'],
+                'phone' => $validated['phone'] ?? null,
+                'avatar' => $photoPath,
                 'is_active' => true,
             ]);
 
             $studentData = $validated;
+            unset($studentData['photo'], $studentData['cropped_image']);
             $studentData['user_id'] = $user->id;
+            $studentData['avatar'] = $photoPath;
             $student = Student::create($studentData);
 
-            AuditLog::log('SIMPAN', 'Student', $student->id, "Menambahkan data siswa baru: {$student->name} ({$student->nisn}).");
+            $detailMsg = $photoPath ? "dengan foto profil khusus" : "dengan avatar default";
+            AuditLog::log('SIMPAN', 'Student', $student->id, "Menambahkan data siswa baru: {$student->name} ({$student->nisn}) {$detailMsg}.");
         });
 
-        return redirect()->route('guru.siswa.index')->with('success', 'Data siswa berhasil ditambahkan.');
+        return redirect()->route('guru.siswa.index')->with('success', 'Data siswa baru berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -294,13 +310,40 @@ class StudentController extends Controller
             'parent_job' => 'nullable|string|max:100',
             'attention_level' => 'required|in:normal,perlu_perhatian,prioritas,segera_ditindaklanjuti',
             'special_notes' => 'nullable|string',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'cropped_image' => 'nullable|string',
+            'delete_photo' => 'nullable|boolean',
+        ], [
+            'photo.image' => 'File yang diunggah harus berupa gambar.',
+            'photo.mimes' => 'Format foto siswa harus berupa JPG, JPEG, PNG, atau WebP.',
+            'photo.max' => 'Ukuran file foto siswa tidak boleh lebih dari 5 MB.',
         ]);
 
         $oldPhone = $student->phone;
         $oldNisn = $student->nisn;
         $oldNis = $student->nis;
 
-        $student->update($validated);
+        $updateData = $validated;
+        unset($updateData['photo'], $updateData['cropped_image'], $updateData['delete_photo']);
+
+        // Handle foto jika dikirimkan bersama formulir
+        if ($request->boolean('delete_photo')) {
+            if ($student->avatar) {
+                \App\Services\AvatarService::deleteOldAvatar($student->avatar);
+                $updateData['avatar'] = null;
+                if ($student->user) {
+                    $student->user->update(['avatar' => null]);
+                }
+            }
+        } elseif ($source = ($request->input('cropped_image') ?: $request->file('photo'))) {
+            $newPath = \App\Services\AvatarService::storeAvatar($source, $student->avatar);
+            $updateData['avatar'] = $newPath;
+            if ($student->user) {
+                $student->user->update(['avatar' => $newPath]);
+            }
+        }
+
+        $student->update($updateData);
 
         if ($student->status === 'lulus' && !$student->alumniTracking) {
             $gradYear = (int) date('Y');
@@ -340,6 +383,10 @@ class StudentController extends Controller
                 'phone' => $validated['phone'],
             ];
 
+            if (isset($updateData['avatar'])) {
+                $userData['avatar'] = $updateData['avatar'];
+            }
+
             // Jika nomor HP, NISN, atau NIS siswa diubah, perbarui kata sandi ke nomor baru agar nomor lama tidak dapat login lagi
             if ($validated['phone'] !== $oldPhone || $validated['nisn'] !== $oldNisn || $validated['nis'] !== $oldNis) {
                 $userData['password'] = Hash::make($studentPassword);
@@ -355,6 +402,7 @@ class StudentController extends Controller
                 'password' => Hash::make($studentPassword),
                 'role' => 'siswa',
                 'phone' => $validated['phone'],
+                'avatar' => $student->avatar,
                 'is_active' => true,
             ]);
             $student->update(['user_id' => $user->id]);
@@ -362,7 +410,88 @@ class StudentController extends Controller
 
         AuditLog::log('PERBARUI', 'Student', $student->id, "Memperbarui data siswa: {$student->name}.");
 
-        return redirect()->route('guru.siswa.show', $student->id)->with('success', 'Data profil siswa berhasil diperbarui. Akun login telah disinkronkan ke nomor baru.');
+        return redirect()->route('guru.siswa.show', $student->id)->with('success', 'Data profil siswa berhasil diperbarui.');
+    }
+
+    public function updatePhoto(Request $request, $id)
+    {
+        $student = Student::findOrFail($id);
+
+        $request->validate([
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'cropped_image' => 'nullable|string',
+        ], [
+            'photo.image' => 'File yang diunggah harus berupa gambar.',
+            'photo.mimes' => 'Format foto siswa harus berupa JPG, JPEG, PNG, atau WebP.',
+            'photo.max' => 'Ukuran file foto siswa tidak boleh lebih dari 5 MB.',
+        ]);
+
+        $source = $request->input('cropped_image') ?: $request->file('photo');
+
+        if (!$source) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Silakan pilih foto profil siswa yang ingin diunggah.',
+                ], 422);
+            }
+            return back()->withErrors(['photo' => 'Silakan pilih foto profil siswa yang ingin diunggah.']);
+        }
+
+        try {
+            $newPath = \App\Services\AvatarService::storeAvatar($source, $student->avatar);
+            $student->update(['avatar' => $newPath]);
+
+            if ($student->user) {
+                $student->user->update(['avatar' => $newPath]);
+            }
+
+            AuditLog::log('PERBARUI_FOTO_SISWA', 'Student', $student->id, "Guru BK memperbarui foto profil siswa {$student->name} ({$student->nisn}).");
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Foto profil siswa berhasil diperbarui.',
+                    'avatar_url' => asset('storage/' . $newPath),
+                ]);
+            }
+
+            return back()->with('success', 'Foto profil siswa berhasil diperbarui.');
+        } catch (\Throwable $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+            return back()->withErrors(['photo' => $e->getMessage()]);
+        }
+    }
+
+    public function destroyPhoto(Request $request, $id)
+    {
+        $student = Student::findOrFail($id);
+
+        if ($student->avatar) {
+            \App\Services\AvatarService::deleteOldAvatar($student->avatar);
+            $student->update(['avatar' => null]);
+
+            if ($student->user) {
+                $student->user->update(['avatar' => null]);
+            }
+
+            AuditLog::log('HAPUS_FOTO_SISWA', 'Student', $student->id, "Guru BK menghapus foto profil siswa {$student->name} dan mengembalikannya ke avatar default.");
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto profil siswa berhasil dihapus dan kembali ke avatar default.',
+                'avatar_url' => asset('images/default-avatar-student.svg'),
+            ]);
+        }
+
+        return back()->with('success', 'Foto profil siswa berhasil dihapus dan kembali ke avatar default.');
     }
 
     public function storeMajor(Request $request)
@@ -637,6 +766,10 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
         $studentName = $student->name;
         $studentNisn = $student->nisn;
+
+        if ($student->avatar) {
+            \App\Services\AvatarService::deleteOldAvatar($student->avatar);
+        }
 
         // Jika siswa memiliki akun user, hapus akun loginnya
         if ($student->user) {

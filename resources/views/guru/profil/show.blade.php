@@ -19,17 +19,40 @@
             <span class="badge badge-translucent">Aktif Bertugas</span>
         </div>
         <div class="card-body">
-            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border);">
-                <div class="counselor-avatar-circle" aria-label="Inisial Profil Guru BK">
-                    {{ strtoupper(substr($counselor->name, 0, 1)) }}
-                </div>
-                <div>
-                    <h3 style="font-size: 16px; font-weight: 700; color: var(--color-text-main);">{{ $counselor->name }}</h3>
-                    <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
-                        <span class="counselor-role-badge">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            Guru Bimbingan dan Konseling
-                        </span>
+            <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border);">
+                <div class="avatar-profile-header">
+                    <div class="avatar-current-wrapper">
+                        <img src="{{ $counselor->avatar_url }}" alt="{{ $counselor->name }}" id="counselorAvatarImg">
+                    </div>
+                    <div class="avatar-profile-info">
+                        @if($counselor->hasCustomAvatar())
+                            <div class="avatar-status-badge custom">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Foto Khusus Terpasang</span>
+                            </div>
+                        @else
+                            <div class="avatar-status-badge default">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>Menggunakan Avatar Default</span>
+                            </div>
+                        @endif
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--color-text-main); margin-bottom: 4px;">{{ $counselor->name }}</h3>
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">
+                            Format JPG, JPEG, PNG, atau WebP. Maksimal 5 MB. Dilengkapi preview crop interaktif.
+                        </p>
+                        <div class="avatar-btn-group">
+                            <input type="file" id="counselorPhotoInput" accept=".jpg,.jpeg,.png,.webp" style="display: none;" onchange="handleCounselorPhotoSelect(this)">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('counselorPhotoInput').click()" title="Unggah foto profil baru dengan crop preview">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                <span>{{ $counselor->hasCustomAvatar() ? 'Ganti Foto' : 'Unggah Foto Baru' }}</span>
+                            </button>
+                            @if($counselor->hasCustomAvatar())
+                                <button type="button" class="btn btn-danger-subtle" onclick="handleCounselorPhotoDelete()" title="Hapus foto profil dan kembali ke avatar default">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <span>Hapus Foto</span>
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,4 +150,24 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+function handleCounselorPhotoSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    window.AvatarCropper.openForFile(input.files[0], {
+        uploadUrl: '{{ route('guru.profil.photo.update') }}',
+        csrf: '{{ csrf_token() }}'
+    });
+    input.value = '';
+}
+
+function handleCounselorPhotoDelete() {
+    window.AvatarCropper.openDeleteModal({
+        deleteUrl: '{{ route('guru.profil.photo.destroy') }}',
+        csrf: '{{ csrf_token() }}'
+    });
+}
+</script>
 @endsection

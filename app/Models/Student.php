@@ -74,4 +74,14 @@ class Student extends Model
     {
         return $this->hasOne(AlumniTracking::class);
     }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        return \App\Services\AvatarService::getAvatarUrl($this->avatar, 'siswa');
+    }
+
+    public function hasCustomAvatar(): bool
+    {
+        return \App\Services\AvatarService::hasCustomAvatar($this->avatar);
+    }
 }

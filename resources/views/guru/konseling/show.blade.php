@@ -33,9 +33,7 @@
         </div>
         <div class="card-body">
             <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--color-border);">
-                <div class="user-avatar-initial" style="width: 44px; height: 44px; font-size: 16px;">
-                    {{ strtoupper(substr($counseling->student->name, 0, 1)) }}
-                </div>
+                <img src="{{ $counseling->student->avatar_url }}" alt="{{ $counseling->student->name }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--color-primary-border); flex-shrink: 0;" />
                 <div>
                     <div style="font-weight: 700; font-size: 14px; color: var(--color-text-main);">{{ $counseling->student->name }}</div>
                     <div style="font-size: 12px; color: var(--color-text-subtle);">

@@ -25,56 +25,102 @@ class AuthController extends Controller
             'login' => 'required|string',
             'password' => 'required|string',
         ], [
-            'login.required' => 'Nomor Identitas (NISN), No. HP, Username, atau Email wajib diisi.',
-            'password.required' => 'Kata sandi wajib diisi.',
+            'login.required' => 'NISN (untuk Siswa) atau Username / Email (untuk Guru BK) wajib diisi.',
+            'password.required' => 'Kata sandi / Nomor HP wajib diisi.',
         ]);
 
         $loginInput = trim($credentials['login']);
         $password = trim($credentials['password']);
+        $cleanPassword = preg_replace('/[^0-9]/', '', $password);
 
-        // Cari user berdasarkan username, email, no_hp akun, atau NISN / NIS / No. HP siswa aktif
-        $digitsOnly = preg_replace('/[^0-9]/', '', $loginInput);
+        // 1. Cek login Guru BK terlebih dahulu (username atau email dengan role guru_bk)
+        $guruUser = User::where('role', 'guru_bk')
+            ->where(function ($q) use ($loginInput) {
+                $q->where('username', $loginInput)
+                  ->orWhere('email', $loginInput);
+            })->first();
 
-        $user = User::where(function ($query) use ($loginInput, $digitsOnly) {
-            $query->where('username', $loginInput)
-                ->orWhere('email', $loginInput)
-                ->orWhere('phone', $loginInput)
-                ->orWhereHas('student', function ($q) use ($loginInput, $digitsOnly) {
-                    $q->where('nisn', $loginInput)
-                        ->orWhere('nis', $loginInput)
-                        ->orWhere('phone', $loginInput);
-                    if (!empty($digitsOnly) && strlen($digitsOnly) >= 8) {
-                        $q->orWhere('phone', $digitsOnly);
-                    }
-                });
-
-            if (!empty($digitsOnly) && strlen($digitsOnly) >= 8) {
-                $query->orWhere('phone', $digitsOnly);
-            }
-        })->first();
-
-        if ($user) {
-            $authenticated = Auth::attempt(['email' => $user->email, 'password' => $password]);
-
-            // Jika gagal dan password berisi format nomor telepon (misal ada strip/spasi), coba juga dengan angka murni
-            $digitsOnlyPassword = preg_replace('/[^0-9]/', '', $password);
-            if (!$authenticated && !empty($digitsOnlyPassword) && $digitsOnlyPassword !== $password) {
-                $authenticated = Auth::attempt(['email' => $user->email, 'password' => $digitsOnlyPassword]);
-            }
-
-            if ($authenticated) {
+        if ($guruUser) {
+            if (\Illuminate\Support\Facades\Hash::check($password, $guruUser->password)) {
+                Auth::login($guruUser);
                 $request->session()->regenerate();
-
-                if ($user->role === 'guru_bk') {
-                    return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $user->name);
-                } else {
-                    return redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang di Ruang Konseling & Karier, ' . $user->name);
-                }
+                return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $guruUser->name);
             }
+
+            return back()->withErrors([
+                'login' => 'Username atau kata sandi Guru BK yang Anda masukkan salah.',
+            ])->onlyInput('login');
         }
 
+        // 2. Cek login Siswa: Username adalah NISN yang sudah terdaftar, Password adalah Nomor HP yang sudah terdaftar
+        $cleanNisn = preg_replace('/[^0-9]/', '', $loginInput);
+
+        $student = \App\Models\Student::where('nisn', $loginInput)
+            ->orWhere(function ($q) use ($cleanNisn) {
+                if (!empty($cleanNisn) && strlen($cleanNisn) >= 8) {
+                    $q->where('nisn', $cleanNisn);
+                }
+            })->first();
+
+        if ($student) {
+            // Siswa ditemukan di database! Sekarang verifikasi Nomor HP (password)
+            $user = $student->user;
+            if (!$user) {
+                // Buat akun user siswa otomatis jika belum tersedia
+                $initialPassword = !empty($student->phone) ? $student->phone : $student->nisn;
+                $user = User::create([
+                    'name' => $student->name,
+                    'username' => $student->nisn,
+                    'email' => $student->nisn . '@siswa.sch.id',
+                    'password' => \Illuminate\Support\Facades\Hash::make($initialPassword),
+                    'role' => 'siswa',
+                    'phone' => $student->phone,
+                    'avatar' => $student->avatar,
+                    'is_active' => true,
+                ]);
+                $student->update(['user_id' => $user->id]);
+            }
+
+            // Periksa apakah password cocok dengan Nomor HP siswa yang terdaftar
+            $studentPhoneClean = preg_replace('/[^0-9]/', '', (string) $student->phone);
+            $matchesPhone = (!empty($student->phone) && $password === $student->phone)
+                || (!empty($studentPhoneClean) && !empty($cleanPassword) && $cleanPassword === $studentPhoneClean);
+
+            $matchesHash = \Illuminate\Support\Facades\Hash::check($password, $user->password)
+                || (!empty($cleanPassword) && \Illuminate\Support\Facades\Hash::check($cleanPassword, $user->password));
+
+            if ($matchesPhone || $matchesHash) {
+                // Sinkronisasi password user jika cocok dengan nomor HP
+                if ($matchesPhone && !\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
+                    $user->update(['password' => \Illuminate\Support\Facades\Hash::make($password)]);
+                }
+
+                Auth::login($user);
+                $request->session()->regenerate();
+                return redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang di Ruang Konseling & Karier, ' . $user->name);
+            }
+
+            return back()->withErrors([
+                'login' => 'Kata sandi (Nomor HP) yang Anda masukkan salah atau tidak sesuai dengan NISN terdaftar.',
+            ])->onlyInput('login');
+        }
+
+        // 3. Fallback jika ada akun user non-siswa lainnya
+        $generalUser = User::where('username', $loginInput)
+            ->orWhere('email', $loginInput)
+            ->first();
+
+        if ($generalUser && \Illuminate\Support\Facades\Hash::check($password, $generalUser->password)) {
+            Auth::login($generalUser);
+            $request->session()->regenerate();
+            return $generalUser->role === 'guru_bk'
+                ? redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $generalUser->name)
+                : redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang, ' . $generalUser->name);
+        }
+
+        // 4. Jika NISN atau Username belum terdaftar sama sekali
         return back()->withErrors([
-            'login' => 'Username, No. HP, NISN, atau kata sandi yang Anda masukkan salah.',
+            'login' => 'NISN atau Username belum terdaftar dalam sistem Ruang BK.',
         ])->onlyInput('login');
     }
 

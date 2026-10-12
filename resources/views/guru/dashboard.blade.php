@@ -24,7 +24,7 @@
             </p>
         </div>
         <div class="hero-banner-visual">
-            <img src="{{ asset('images/counselor-hero.jpg') }}" alt="Konselor Guru BK" class="hero-banner-photo" />
+            <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="hero-banner-photo" />
             <div class="hero-banner-quote-badge">
                 &ldquo;Bersama, kita bantu siswa menemukan jalan terbaik untuk masa depan.&rdquo;
             </div>

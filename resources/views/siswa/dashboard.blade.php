@@ -16,7 +16,7 @@
             </p>
         </div>
         <div class="hero-banner-visual">
-            <img src="{{ asset('images/student-hero.jpg') }}" alt="{{ $student->name }}" class="hero-banner-photo" />
+            <img src="{{ $student->avatar_url }}" alt="{{ $student->name }}" class="hero-banner-photo" />
             <div class="hero-banner-quote-badge">
                 &ldquo;Langkah kecil hari ini, bisa menjadi awal dari masa depan yang besar.&rdquo;
             </div>

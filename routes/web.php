@@ -61,6 +61,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     // Profil Guru BK
     Route::get('/profil', [GuruProfileController::class, 'show'])->name('profil.show');
     Route::put('/profil', [GuruProfileController::class, 'update'])->name('profil.update');
+    Route::post('/profil/foto', [GuruProfileController::class, 'updatePhoto'])->name('profil.photo.update');
+    Route::delete('/profil/foto', [GuruProfileController::class, 'destroyPhoto'])->name('profil.photo.destroy');
 
     // 5. Data Siswa & Profil 360 Derajat
     Route::get('/siswa', [GuruStudentController::class, 'index'])->name('siswa.index');
@@ -75,6 +77,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::get('/siswa/{id}/edit', [GuruStudentController::class, 'edit'])->name('siswa.edit');
     Route::put('/siswa/{id}', [GuruStudentController::class, 'update'])->name('siswa.update');
     Route::delete('/siswa/{id}', [GuruStudentController::class, 'destroy'])->name('siswa.destroy');
+    Route::post('/siswa/{id}/foto', [GuruStudentController::class, 'updatePhoto'])->name('siswa.photo.update');
+    Route::delete('/siswa/{id}/foto', [GuruStudentController::class, 'destroyPhoto'])->name('siswa.photo.destroy');
 
     // 7 - 12. Bimbingan & Konseling
     Route::get('/konseling', [GuruCounselingController::class, 'index'])->name('konseling.index');
@@ -141,6 +145,8 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     // Profil Siswa
     Route::get('/profil', [SiswaProfileController::class, 'show'])->name('profil.show');
     Route::put('/profil', [SiswaProfileController::class, 'update'])->name('profil.update');
+    Route::post('/profil/foto', [SiswaProfileController::class, 'updatePhoto'])->name('profil.photo.update');
+    Route::delete('/profil/foto', [SiswaProfileController::class, 'destroyPhoto'])->name('profil.photo.destroy');
 
     // 8. Pengajuan & Jadwal Konseling
     Route::get('/konseling', [SiswaCounselingController::class, 'index'])->name('konseling.index');

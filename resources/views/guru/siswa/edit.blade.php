@@ -26,6 +26,45 @@
             <span class="badge badge-translucent">NISN: {{ $student->nisn }}</span>
         </div>
         <div class="card-body">
+            <!-- Pengelolaan Foto Profil Siswa -->
+            <div style="margin-bottom: 24px; padding: 16px; background-color: var(--color-surface-subtle); border: 1px solid var(--color-border); border-radius: var(--radius-md);">
+                <div class="avatar-profile-header">
+                    <div class="avatar-current-wrapper" style="width: 80px; height: 80px;">
+                        <img src="{{ $student->avatar_url }}" alt="{{ $student->name }}" id="studentEditAvatarImg">
+                    </div>
+                    <div class="avatar-profile-info">
+                        @if($student->hasCustomAvatar())
+                            <div class="avatar-status-badge custom">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Foto Khusus Terpasang</span>
+                            </div>
+                        @else
+                            <div class="avatar-status-badge default">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                <span>Menggunakan Avatar Default</span>
+                            </div>
+                        @endif
+                        <h4 style="font-size: 14.5px; font-weight: 700; color: var(--color-text-main); margin-bottom: 4px;">Foto Profil Siswa</h4>
+                        <p style="font-size: 12px; color: var(--color-text-muted); margin-bottom: 10px;">
+                            Guru BK dapat mengunggah foto baru, memotong (crop) dengan live preview, atau menghapus foto agar kembali ke avatar default.
+                        </p>
+                        <div class="avatar-btn-group">
+                            <input type="file" id="studentEditPhotoInput" accept=".jpg,.jpeg,.png,.webp" style="display: none;" onchange="handleStudentEditPhotoSelect(this)">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('studentEditPhotoInput').click()" title="Unggah foto baru dengan crop preview">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                <span>{{ $student->hasCustomAvatar() ? 'Ganti Foto' : 'Unggah Foto Baru' }}</span>
+                            </button>
+                            @if($student->hasCustomAvatar())
+                                <button type="button" class="btn btn-danger-subtle" onclick="handleStudentEditPhotoDelete()" title="Hapus foto siswa dan kembali ke avatar default">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    <span>Hapus Foto</span>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <form action="{{ route('guru.siswa.update', $student->id) }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -325,5 +364,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     filterMassStudents();
 });
+
+function handleStudentEditPhotoSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    window.AvatarCropper.openForFile(input.files[0], {
+        uploadUrl: '{{ route('guru.siswa.photo.update', $student->id) }}',
+        csrf: '{{ csrf_token() }}'
+    });
+    input.value = '';
+}
+
+function handleStudentEditPhotoDelete() {
+    window.AvatarCropper.openDeleteModal({
+        deleteUrl: '{{ route('guru.siswa.photo.destroy', $student->id) }}',
+        csrf: '{{ csrf_token() }}'
+    });
+}
 </script>
 @endsection

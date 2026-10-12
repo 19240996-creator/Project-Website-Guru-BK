@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Ruang Siswa - Bimbingan & Karier')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -142,10 +143,7 @@
                     </a>
 
                     <a href="{{ route('siswa.profil.show') }}" class="topbar-user-pill" title="Profil Siswa">
-                        <img src="{{ asset('images/student-hero.jpg') }}" alt="{{ auth()->user()->name }}" class="topbar-user-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                        <div class="topbar-user-avatar-initial" style="display: none;">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                        </div>
+                        <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="topbar-user-avatar" />
                         <div class="topbar-user-details">
                             <span class="topbar-user-name">{{ auth()->user()->name }}</span>
                             <span class="topbar-user-role">
@@ -308,6 +306,7 @@
             }
         });
     </script>
+    @include('components.avatar-crop-modal')
     @yield('scripts')
 </body>
 </html>

@@ -57,4 +57,14 @@ class User extends Authenticatable
     {
         return $this->role === 'siswa';
     }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        return \App\Services\AvatarService::getAvatarUrl($this->avatar, $this->role ?? 'siswa');
+    }
+
+    public function hasCustomAvatar(): bool
+    {
+        return \App\Services\AvatarService::hasCustomAvatar($this->avatar);
+    }
 }

@@ -6,15 +6,18 @@
 @section('content')
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px;">
     <div style="display: flex; align-items: center; gap: 16px;">
-        @if($student->avatar)
-            <img src="{{ asset('storage/' . $student->avatar) }}" alt="{{ $student->name }}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid var(--color-primary-border);">
-        @else
-            <div class="user-avatar-initial" style="width: 54px; height: 54px; font-size: 20px;">
-                {{ strtoupper(substr($student->name, 0, 1)) }}
-            </div>
-        @endif
+        <div class="avatar-current-wrapper" style="width: 58px; height: 58px;">
+            <img src="{{ $student->avatar_url }}" alt="{{ $student->name }}" id="studentShowAvatarImg">
+        </div>
         <div>
-            <h2 style="font-size: 20px; font-weight: 800; color: var(--color-text-main);">{{ $student->name }}</h2>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <h2 style="font-size: 20px; font-weight: 800; color: var(--color-text-main);">{{ $student->name }}</h2>
+                @if($student->hasCustomAvatar())
+                    <span class="avatar-status-badge custom" style="margin-bottom: 0;">Foto Khusus</span>
+                @else
+                    <span class="avatar-status-badge default" style="margin-bottom: 0;">Avatar Default</span>
+                @endif
+            </div>
             <div style="font-size: 13px; color: var(--color-text-muted); display: flex; gap: 12px; align-items: center; margin-top: 2px;">
                 <span>NISN: <strong>{{ $student->nisn }}</strong></span>
                 <span>•</span>
@@ -24,16 +27,27 @@
             </div>
         </div>
     </div>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <a href="{{ route('guru.siswa.edit', $student->id) }}" class="btn btn-secondary">
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <input type="file" id="studentShowPhotoInput" accept=".jpg,.jpeg,.png,.webp" style="display: none;" onchange="handleStudentShowPhotoSelect(this)">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('studentShowPhotoInput').click()" title="Ubah atau potong foto profil siswa">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            <span>{{ $student->hasCustomAvatar() ? 'Ganti Foto' : 'Unggah Foto' }}</span>
+        </button>
+        @if($student->hasCustomAvatar())
+            <button type="button" class="btn btn-danger-subtle" onclick="handleStudentShowPhotoDelete()" title="Hapus foto siswa dan kembali ke avatar default">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Hapus Foto</span>
+            </button>
+        @endif
+        <a href="{{ route('guru.siswa.edit', $student->id) }}" class="btn btn-secondary btn-sm">
             Edit Data Profil
         </a>
         @if($student->status === 'aktif')
-            <button type="button" class="btn btn-accent" onclick="document.getElementById('graduateModal').style.display = 'block';">
+            <button type="button" class="btn btn-accent btn-sm" onclick="document.getElementById('graduateModal').style.display = 'block';">
                 Luluskan Menjadi Alumni
             </button>
         @endif
-        <button type="button" class="btn btn-danger" onclick="openDeleteStudentModal('{{ $student->id }}', '{{ addslashes($student->name) }}', '{{ $student->nisn }}')" title="Hapus Data Siswa">
+        <button type="button" class="btn btn-danger btn-sm" onclick="openDeleteStudentModal('{{ $student->id }}', '{{ addslashes($student->name) }}', '{{ $student->nisn }}')" title="Hapus Data Siswa">
             Hapus Siswa
         </button>
     </div>
@@ -419,6 +433,22 @@ function handleDeleteBackdropClick(event) {
     if (event.target === document.getElementById('deleteStudentModal')) {
         closeDeleteStudentModal();
     }
+}
+
+function handleStudentShowPhotoSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    window.AvatarCropper.openForFile(input.files[0], {
+        uploadUrl: '{{ route('guru.siswa.photo.update', $student->id) }}',
+        csrf: '{{ csrf_token() }}'
+    });
+    input.value = '';
+}
+
+function handleStudentShowPhotoDelete() {
+    window.AvatarCropper.openDeleteModal({
+        deleteUrl: '{{ route('guru.siswa.photo.destroy', $student->id) }}',
+        csrf: '{{ csrf_token() }}'
+    });
 }
 </script>
 

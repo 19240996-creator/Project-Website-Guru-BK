@@ -627,10 +627,14 @@
                 </div>
             @endif
 
+            <div style="margin-bottom: 18px; padding: 12px 14px; border-radius: 10px; background: #EEF4FF; border: 1px solid #D0E0FF; font-size: 12px; color: #1E3A8A; line-height: 1.5;">
+                <span style="font-weight: 700;">Ketentuan Masuk Siswa:</span> Masukkan <strong>NISN</strong> yang sudah terdaftar sebagai username, dan <strong>Nomor HP</strong> yang sudah terdaftar sebagai kata sandi.
+            </div>
+
             <form action="{{ route('login.post') }}" method="POST" id="loginForm">
                 @csrf
                 <div class="form-group">
-                    <label for="loginInput" class="form-label">Username atau Email</label>
+                    <label for="loginInput" class="form-label">NISN Siswa / Username Guru BK</label>
                     <div class="input-wrapper">
                         <span class="input-icon-left">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -638,12 +642,12 @@
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
                         </span>
-                        <input type="text" id="loginInput" name="login" class="input-control" value="{{ old('login') }}" placeholder="Masukkan NISN, No. HP, atau username" required autofocus autocomplete="username">
+                        <input type="text" id="loginInput" name="login" class="input-control" value="{{ old('login') }}" placeholder="Masukkan NISN siswa atau username Guru BK" required autofocus autocomplete="username">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="passwordInput" class="form-label">Password</label>
+                    <label for="passwordInput" class="form-label">Nomor HP (Kata Sandi Siswa) / Password Guru BK</label>
                     <div class="input-wrapper">
                         <span class="input-icon-left">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -651,7 +655,7 @@
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                             </svg>
                         </span>
-                        <input type="password" id="passwordInput" name="password" class="input-control" placeholder="Masukkan password" required autocomplete="current-password">
+                        <input type="password" id="passwordInput" name="password" class="input-control" placeholder="Masukkan Nomor HP siswa atau password Guru BK" required autocomplete="current-password">
                         <button type="button" class="password-toggle-btn" id="togglePasswordBtn" onclick="togglePasswordVisibility()" aria-label="Buka tutup password" title="Buka/Tutup Password">
                             <svg id="eyeOpenIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -719,7 +723,9 @@
         function focusStudentLogin() {
             var input = document.getElementById('loginInput');
             input.focus();
-            input.placeholder = "Ketik NISN atau No. HP siswa...";
+            input.placeholder = "Masukkan NISN siswa yang terdaftar...";
+            var pass = document.getElementById('passwordInput');
+            pass.placeholder = "Masukkan Nomor HP siswa yang terdaftar...";
         }
 
         document.getElementById('loginForm').addEventListener('submit', function() {
