@@ -115,6 +115,11 @@ jobs:
           echo "==> Menyiapkan aplikasi di $APP_DIR"
           cd "$APP_DIR"
           
+          # Menyiapkan folder penyimpanan avatar publik dan symlink storage
+          mkdir -p storage/app/public/avatars public/storage/avatars
+          chmod -R 775 storage/app/public public/storage 2>/dev/null || true
+          $PHP artisan storage:link || true
+
           $PHP artisan optimize:clear
           $PHP artisan view:clear
           $PHP artisan config:clear

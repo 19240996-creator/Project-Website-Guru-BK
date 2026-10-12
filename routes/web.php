@@ -174,3 +174,25 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     Route::get('/alumni', [SiswaAlumniController::class, 'index'])->name('alumni.index');
     Route::post('/alumni/tracer', [SiswaAlumniController::class, 'updateTracer'])->name('alumni.tracer.update');
 });
+
+// ==========================================
+// PUBLIC AVATAR ROUTE (Shared Hosting / Fallback Support)
+// ==========================================
+Route::get('/storage/avatars/{filename}', function ($filename) {
+    $path = 'avatars/' . $filename;
+    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        return \Illuminate\Support\Facades\Storage::disk('public')->response($path, null, [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    $publicPath = public_path('storage/avatars/' . $filename);
+    if (file_exists($publicPath)) {
+        return response()->file($publicPath, [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    abort(404);
+})->where('filename', '[A-Za-z0-9_\-\.]+')->name('storage.avatar');
+

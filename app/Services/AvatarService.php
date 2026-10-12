@@ -53,6 +53,17 @@ class AvatarService
 
             $extension = in_array($ext, self::ALLOWED_EXTENSIONS) ? $ext : 'jpg';
             $savedPath = $source->storeAs('avatars', "{$filename}.{$extension}", 'public');
+
+            // Salin juga ke public/storage/avatars jika direktori publik tersedia (dukungan hosting tanpa symlink)
+            try {
+                $publicFolder = public_path('storage/avatars');
+                if (!file_exists($publicFolder)) {
+                    @mkdir($publicFolder, 0775, true);
+                }
+                @copy($source->getRealPath(), $publicFolder . '/' . "{$filename}.{$extension}");
+            } catch (\Throwable $e) {
+                // Abaikan jika direktori publik memiliki batasan izin
+            }
         } elseif (is_string($source) && str_starts_with($source, 'data:image/')) {
             // Base64 Cropped Image dari Canvas
             if (!preg_match('/^data:image\/(\w+);base64,/', $source, $type)) {
@@ -82,6 +93,17 @@ class AvatarService
             $fullPath = "avatars/{$filename}.{$extension}";
             Storage::disk('public')->put($fullPath, $decodedData);
             $savedPath = $fullPath;
+
+            // Salin juga ke public/storage/avatars jika direktori publik tersedia (dukungan hosting tanpa symlink)
+            try {
+                $publicFolder = public_path('storage/avatars');
+                if (!file_exists($publicFolder)) {
+                    @mkdir($publicFolder, 0775, true);
+                }
+                @file_put_contents($publicFolder . '/' . "{$filename}.{$extension}", $decodedData);
+            } catch (\Throwable $e) {
+                // Abaikan jika direktori publik memiliki batasan izin
+            }
         } else {
             throw new \InvalidArgumentException('Format input foto tidak dikenali.');
         }
@@ -101,12 +123,22 @@ class AvatarService
             return false;
         }
 
-        // Pastikan hanya menghapus file di dalam folder avatars untuk keamanan
+        // Hapus dari Storage disk public
         if (str_starts_with($path, 'avatars/') && Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->delete($path);
+            Storage::disk('public')->delete($path);
         }
 
-        return false;
+        // Hapus juga dari public_path jika ada
+        try {
+            $publicFile = public_path('storage/' . $path);
+            if (file_exists($publicFile)) {
+                @unlink($publicFile);
+            }
+        } catch (\Throwable $e) {
+            // Abaikan
+        }
+
+        return true;
     }
 
     /**
@@ -114,7 +146,7 @@ class AvatarService
      */
     public static function getAvatarUrl(?string $path, string $role = 'siswa'): string
     {
-        if (!empty($path) && Storage::disk('public')->exists($path)) {
+        if (!empty($path) && (Storage::disk('public')->exists($path) || file_exists(public_path('storage/' . $path)))) {
             return asset('storage/' . $path);
         }
 
@@ -128,6 +160,6 @@ class AvatarService
      */
     public static function hasCustomAvatar(?string $path): bool
     {
-        return !empty($path) && Storage::disk('public')->exists($path);
+        return !empty($path) && (Storage::disk('public')->exists($path) || file_exists(public_path('storage/' . $path)));
     }
 }

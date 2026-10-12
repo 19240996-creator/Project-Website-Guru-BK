@@ -300,4 +300,15 @@ class ProfilePhotoManagementTest extends TestCase
         $response->assertSessionHasErrors(['login']);
         $this->assertGuest();
     }
+
+    public function test_public_avatar_route_serves_stored_file()
+    {
+        Storage::disk('public')->put('avatars/test_unit_avatar.jpg', 'avatar_binary_content');
+
+        $response = $this->get('/storage/avatars/test_unit_avatar.jpg');
+        $response->assertStatus(200);
+
+        $notFound = $this->get('/storage/avatars/non_existent_avatar.jpg');
+        $notFound->assertStatus(404);
+    }
 }
