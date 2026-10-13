@@ -114,8 +114,8 @@
                             <th style="width: 12%; min-width: 105px; text-align: left; vertical-align: middle; padding: 12px 12px;">Sasaran Kelas</th>
                             <th style="width: 12%; min-width: 110px; text-align: left; vertical-align: middle; padding: 12px 12px;">Ruang / Tempat</th>
                             <th style="width: 9%; min-width: 90px; text-align: left; vertical-align: middle; padding: 12px 12px;">Penanggung Jawab</th>
-                            <th style="width: 8%; min-width: 85px; text-align: center; vertical-align: middle; padding: 12px 12px;">Status</th>
-                            <th style="width: 9%; min-width: 95px; text-align: center; vertical-align: middle; padding: 12px 12px;">Aksi</th>
+                            <th style="width: 8%; min-width: 85px; text-align: center; vertical-align: middle; padding: 12px 10px;">Status</th>
+                            <th style="width: 11%; min-width: 125px; text-align: center; vertical-align: middle; padding: 12px 10px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -200,11 +200,11 @@
                                 <td style="vertical-align: top; text-align: center; padding: 12px 12px;">
                                     <span class="badge {{ $stInfo['class'] }}" style="font-size: 11px;">{{ $stInfo['label'] }}</span>
                                 </td>
-                                <td style="vertical-align: top; text-align: center; padding: 12px 12px;">
-                                    <div style="display: inline-flex; align-items: center; gap: 5px;">
+                                <td style="vertical-align: top; text-align: center; padding: 12px 8px; white-space: nowrap;">
+                                    <div style="display: inline-flex; align-items: center; justify-content: center; gap: 5px;">
                                         <button type="button" 
                                                 class="btn btn-secondary btn-sm" 
-                                                style="padding: 3px 7px; font-size: 11px; display: inline-flex; align-items: center; gap: 3px;" 
+                                                style="padding: 4px 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;" 
                                                 onclick='openEditActivityModal(@json($actData))' 
                                                 title="Edit Agenda Kegiatan">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -212,7 +212,7 @@
                                         </button>
                                         <button type="button" 
                                                 class="btn btn-sm" 
-                                                style="padding: 3px 7px; font-size: 11px; background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 3px;" 
+                                                style="padding: 4px 8px; font-size: 11px; background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;" 
                                                 onclick="openDeleteConfirmModal('{{ $act->id }}', '{{ addslashes($act->title) }}')" 
                                                 title="Hapus Agenda Kegiatan">
                                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -965,6 +965,16 @@ document.addEventListener('click', function(e) {
         if (chevron) chevron.style.transform = 'rotate(0deg)';
     }
 
+    const addModal = document.getElementById('addActivityModal');
+    if (addModal && e.target === addModal) {
+        addModal.style.display = 'none';
+    }
+
+    const editModal = document.getElementById('editActivityModal');
+    if (editModal && e.target === editModal) {
+        editModal.style.display = 'none';
+    }
+
     const deleteModal = document.getElementById('deleteConfirmModal');
     if (deleteModal && e.target === deleteModal) {
         closeDeleteConfirmModal();
@@ -983,6 +993,18 @@ document.addEventListener('click', function(e) {
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        const addModal = document.getElementById('addActivityModal');
+        if (addModal && addModal.style.display !== 'none') {
+            addModal.style.display = 'none';
+            return;
+        }
+
+        const editModal = document.getElementById('editActivityModal');
+        if (editModal && editModal.style.display !== 'none') {
+            editModal.style.display = 'none';
+            return;
+        }
+
         const deleteModal = document.getElementById('deleteConfirmModal');
         if (deleteModal && deleteModal.style.display !== 'none') {
             closeDeleteConfirmModal();
