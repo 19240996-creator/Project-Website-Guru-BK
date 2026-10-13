@@ -60,27 +60,62 @@
 </div>
 
 <div class="card">
-    <div class="card-header card-header-navy">
-        <h3 class="card-title">Daftar Jadwal Kegiatan Kemitraan ({{ $activities->total() }})</h3>
-        <a href="{{ route('guru.laporan.generate', ['package' => 'paket_b']) }}" target="_blank" class="btn btn-secondary btn-sm">
-            Cetak Laporan Kurikulum
-        </a>
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <h3 class="card-title" style="margin: 0;">Daftar Jadwal Kegiatan Kemitraan ({{ $activities->total() }})</h3>
+            <span id="headerSelectedBadge" class="badge" style="display: none; background: rgba(255, 255, 255, 0.2); color: #ffffff; font-size: 11px; padding: 4px 8px; border-radius: 9999px;">
+                <span id="headerSelectedCount">0</span> Terpilih
+            </span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <a href="{{ route('guru.laporan.generate', ['package' => 'paket_b']) }}" target="_blank" class="btn btn-secondary btn-sm">
+                Cetak Laporan Kurikulum
+            </a>
+        </div>
     </div>
     <div class="card-body" style="padding: 0;">
+        <!-- In-place Bulk Action Toolbar -->
+        <div id="bulkActionBar" style="display: none; background: var(--color-surface-hover, #f1f5f9); border-bottom: 2px solid var(--color-primary); padding: 10px 18px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; transition: all 0.2s ease;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--color-primary); color: #ffffff;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </span>
+                <span style="font-size: 13px; font-weight: 700; color: var(--color-text-main);">
+                    <span id="bulkSelectedCount">0</span> Agenda Kegiatan Terpilih
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="openBulkStatusModal()" style="font-size: 12px; padding: 5px 12px; display: inline-flex; align-items: center; gap: 5px;" title="Ubah status semua agenda kegiatan yang dipilih">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>Ubah Status</span>
+                </button>
+                <button type="button" class="btn btn-sm" onclick="openBulkDeleteModal()" style="font-size: 12px; background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px;" title="Hapus semua agenda kegiatan yang dipilih">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    <span>Hapus Terpilih</span>
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="clearActivitySelection()" style="font-size: 12px; padding: 5px 10px;" title="Batalkan pilihan checklist">
+                    Batal
+                </button>
+            </div>
+        </div>
+
         @if($activities->count() > 0)
             <div class="table-responsive">
                 <table class="table" style="width: 100%; border-collapse: collapse;">
                     <thead class="table-thead-navy">
                         <tr>
-                            <th style="width: 12%; min-width: 115px; text-align: left; vertical-align: middle; padding: 12px 14px;">Tanggal & Waktu</th>
-                            <th style="width: 15%; min-width: 135px; text-align: left; vertical-align: middle; padding: 12px 14px;">Mitra Pelaksana</th>
-                            <th style="width: 16%; min-width: 140px; text-align: left; vertical-align: middle; padding: 12px 14px;">Kegiatan</th>
-                            <th style="width: 9%; min-width: 85px; text-align: left; vertical-align: middle; padding: 12px 14px;">Tipe</th>
-                            <th style="width: 12%; min-width: 110px; text-align: left; vertical-align: middle; padding: 12px 14px;">Sasaran Kelas</th>
-                            <th style="width: 13%; min-width: 115px; text-align: left; vertical-align: middle; padding: 12px 14px;">Ruang / Tempat</th>
-                            <th style="width: 9%; min-width: 95px; text-align: left; vertical-align: middle; padding: 12px 14px;">Penanggung Jawab</th>
-                            <th style="width: 6%; min-width: 85px; text-align: center; vertical-align: middle; padding: 12px 14px;">Status</th>
-                            <th style="width: 8%; min-width: 95px; text-align: center; vertical-align: middle; padding: 12px 14px;">Aksi</th>
+                            <th style="width: 44px; text-align: center; vertical-align: middle; padding: 12px 10px;">
+                                <input type="checkbox" id="selectAllActivities" onchange="toggleSelectAllActivities(this)" title="Pilih Semua Agenda Kegiatan pada Halaman Ini" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--color-primary);" />
+                            </th>
+                            <th style="width: 12%; min-width: 115px; text-align: left; vertical-align: middle; padding: 12px 12px;">Tanggal & Waktu</th>
+                            <th style="width: 14%; min-width: 130px; text-align: left; vertical-align: middle; padding: 12px 12px;">Mitra Pelaksana</th>
+                            <th style="width: 15%; min-width: 135px; text-align: left; vertical-align: middle; padding: 12px 12px;">Kegiatan</th>
+                            <th style="width: 9%; min-width: 80px; text-align: left; vertical-align: middle; padding: 12px 12px;">Tipe</th>
+                            <th style="width: 12%; min-width: 105px; text-align: left; vertical-align: middle; padding: 12px 12px;">Sasaran Kelas</th>
+                            <th style="width: 12%; min-width: 110px; text-align: left; vertical-align: middle; padding: 12px 12px;">Ruang / Tempat</th>
+                            <th style="width: 9%; min-width: 90px; text-align: left; vertical-align: middle; padding: 12px 12px;">Penanggung Jawab</th>
+                            <th style="width: 8%; min-width: 85px; text-align: center; vertical-align: middle; padding: 12px 12px;">Status</th>
+                            <th style="width: 9%; min-width: 95px; text-align: center; vertical-align: middle; padding: 12px 12px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -101,25 +136,46 @@
                                     'status' => $act->status,
                                     'notes' => $act->notes,
                                 ];
+
+                                $statusMap = [
+                                    'rencana' => ['label' => 'Rencana', 'class' => 'badge-secondary'],
+                                    'menunggu_konfirmasi' => ['label' => 'Menunggu Konfirmasi', 'class' => 'badge-info'],
+                                    'terkonfirmasi' => ['label' => 'Terkonfirmasi', 'class' => 'badge-success'],
+                                    'terlaksana' => ['label' => 'Terlaksana', 'class' => 'badge-primary'],
+                                    'ditunda' => ['label' => 'Ditunda', 'class' => 'badge-warning'],
+                                    'dibatalkan' => ['label' => 'Dibatalkan', 'class' => 'badge-danger'],
+                                ];
+                                $stInfo = $statusMap[$act->status] ?? ['label' => ucfirst(str_replace('_', ' ', $act->status)), 'class' => 'badge-secondary'];
                             @endphp
-                            <tr>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px;">
+                            <tr id="activity-row-{{ $act->id }}">
+                                <td style="vertical-align: top; text-align: center; padding: 12px 10px;">
+                                    <input type="checkbox" 
+                                           class="activity-checkbox" 
+                                           value="{{ $act->id }}" 
+                                           data-title="{{ $act->title }}"
+                                           data-code="{{ $act->code }}"
+                                           data-date="{{ $act->date->translatedFormat('d M Y') }}"
+                                           onchange="updateSelectedActivityCount()" 
+                                           title="Pilih {{ $act->title }}"
+                                           style="cursor: pointer; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--color-primary);" />
+                                </td>
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px;">
                                     <strong style="color: var(--color-text-main); font-weight: 700;">{{ $act->date->translatedFormat('d M Y') }}</strong>
                                     <div style="font-size: 11px; color: var(--color-text-subtle); margin-top: 2px;">{{ substr($act->start_time, 0, 5) }} - {{ substr($act->end_time, 0, 5) }} WIB</div>
                                 </td>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px;">
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px;">
                                     <strong style="color: var(--color-text-main); font-weight: 700;">{{ $act->partner ? $act->partner->name : '-' }}</strong>
                                     @if($act->partner && $act->partner->type)
                                         <div style="font-size: 11px; color: var(--color-text-subtle); margin-top: 2px;">{{ ucfirst(str_replace('_', ' ', $act->partner->type)) }}</div>
                                     @endif
                                 </td>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px;">
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px;">
                                     <div style="font-weight: 500; color: var(--color-text-main); line-height: 1.4;">{{ $act->title }}</div>
                                 </td>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px; color: var(--color-text-main); font-size: 13px;">
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px; color: var(--color-text-main); font-size: 13px;">
                                     {{ ucfirst(str_replace('_', ' ', $act->activity_type)) }}
                                 </td>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px; color: var(--color-text-main); font-size: 13px; line-height: 1.4;">
                                     @if(!empty($act->target_class_ids) && count($act->target_class_ids) > 0)
                                         @php
                                             $targetClasses = \App\Models\StudentClass::whereIn('id', $act->target_class_ids)->get();
@@ -135,16 +191,16 @@
                                         <span style="color: var(--color-text-subtle);">Semua Kelas</span>
                                     @endif
                                 </td>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px;">
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px;">
                                     <strong style="color: var(--color-text-main); font-weight: 600;">{{ $act->room_location }}</strong>
                                 </td>
-                                <td style="vertical-align: top; text-align: left; padding: 12px 14px; color: var(--color-text-muted); font-size: 13px;">
+                                <td style="vertical-align: top; text-align: left; padding: 12px 12px; color: var(--color-text-muted); font-size: 13px;">
                                     {{ $act->pic_name ?: '-' }}
                                 </td>
-                                <td style="vertical-align: top; text-align: center; padding: 12px 14px;">
-                                    <span class="badge badge-success" style="font-size: 11px;">{{ ucfirst($act->status) }}</span>
+                                <td style="vertical-align: top; text-align: center; padding: 12px 12px;">
+                                    <span class="badge {{ $stInfo['class'] }}" style="font-size: 11px;">{{ $stInfo['label'] }}</span>
                                 </td>
-                                <td style="vertical-align: top; text-align: center; padding: 12px 14px;">
+                                <td style="vertical-align: top; text-align: center; padding: 12px 12px;">
                                     <div style="display: inline-flex; align-items: center; gap: 5px;">
                                         <button type="button" 
                                                 class="btn btn-secondary btn-sm" 
@@ -497,6 +553,93 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus Masal Kegiatan -->
+<div id="bulkDeleteModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 100; backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+    <div style="max-width: 480px; width: 90%; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: 22px; border: 1px solid var(--color-border);">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background-color: var(--color-danger-bg); color: var(--color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--color-text-main); margin-bottom: 6px;">
+                    Hapus Agenda Kegiatan Terpilih?
+                </h4>
+                <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 10px;">
+                    Anda akan menghapus <strong id="bulkDeleteCountText" style="color: var(--color-danger);">0</strong> agenda kegiatan yang dipilih. Tindakan ini bersifat permanen dan akan dicatat ke dalam <strong>Audit Log Sistem</strong>.
+                </p>
+                <div id="bulkDeleteListContainer" style="max-height: 130px; overflow-y: auto; background: var(--color-surface-hover, #f8fafc); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 14px; font-size: 12px; color: var(--color-text-main);">
+                    <ul id="bulkDeleteList" style="margin: 0; padding-left: 18px; line-height: 1.6;"></ul>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeBulkDeleteModal()" style="padding: 6px 14px;">
+                        Batal
+                    </button>
+                    <form id="bulkDeleteForm" action="{{ route('guru.mitra.activity.bulk_destroy') }}" method="POST" style="margin: 0;">
+                        @csrf
+                        @method('DELETE')
+                        <div id="bulkDeleteInputs"></div>
+                        <button type="submit" class="btn btn-sm" style="padding: 6px 14px; background-color: var(--color-danger); color: #ffffff; border: 1px solid var(--color-danger); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">
+                            Ya, Hapus Semua Terpilih
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ubah Status Masal Kegiatan -->
+<div id="bulkStatusModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 100; backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+    <div style="max-width: 460px; width: 90%; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: 22px; border: 1px solid var(--color-border);">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background-color: rgba(37, 99, 235, 0.12); color: var(--color-primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--color-text-main); margin-bottom: 6px;">
+                    Ubah Status Agenda Terpilih
+                </h4>
+                <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 14px;">
+                    Perbarui status untuk <strong id="bulkStatusCountText" style="color: var(--color-primary);">0</strong> agenda kegiatan yang dipilih sekaligus.
+                </p>
+
+                <form id="bulkStatusForm" action="{{ route('guru.mitra.activity.bulk_status') }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <div id="bulkStatusInputs"></div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" style="font-size: 12px; font-weight: 600;">Pilih Status Baru *</label>
+                        <select name="status" id="bulkTargetStatus" class="form-select" required style="min-height: 38px; font-size: 13px;">
+                            <option value="rencana">Rencana</option>
+                            <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
+                            <option value="terkonfirmasi">Terkonfirmasi</option>
+                            <option value="terlaksana">Terlaksana</option>
+                            <option value="ditunda">Ditunda</option>
+                            <option value="dibatalkan">Dibatalkan</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="closeBulkStatusModal()" style="padding: 6px 14px;">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-primary btn-sm" style="padding: 6px 16px; font-weight: 600;">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 function toggleTargetClassDropdown(e) {
     if (e) {
@@ -655,6 +798,154 @@ function closeDeleteConfirmModal() {
     }
 }
 
+/* Checkbox & Bulk Actions Engine */
+function toggleSelectAllActivities(master) {
+    const isChecked = master.checked;
+    const checkboxes = document.querySelectorAll('.activity-checkbox');
+    checkboxes.forEach(function(cb) {
+        cb.checked = isChecked;
+        const row = document.getElementById('activity-row-' + cb.value);
+        if (row) {
+            row.style.backgroundColor = isChecked ? 'rgba(37, 99, 235, 0.06)' : '';
+        }
+    });
+    updateSelectedActivityCount();
+}
+
+function updateSelectedActivityCount() {
+    const checkboxes = document.querySelectorAll('.activity-checkbox');
+    const checked = Array.from(checkboxes).filter(cb => cb.checked);
+    const count = checked.length;
+    const total = checkboxes.length;
+
+    const master = document.getElementById('selectAllActivities');
+    if (master) {
+        master.checked = total > 0 && count === total;
+        master.indeterminate = count > 0 && count < total;
+    }
+
+    // Update row highlights
+    checkboxes.forEach(function(cb) {
+        const row = document.getElementById('activity-row-' + cb.value);
+        if (row) {
+            row.style.backgroundColor = cb.checked ? 'rgba(37, 99, 235, 0.06)' : '';
+        }
+    });
+
+    const bulkBar = document.getElementById('bulkActionBar');
+    const bulkCountEl = document.getElementById('bulkSelectedCount');
+    const headerBadge = document.getElementById('headerSelectedBadge');
+    const headerCountEl = document.getElementById('headerSelectedCount');
+
+    if (bulkBar) {
+        bulkBar.style.display = count > 0 ? 'flex' : 'none';
+    }
+    if (bulkCountEl) {
+        bulkCountEl.textContent = count;
+    }
+    if (headerBadge && headerCountEl) {
+        headerBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+        headerCountEl.textContent = count;
+    }
+}
+
+function clearActivitySelection() {
+    const checkboxes = document.querySelectorAll('.activity-checkbox');
+    checkboxes.forEach(function(cb) {
+        cb.checked = false;
+        const row = document.getElementById('activity-row-' + cb.value);
+        if (row) row.style.backgroundColor = '';
+    });
+    const master = document.getElementById('selectAllActivities');
+    if (master) {
+        master.checked = false;
+        master.indeterminate = false;
+    }
+    updateSelectedActivityCount();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function openBulkDeleteModal() {
+    const checked = Array.from(document.querySelectorAll('.activity-checkbox:checked'));
+    if (checked.length === 0) return;
+
+    const countText = document.getElementById('bulkDeleteCountText');
+    if (countText) countText.textContent = checked.length;
+
+    const list = document.getElementById('bulkDeleteList');
+    if (list) {
+        list.innerHTML = '';
+        checked.forEach(function(cb) {
+            const li = document.createElement('li');
+            const title = cb.getAttribute('data-title') || ('Kegiatan #' + cb.value);
+            const date = cb.getAttribute('data-date') || '';
+            li.innerHTML = '<strong>' + escapeHtml(title) + '</strong>' + (date ? ' <span style="color: var(--color-text-subtle);">(' + escapeHtml(date) + ')</span>' : '');
+            list.appendChild(li);
+        });
+    }
+
+    const inputsContainer = document.getElementById('bulkDeleteInputs');
+    if (inputsContainer) {
+        inputsContainer.innerHTML = '';
+        checked.forEach(function(cb) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ids[]';
+            input.value = cb.value;
+            inputsContainer.appendChild(input);
+        });
+    }
+
+    const modal = document.getElementById('bulkDeleteModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeBulkDeleteModal() {
+    const modal = document.getElementById('bulkDeleteModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function openBulkStatusModal() {
+    const checked = Array.from(document.querySelectorAll('.activity-checkbox:checked'));
+    if (checked.length === 0) return;
+
+    const countText = document.getElementById('bulkStatusCountText');
+    if (countText) countText.textContent = checked.length;
+
+    const inputsContainer = document.getElementById('bulkStatusInputs');
+    if (inputsContainer) {
+        inputsContainer.innerHTML = '';
+        checked.forEach(function(cb) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'ids[]';
+            input.value = cb.value;
+            inputsContainer.appendChild(input);
+        });
+    }
+
+    const modal = document.getElementById('bulkStatusModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    }
+}
+
+function closeBulkStatusModal() {
+    const modal = document.getElementById('bulkStatusModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('targetClassDropdownMenu');
     const btn = document.getElementById('targetClassDropdownBtn');
@@ -678,6 +969,16 @@ document.addEventListener('click', function(e) {
     if (deleteModal && e.target === deleteModal) {
         closeDeleteConfirmModal();
     }
+
+    const bulkDelModal = document.getElementById('bulkDeleteModal');
+    if (bulkDelModal && e.target === bulkDelModal) {
+        closeBulkDeleteModal();
+    }
+
+    const bulkStatModal = document.getElementById('bulkStatusModal');
+    if (bulkStatModal && e.target === bulkStatModal) {
+        closeBulkStatusModal();
+    }
 });
 
 document.addEventListener('keydown', function(e) {
@@ -685,6 +986,18 @@ document.addEventListener('keydown', function(e) {
         const deleteModal = document.getElementById('deleteConfirmModal');
         if (deleteModal && deleteModal.style.display !== 'none') {
             closeDeleteConfirmModal();
+            return;
+        }
+
+        const bulkDelModal = document.getElementById('bulkDeleteModal');
+        if (bulkDelModal && bulkDelModal.style.display !== 'none') {
+            closeBulkDeleteModal();
+            return;
+        }
+
+        const bulkStatModal = document.getElementById('bulkStatusModal');
+        if (bulkStatModal && bulkStatModal.style.display !== 'none') {
+            closeBulkStatusModal();
             return;
         }
 
@@ -716,6 +1029,7 @@ document.addEventListener('keydown', function(e) {
 
 document.addEventListener('DOMContentLoaded', function() {
     updateTargetClassLabel();
+    updateSelectedActivityCount();
 });
 </script>
 @endsection

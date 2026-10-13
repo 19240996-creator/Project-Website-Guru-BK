@@ -112,6 +112,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::delete('/mitra/{id}', [GuruPartnerController::class, 'destroy'])->name('mitra.destroy');
     Route::get('/mitra-kegiatan', [GuruPartnerController::class, 'activities'])->name('mitra.activities');
     Route::post('/mitra-kegiatan', [GuruPartnerController::class, 'storeActivity'])->name('mitra.activity.store');
+    Route::delete('/mitra-kegiatan/bulk-destroy', [GuruPartnerController::class, 'bulkDestroyActivities'])->name('mitra.activity.bulk_destroy');
+    Route::post('/mitra-kegiatan/bulk-status', [GuruPartnerController::class, 'bulkStatusActivities'])->name('mitra.activity.bulk_status');
     Route::put('/mitra-kegiatan/{id}', [GuruPartnerController::class, 'updateActivity'])->name('mitra.activity.update');
     Route::delete('/mitra-kegiatan/{id}', [GuruPartnerController::class, 'destroyActivity'])->name('mitra.activity.destroy');
 

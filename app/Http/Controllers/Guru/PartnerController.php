@@ -307,4 +307,68 @@ class PartnerController extends Controller
 
         return back()->with('success', "Agenda kegiatan mitra {$code} berhasil dihapus dari sistem.");
     }
+
+    public function bulkDestroyActivities(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:partner_activities,id',
+        ], [
+            'ids.required' => 'Pilih minimal satu agenda kegiatan untuk dihapus.',
+            'ids.min' => 'Pilih minimal satu agenda kegiatan untuk dihapus.',
+        ]);
+
+        $ids = $validated['ids'];
+        $count = count($ids);
+
+        DB::transaction(function () use ($ids, $count) {
+            $activities = PartnerActivity::whereIn('id', $ids)->get();
+            $titles = $activities->pluck('title')->take(3)->implode(', ');
+            if ($count > 3) {
+                $titles .= " dan " . ($count - 3) . " lainnya";
+            }
+
+            PartnerActivity::whereIn('id', $ids)->delete();
+
+            AuditLog::log(
+                'HAPUS',
+                'PartnerActivity',
+                null,
+                "Menghapus secara massal {$count} agenda kegiatan mitra ({$titles})."
+            );
+        });
+
+        return back()->with('success', "Sebanyak {$count} agenda kegiatan mitra berhasil dihapus.");
+    }
+
+    public function bulkStatusActivities(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer|exists:partner_activities,id',
+            'status' => 'required|in:rencana,menunggu_konfirmasi,terkonfirmasi,terlaksana,ditunda,dibatalkan',
+        ], [
+            'ids.required' => 'Pilih minimal satu agenda kegiatan.',
+            'ids.min' => 'Pilih minimal satu agenda kegiatan.',
+            'status.required' => 'Status baru wajib dipilih.',
+        ]);
+
+        $ids = $validated['ids'];
+        $status = $validated['status'];
+        $count = count($ids);
+
+        DB::transaction(function () use ($ids, $status, $count) {
+            PartnerActivity::whereIn('id', $ids)->update(['status' => $status]);
+
+            AuditLog::log(
+                'PERBARUI',
+                'PartnerActivity',
+                null,
+                "Memperbarui status {$count} agenda kegiatan mitra menjadi '" . ucfirst(str_replace('_', ' ', $status)) . "'."
+            );
+        });
+
+        $statusLabel = ucfirst(str_replace('_', ' ', $status));
+        return back()->with('success', "Status {$count} agenda kegiatan mitra berhasil diperbarui menjadi {$statusLabel}.");
+    }
 }

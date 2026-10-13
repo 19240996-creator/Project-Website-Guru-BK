@@ -911,5 +911,91 @@ class SystemVerificationTest extends TestCase
         $responseQuery = $this->actingAs($guru)->get('/guru/audit?q=konseling');
         $responseQuery->assertStatus(200);
     }
+
+    public function test_guru_bk_can_select_multiple_activities_and_bulk_update_or_delete(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+        $this->assertNotNull($guru);
+
+        // 1. Visit kegiatan page and verify checkboxes and bulk modals are rendered
+        $response = $this->actingAs($guru)->get('/guru/mitra-kegiatan');
+        $response->assertStatus(200);
+        $response->assertSee('selectAllActivities', false);
+        $response->assertSee('activity-checkbox', false);
+        $response->assertSee('bulkActionBar', false);
+        $response->assertSee('bulkDeleteModal', false);
+        $response->assertSee('bulkStatusModal', false);
+        $response->assertSee('Hapus Terpilih', false);
+        $response->assertSee('Ubah Status', false);
+
+        // 2. Create test partner and two activities
+        $partner = \App\Models\Partner::first() ?? \App\Models\Partner::create([
+            'code' => 'MIT-TEST-BULK',
+            'type' => 'perusahaan',
+            'name' => 'PT Mitra Pengujian Bulk',
+            'partnership_status' => 'aktif',
+        ]);
+
+        $act1 = \App\Models\PartnerActivity::create([
+            'partner_id' => $partner->id,
+            'code' => 'KGT-BULK-001',
+            'title' => 'Bulk Activity Test A',
+            'activity_type' => 'seminar',
+            'date' => now()->addDays(5)->format('Y-m-d'),
+            'start_time' => '08:00:00',
+            'end_time' => '10:00:00',
+            'room_location' => 'Lab Komputer Test A',
+            'max_participants' => 30,
+            'status' => 'rencana',
+        ]);
+
+        $act2 = \App\Models\PartnerActivity::create([
+            'partner_id' => $partner->id,
+            'code' => 'KGT-BULK-002',
+            'title' => 'Bulk Activity Test B',
+            'activity_type' => 'sosialisasi',
+            'date' => now()->addDays(6)->format('Y-m-d'),
+            'start_time' => '10:30:00',
+            'end_time' => '12:00:00',
+            'room_location' => 'Lab Komputer Test B',
+            'max_participants' => 40,
+            'status' => 'rencana',
+        ]);
+
+        // 3. Test bulk status update to 'terlaksana'
+        $bulkStatusResponse = $this->actingAs($guru)->post('/guru/mitra-kegiatan/bulk-status', [
+            'ids' => [$act1->id, $act2->id],
+            'status' => 'terlaksana',
+        ]);
+        $bulkStatusResponse->assertSessionHas('success');
+
+        $this->assertEquals('terlaksana', $act1->fresh()->status);
+        $this->assertEquals('terlaksana', $act2->fresh()->status);
+
+        // Verify audit log for bulk status update
+        $statusLog = \App\Models\AuditLog::where('entity_type', 'PartnerActivity')
+            ->where('action', 'PERBARUI')
+            ->latest()
+            ->first();
+        $this->assertNotNull($statusLog);
+        $this->assertStringContainsString('Terlaksana', $statusLog->description);
+
+        // 4. Test bulk delete
+        $bulkDeleteResponse = $this->actingAs($guru)->delete('/guru/mitra-kegiatan/bulk-destroy', [
+            'ids' => [$act1->id, $act2->id],
+        ]);
+        $bulkDeleteResponse->assertSessionHas('success');
+
+        $this->assertNull(\App\Models\PartnerActivity::find($act1->id));
+        $this->assertNull(\App\Models\PartnerActivity::find($act2->id));
+
+        // Verify audit log for bulk delete
+        $deleteLog = \App\Models\AuditLog::where('entity_type', 'PartnerActivity')
+            ->where('action', 'HAPUS')
+            ->latest()
+            ->first();
+        $this->assertNotNull($deleteLog);
+        $this->assertStringContainsString('Menghapus secara massal 2 agenda kegiatan', $deleteLog->description);
+    }
 }
 
