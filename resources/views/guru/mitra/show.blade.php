@@ -20,11 +20,11 @@
         <a href="{{ route('guru.mitra.index') }}" class="btn btn-secondary">
             Kembali ke Daftar
         </a>
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('editCurrentPartnerModal').style.display = 'block'; document.body.style.overflow = 'hidden';">
+        <button type="button" class="btn btn-secondary" onclick="openEditCurrentPartnerModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             <span>Ubah Profil</span>
         </button>
-        <button type="button" class="btn btn-sm" style="background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 12px;" onclick="document.getElementById('deleteCurrentPartnerModal').style.display = 'flex'; document.body.style.overflow = 'hidden';">
+        <button type="button" class="btn btn-sm" style="background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 12px;" onclick="openDeleteCurrentPartnerModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             <span>Hapus</span>
         </button>
@@ -537,6 +537,9 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
 <!-- Modal Ubah Data Mitra (Halaman Profil) -->
 <div id="editCurrentPartnerModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 90; backdrop-filter: blur(2px); overflow-y: auto;">
     <div style="max-width: 680px; margin: 40px auto; background: var(--color-surface); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border);">
@@ -693,11 +696,27 @@
 </div>
 
 <script>
+function openEditCurrentPartnerModal() {
+    const modal = document.getElementById('editCurrentPartnerModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
 function closeEditCurrentPartnerModal() {
     const modal = document.getElementById('editCurrentPartnerModal');
     if (modal) {
         modal.style.display = 'none';
         document.body.style.overflow = '';
+    }
+}
+
+function openDeleteCurrentPartnerModal() {
+    const modal = document.getElementById('deleteCurrentPartnerModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
 }
 
