@@ -381,6 +381,58 @@ class SystemVerificationTest extends TestCase
         $this->assertNotNull($students->first()->fresh()->alumniTracking);
     }
 
+    public function test_guru_bk_can_delete_students_by_class(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+
+        // 1. Buat kelas percobaan dan siswa percobaan
+        $testClass = StudentClass::create([
+            'grade' => 'X',
+            'major' => 'Uji Coba Upload',
+            'name' => 'X Uji Coba Upload',
+        ]);
+
+        $testUser = User::create([
+            'name' => 'Siswa Uji Coba Hapus',
+            'username' => '99990001',
+            'email' => '99990001@siswa.sch.id',
+            'password' => bcrypt('password123'),
+            'role' => 'siswa',
+        ]);
+
+        $testStudent = Student::create([
+            'user_id' => $testUser->id,
+            'student_class_id' => $testClass->id,
+            'nis' => '99990001',
+            'nisn' => '99990001',
+            'name' => 'Siswa Uji Coba Hapus',
+            'gender' => 'L',
+            'status' => 'aktif',
+            'attention_level' => 'normal',
+        ]);
+
+        // 2. Kunjungi index siswa dan pastikan modal & tombol hapus per kelas muncul
+        $indexResponse = $this->actingAs($guru)->get('/guru/siswa');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Hapus Siswa per Kelas', false);
+        $indexResponse->assertSee('deleteByClassModal', false);
+
+        // 3. Kunjungi rute shortcut mass promote view
+        $massViewResponse = $this->actingAs($guru)->get('/guru/siswa/kenaikan-kelas-massal');
+        $massViewResponse->assertStatus(302); // redirect to edit?tab=mass
+
+        // 4. Lakukan penghapusan data siswa berdasarkan kelas sekaligus hapus kelasnya
+        $deleteResponse = $this->actingAs($guru)->delete('/guru/siswa/hapus-per-kelas', [
+            'student_class_id' => $testClass->id,
+            'delete_class_too' => '1',
+        ]);
+
+        $deleteResponse->assertSessionHas('success');
+        $this->assertDatabaseMissing('students', ['id' => $testStudent->id]);
+        $this->assertDatabaseMissing('users', ['id' => $testUser->id]);
+        $this->assertDatabaseMissing('student_classes', ['id' => $testClass->id]);
+    }
+
     public function test_guru_bk_can_customize_assessment_questions_and_point_values(): void
     {
         $guru = User::where('role', 'guru_bk')->first();

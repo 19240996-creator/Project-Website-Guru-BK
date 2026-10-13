@@ -12,10 +12,14 @@
         </p>
     </div>
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <a href="{{ route('guru.siswa.edit', $students->first() ? $students->first()->id : 1) }}?tab=mass" class="btn btn-secondary">
+        <a href="{{ route('guru.siswa.mass_promote_view') }}" class="btn btn-secondary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             <span>Kenaikan Kelas Massal</span>
         </a>
+        <button type="button" class="btn btn-secondary" onclick="openDeleteByClassModal()" style="border-color: #fecaca; color: #b91c1c;" title="Hapus seluruh data siswa di kelas tertentu (antisipasi salah upload data)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            <span>Hapus Siswa per Kelas</span>
+        </button>
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('importSection').scrollIntoView({ behavior: 'smooth' });">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>Impor Data Siswa</span>
@@ -261,6 +265,9 @@
             <span>
                 <strong style="color: #ffffff; font-weight: 700;">Petunjuk Aturan Impor Data:</strong>
                 Sesuai aturan sistem, pilih kelas terlebih dahulu sebelum mengimpor file. Sistem akan otomatis membuatkan akun login siswa dengan username <strong style="color: #ffffff;">NISN</strong> dan kata sandi menggunakan <strong style="color: #ffffff;">No. HP</strong> siswa yang diunggah.
+                <span style="display: block; margin-top: 6px; color: #fecaca; font-size: 12px;">
+                    Terjadi kesalahan saat upload data? Anda dapat mereset data siswa pada kelas tersebut melalui tombol <a href="javascript:void(0)" onclick="openDeleteByClassModal()" style="color: #ffffff; text-decoration: underline; font-weight: 700;">Hapus Siswa per Kelas</a>.
+                </span>
             </span>
         </p>
     </div>
@@ -828,6 +835,123 @@
     </div>
 </div>
 
+<!-- Modal Konfirmasi Hapus Data Siswa Berdasarkan Kelas (Antisipasi Salah Upload) -->
+<div id="deleteByClassModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteByClassModalTitle" onclick="handleDeleteByClassBackdropClick(event)">
+    <div class="modal-dialog" style="max-width: 520px; overflow: visible;">
+        <div class="modal-body" style="overflow: visible;">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteByClassModalTitle" class="modal-title">Hapus Data Siswa Berdasarkan Kelas</h3>
+            <p class="modal-desc">
+                Fitur ini disediakan khusus untuk membersihkan data siswa pada satu kelas sekaligus (misalnya untuk mengantisipasi salah upload file Excel/CSV atau dobel data).
+            </p>
+
+            <form id="deleteByClassForm" method="POST" action="{{ route('guru.siswa.destroy_by_class') }}" style="margin-top: 16px;">
+                @csrf
+                @method('DELETE')
+
+                <div class="form-group" style="margin-bottom: 14px; text-align: left; position: relative;">
+                    <label style="font-weight: 700; font-size: 13px; color: var(--color-text-main); display: block; margin-bottom: 6px;">
+                        Pilih Kelas Sasaran *
+                    </label>
+
+                    <!-- Hidden Select untuk validasi & kirim form -->
+                    <select name="student_class_id" id="deleteClassSelect" style="display: none;" required>
+                        <option value="">-- Pilih Kelas yang Ingin Dihapus Siswanya --</option>
+                        @foreach($classes as $c)
+                            <option value="{{ $c->id }}" data-name="{{ $c->name }}" data-count="{{ $c->students_count ?? 0 }}">
+                                {{ $c->name }} ({{ $c->students_count ?? 0 }} Siswa)
+                            </option>
+                        @endforeach
+                    </select>
+
+                    <!-- Trigger Dropdown Kustom -->
+                    <div id="deleteClassDropdownTrigger" class="form-select custom-dropdown-trigger" tabindex="0" onclick="toggleDeleteClassDropdown(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDeleteClassDropdown(event);}" style="width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 13px; text-align: left; background-color: var(--color-surface); color: var(--color-text-main); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                        <span id="deleteClassSelectedText" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text-subtle);">-- Pilih Kelas yang Ingin Dihapus Siswanya --</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="deleteClassChevron" style="transition: transform 0.2s ease; flex-shrink: 0; margin-left: 6px;"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+
+                    <!-- Dropdown Menu dengan Sticky Search (Selalu ke bawah) -->
+                    <div id="deleteClassDropdownMenu" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; width: 100%; background: var(--color-surface, #ffffff); border: 1px solid var(--color-border); border-radius: var(--radius-sm); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1); z-index: 120; max-height: 240px; overflow-y: auto;">
+                        <!-- Sticky Search Box -->
+                        <div style="padding: 8px 10px; border-bottom: 1px solid var(--color-border); background: var(--color-surface); position: sticky; top: 0; z-index: 10;">
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <span style="position: absolute; left: 10px; color: var(--color-text-subtle); display: flex; align-items: center; pointer-events: none;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                </span>
+                                <input type="text" id="deleteClassSearchInput" placeholder="Ketik untuk mencari nama kelas..." oninput="filterDeleteClassSearch()" onkeydown="handleDeleteClassSearchKeyDown(event)" onclick="event.stopPropagation()" style="width: 100%; padding: 6px 28px 6px 30px; font-size: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); outline: none; background: var(--color-bg, #f8fafc); color: var(--color-text-main); font-family: inherit;">
+                                <button type="button" id="btnClearDeleteClassSearch" onclick="clearDeleteClassSearch(event)" style="position: absolute; right: 6px; display: none; background: none; border: none; padding: 2px 4px; color: var(--color-text-subtle); cursor: pointer; border-radius: 4px;" title="Reset pencarian">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="deleteClassOptionList">
+                            <div class="delete-class-option-row" data-search-text="" onclick="selectDeleteClassOption('', '-- Pilih Kelas yang Ingin Dihapus Siswanya --')" style="padding: 8px 12px; cursor: pointer; font-size: 12.5px; color: var(--color-text-subtle); border-bottom: 1px solid var(--color-border); transition: background 0.15s ease;" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background='transparent'">
+                                <em>-- Pilih Kelas yang Ingin Dihapus Siswanya --</em>
+                            </div>
+
+                            @foreach($classes as $c)
+                                <div class="delete-class-option-row" data-search-text="{{ strtolower($c->name . ' kelas ' . $c->grade . ' ' . $c->major) }}" onclick="selectDeleteClassOption('{{ $c->id }}', '{{ addslashes($c->name) }} ({{ $c->students_count ?? 0 }} Siswa)')" style="padding: 8px 14px; cursor: pointer; font-size: 12.5px; color: var(--color-text-main); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; transition: background 0.15s ease;" onmouseover="this.style.background='var(--color-surface-hover)'" onmouseout="this.style.background='transparent'">
+                                    <span style="font-weight: 500;">{{ $c->name }}</span>
+                                    <span style="font-size: 11px; font-weight: 600; color: {{ ($c->students_count ?? 0) > 0 ? 'var(--color-primary)' : 'var(--color-text-subtle)' }}; background: {{ ($c->students_count ?? 0) > 0 ? '#eff6ff' : 'var(--color-surface-hover)' }}; padding: 2px 7px; border-radius: 9999px;">
+                                        {{ $c->students_count ?? 0 }} Siswa
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div id="deleteClassNotFoundMsg" style="display: none; padding: 14px 12px; text-align: center; font-size: 12px; color: var(--color-text-subtle);">
+                            Tidak ada kelas yang cocok dengan pencarian.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Summary Info Box -->
+                <div id="deleteClassInfoBox" style="display: none; background-color: #fef2f2; border: 1px solid #fee2e2; border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 14px; font-size: 12.5px; color: #991b1b; text-align: left; line-height: 1.45;">
+                    <div style="font-weight: 700; margin-bottom: 3px;">
+                        Rangkuman Tindakan:
+                    </div>
+                    <div>
+                        Sebanyak <strong id="deleteClassCountText">0</strong> siswa pada kelas <strong id="deleteClassNameText">-</strong> beserta seluruh akun login dan riwayat terkait akan dihapus secara permanen.
+                    </div>
+                </div>
+
+                <div style="text-align: left; margin-bottom: 14px; padding: 10px 12px; background: var(--color-surface-hover); border: 1px solid var(--color-border); border-radius: var(--radius-sm);">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: var(--color-text-main); cursor: pointer; user-select: none;">
+                        <input type="checkbox" name="delete_class_too" value="1" style="margin-top: 2px; cursor: pointer;">
+                        <span>Sekaligus hapus rombel / nama kelas ini dari daftar sistem (opsional jika kelas baru dibuat saat salah impor).</span>
+                    </label>
+                </div>
+
+                <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; text-align: left; line-height: 1.45;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>Perhatian: Seluruh akun user login dan data rekam jejak siswa pada kelas ini akan dihapus secara permanen dan tidak dapat dipulihkan.</span>
+                </div>
+
+                <div class="modal-footer" style="padding-top: 18px; padding-bottom: 0; padding-left: 0; padding-right: 0;">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeleteByClassModal()">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnConfirmDeleteByClass" class="btn btn-danger" disabled>
+                        Ya, Hapus Data Siswa di Kelas Ini
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
     function openDeleteStudentModal(studentId, studentName, studentNisn) {
         var modal = document.getElementById('deleteStudentModal');
@@ -953,6 +1077,155 @@
         }
     }
 
+    function openDeleteByClassModal() {
+        var modal = document.getElementById('deleteByClassModal');
+        var select = document.getElementById('deleteClassSelect');
+        var labelSpan = document.getElementById('deleteClassSelectedText');
+        var searchInput = document.getElementById('deleteClassSearchInput');
+        if (modal) {
+            if (select) {
+                select.value = '';
+            }
+            if (labelSpan) {
+                labelSpan.textContent = '-- Pilih Kelas yang Ingin Dihapus Siswanya --';
+                labelSpan.style.color = 'var(--color-text-subtle)';
+            }
+            if (searchInput) {
+                searchInput.value = '';
+                filterDeleteClassSearch();
+            }
+            closeDeleteClassDropdown();
+            updateDeleteClassSummary();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeDeleteByClassModal() {
+        var modal = document.getElementById('deleteByClassModal');
+        if (modal) {
+            closeDeleteClassDropdown();
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleDeleteByClassBackdropClick(event) {
+        if (event.target === document.getElementById('deleteByClassModal')) {
+            closeDeleteByClassModal();
+        }
+    }
+
+    function toggleDeleteClassDropdown(e) {
+        if (e) e.stopPropagation();
+        var menu = document.getElementById('deleteClassDropdownMenu');
+        var chevron = document.getElementById('deleteClassChevron');
+        if (!menu) return;
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+            var input = document.getElementById('deleteClassSearchInput');
+            if (input) {
+                setTimeout(function() { input.focus({ preventScroll: true }); }, 50);
+            }
+        } else {
+            closeDeleteClassDropdown();
+        }
+    }
+
+    function closeDeleteClassDropdown() {
+        var menu = document.getElementById('deleteClassDropdownMenu');
+        var chevron = document.getElementById('deleteClassChevron');
+        if (menu) menu.style.display = 'none';
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+    }
+
+    function selectDeleteClassOption(value, text) {
+        var select = document.getElementById('deleteClassSelect');
+        var labelSpan = document.getElementById('deleteClassSelectedText');
+        if (select) {
+            select.value = value;
+        }
+        if (labelSpan) {
+            labelSpan.textContent = text;
+            labelSpan.style.color = value ? 'var(--color-text-main)' : 'var(--color-text-subtle)';
+        }
+        closeDeleteClassDropdown();
+        updateDeleteClassSummary();
+    }
+
+    function filterDeleteClassSearch() {
+        var input = document.getElementById('deleteClassSearchInput');
+        var clearBtn = document.getElementById('btnClearDeleteClassSearch');
+        var notFound = document.getElementById('deleteClassNotFoundMsg');
+        if (!input) return;
+
+        var query = input.value.trim().toLowerCase();
+        if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
+
+        var rows = document.querySelectorAll('#deleteClassOptionList .delete-class-option-row');
+        var anyMatch = false;
+
+        rows.forEach(function(row) {
+            var text = (row.getAttribute('data-search-text') || row.textContent).toLowerCase();
+            if (!query || text.indexOf(query) !== -1) {
+                row.style.display = 'flex';
+                anyMatch = true;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        if (notFound) {
+            notFound.style.display = anyMatch ? 'none' : 'block';
+        }
+    }
+
+    function clearDeleteClassSearch(e) {
+        if (e) e.stopPropagation();
+        var input = document.getElementById('deleteClassSearchInput');
+        if (input) {
+            input.value = '';
+            filterDeleteClassSearch();
+            input.focus();
+        }
+    }
+
+    function handleDeleteClassSearchKeyDown(e) {
+        if (e.key === 'Escape') {
+            closeDeleteClassDropdown();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            var firstVisible = document.querySelector('#deleteClassOptionList .delete-class-option-row:not([style*="display: none"])');
+            if (firstVisible) {
+                firstVisible.click();
+            }
+        }
+    }
+
+    function updateDeleteClassSummary() {
+        var select = document.getElementById('deleteClassSelect');
+        var infoBox = document.getElementById('deleteClassInfoBox');
+        var countSpan = document.getElementById('deleteClassCountText');
+        var nameSpan = document.getElementById('deleteClassNameText');
+        var submitBtn = document.getElementById('btnConfirmDeleteByClass');
+
+        if (!select || !select.value) {
+            if (infoBox) infoBox.style.display = 'none';
+            if (submitBtn) submitBtn.disabled = true;
+            return;
+        }
+
+        var selectedOpt = select.querySelector('option[value="' + select.value + '"]');
+        var count = selectedOpt ? (selectedOpt.getAttribute('data-count') || '0') : '0';
+        var name = selectedOpt ? (selectedOpt.getAttribute('data-name') || select.value) : select.value;
+
+        if (countSpan) countSpan.textContent = count;
+        if (nameSpan) nameSpan.textContent = name;
+        if (infoBox) infoBox.style.display = 'block';
+        if (submitBtn) submitBtn.disabled = false;
+    }
+
     document.addEventListener('click', function(e) {
         var trigger = document.getElementById('filterClassTrigger');
         var menu = document.getElementById('filterClassMenu');
@@ -961,11 +1234,21 @@
                 closeFilterClassDropdown();
             }
         }
+
+        var delTrigger = document.getElementById('deleteClassDropdownTrigger');
+        var delMenu = document.getElementById('deleteClassDropdownMenu');
+        if (delMenu && delMenu.style.display === 'block') {
+            if (!delMenu.contains(e.target) && !delTrigger.contains(e.target)) {
+                closeDeleteClassDropdown();
+            }
+        }
     });
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeDeleteStudentModal();
+            closeDeleteByClassModal();
+            closeDeleteClassDropdown();
             closeDeleteMajorModal();
             closeMajorDropdown();
             closeFilterClassDropdown();

@@ -72,7 +72,9 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::post('/siswa/hapus-jurusan', [GuruStudentController::class, 'destroyMajor'])->name('siswa.destroy_major');
     Route::post('/siswa/import', [GuruStudentController::class, 'import'])->name('siswa.import');
     Route::get('/siswa/template-impor', [GuruStudentController::class, 'downloadTemplate'])->name('siswa.template');
+    Route::get('/siswa/kenaikan-kelas-massal', [GuruStudentController::class, 'massPromoteView'])->name('siswa.mass_promote_view');
     Route::post('/siswa/kenaikan-kelas-massal', [GuruStudentController::class, 'massPromote'])->name('siswa.mass_promote');
+    Route::delete('/siswa/hapus-per-kelas', [GuruStudentController::class, 'destroyByClass'])->name('siswa.destroy_by_class');
     Route::get('/siswa/{id}', [GuruStudentController::class, 'show'])->name('siswa.show');
     Route::get('/siswa/{id}/edit', [GuruStudentController::class, 'edit'])->name('siswa.edit');
     Route::put('/siswa/{id}', [GuruStudentController::class, 'update'])->name('siswa.update');

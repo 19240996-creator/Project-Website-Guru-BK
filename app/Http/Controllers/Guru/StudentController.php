@@ -61,7 +61,7 @@ class StudentController extends Controller
         }
 
         $students = $query->paginate($perPage)->withQueryString();
-        $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+        $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
         $majors = StudentClass::whereNotNull('major')
             ->where('major', '!=', '')
             ->distinct()
@@ -162,9 +162,32 @@ class StudentController extends Controller
     public function edit($id)
     {
         $student = Student::findOrFail($id);
-        $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+        $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
+        $majors = StudentClass::whereNotNull('major')
+            ->where('major', '!=', '')
+            ->distinct()
+            ->orderBy('major')
+            ->pluck('major');
         $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
-        return view('guru.siswa.edit', compact('student', 'classes', 'allStudents'));
+        return view('guru.siswa.edit', compact('student', 'classes', 'majors', 'allStudents'));
+    }
+
+    public function massPromoteView(Request $request)
+    {
+        $firstStudent = Student::where('status', 'aktif')->first() ?: Student::first();
+        if ($firstStudent) {
+            return redirect()->route('guru.siswa.edit', ['id' => $firstStudent->id, 'tab' => 'mass']);
+        }
+
+        $student = new Student();
+        $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
+        $majors = StudentClass::whereNotNull('major')
+            ->where('major', '!=', '')
+            ->distinct()
+            ->orderBy('major')
+            ->pluck('major');
+        $allStudents = collect();
+        return view('guru.siswa.edit', compact('student', 'classes', 'majors', 'allStudents'));
     }
 
     public function massPromote(Request $request)
@@ -781,5 +804,53 @@ class StudentController extends Controller
         AuditLog::log('HAPUS', 'Student', $id, "Menghapus data siswa {$studentName} (NISN: {$studentNisn}) beserta seluruh data terkait.");
 
         return redirect()->route('guru.siswa.index')->with('success', "Data siswa {$studentName} berhasil dihapus dari sistem.");
+    }
+
+    public function destroyByClass(Request $request)
+    {
+        $request->validate([
+            'student_class_id' => 'required|exists:student_classes,id',
+            'delete_class_too' => 'nullable|boolean',
+        ], [
+            'student_class_id.required' => 'Pilih kelas yang data siswanya ingin dihapus.',
+            'student_class_id.exists' => 'Kelas yang dipilih tidak ditemukan dalam sistem.',
+        ]);
+
+        $class = StudentClass::findOrFail($request->student_class_id);
+        $className = $class->name;
+
+        $students = Student::with('user')->where('student_class_id', $class->id)->get();
+        $count = $students->count();
+
+        if ($count === 0 && !$request->boolean('delete_class_too')) {
+            return redirect()->back()->with('warning', "Tidak ada siswa yang terdaftar di kelas {$className}.");
+        }
+
+        DB::transaction(function () use ($students, $class, $className, $count, $request) {
+            foreach ($students as $student) {
+                if ($student->avatar) {
+                    \App\Services\AvatarService::deleteOldAvatar($student->avatar);
+                }
+
+                if ($student->user) {
+                    $student->user->delete();
+                }
+
+                $student->delete();
+            }
+
+            if ($request->boolean('delete_class_too')) {
+                $class->delete();
+                AuditLog::log('HAPUS_MASSAL', 'Student', null, "Menghapus massal {$count} siswa dan rombel kelas: {$className} (antisipasi salah impor/upload).");
+            } else {
+                AuditLog::log('HAPUS_MASSAL', 'Student', null, "Menghapus massal {$count} data siswa pada kelas {$className} (antisipasi salah impor/upload).");
+            }
+        });
+
+        $classMsg = $request->boolean('delete_class_too') ? " dan rombel kelas {$className} telah dihapus" : "";
+        return redirect()->route('guru.siswa.index')->with(
+            'success',
+            "Berhasil menghapus {$count} data siswa dari kelas {$className}{$classMsg}. Seluruh akun login dan berkas terkait telah dibersihkan."
+        );
     }
 }
