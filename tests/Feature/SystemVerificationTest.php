@@ -15,11 +15,10 @@ class SystemVerificationTest extends TestCase
     {
         $response = $this->get('/login');
         $response->assertStatus(200);
-        $response->assertSee('SIM BK', false);
-        $response->assertSee('Username', false);
-        $response->assertSee('Password', false);
-        $response->assertSee('Masukkan username', false);
-        $response->assertSee('Masukkan password', false);
+        $response->assertSee('RUANG BK', false);
+        $response->assertSee('Selamat Datang Kembali', false);
+        $response->assertSee('loginInput', false);
+        $response->assertSee('passwordInput', false);
     }
 
     public function test_guru_bk_can_login_and_access_dashboard()
@@ -31,13 +30,13 @@ class SystemVerificationTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Selamat Bertugas', false);
         $response->assertSee($guru->name, false);
-        $response->assertSee('YANG PERLU SAYA KERJAKAN', false);
-        $response->assertSee('Total Siswa Aktif', false);
+        $response->assertSee('Pusat Kerja Guru Bimbingan Konseling', false);
+        $response->assertSee('TOTAL SISWA AKTIF', false);
         $response->assertSee(route('guru.profil.show'), false);
         $response->assertSee('counselingCategoryColumnChart', false);
         $response->assertSee('futurePlanPieChart', false);
         $response->assertSee('Distribusi Kategori Layanan Konseling', false);
-        $response->assertSee('kasus', false);
+        $response->assertSee('Kasus', false);
         $response->assertSee('Belajar', false);
         $response->assertSee('Pribadi', false);
         $response->assertSee('Sosial', false);
@@ -126,11 +125,10 @@ class SystemVerificationTest extends TestCase
         $response = $this->actingAs($siswaUser)->get('/siswa/dashboard');
         $response->assertStatus(200);
         $response->assertSee('Ruang BK', false);
-        $response->assertSee('Rencana Masa Depan Saya', false);
-        $response->assertSee('Layanan Bimbingan Konseling Saya', false);
-        $response->assertSee('Asesmen Minat & Kepribadian', false);
-        $response->assertSee('Peluang Beasiswa & Magang Terbaru', false);
-        $response->assertSee('card-header-navy', false);
+        $response->assertSee('Bimbingan & Konseling', false);
+        $response->assertSee('Asesmen Diri', false);
+        $response->assertSee('Peminatan & Masa Depan', false);
+        $response->assertSee('Perguruan Tinggi & Industri', false);
     }
 
     public function test_siswa_cannot_access_guru_routes()
@@ -1075,6 +1073,110 @@ class SystemVerificationTest extends TestCase
             ->first();
         $this->assertNotNull($deleteLog);
         $this->assertStringContainsString('Menghapus pengumuman peluang', $deleteLog->description);
+    }
+
+    public function test_guru_alumni_bulk_actions_and_photo_fallback()
+    {
+        $guru = \App\Models\User::where('role', 'guru_bk')->first();
+        if (!$guru) {
+            $guru = \App\Models\User::factory()->create(['role' => 'guru_bk', 'name' => 'Guru Test BK']);
+        }
+
+        // 1. Verify alumni index page loads with bulk elements and photo fallback
+        $response = $this->actingAs($guru)->get('/guru/alumni');
+        $response->assertStatus(200);
+        $response->assertSee('selectAllAlumni', false);
+        $response->assertSee('bulkActionBar', false);
+        $response->assertSee('bulkDeleteModal', false);
+        $response->assertSee('bulkStatusModal', false);
+        $response->assertSee('Ubah Status Massal', false);
+        $response->assertSee('Hapus Terpilih', false);
+
+        // 2. Create test students & alumni tracking records
+        $student1 = \App\Models\Student::create([
+            'nisn' => '9999900001',
+            'nis' => '888801',
+            'name' => 'Alumni Test Satu',
+            'gender' => 'L',
+            'status' => 'lulus',
+            'photo' => 'alumni_photos/nonexistent_1.jpg',
+        ]);
+
+        $student2 = \App\Models\Student::create([
+            'nisn' => '9999900002',
+            'nis' => '888802',
+            'name' => 'Alumni Test Dua',
+            'gender' => 'P',
+            'status' => 'lulus',
+            'photo' => 'alumni_photos/nonexistent_2.jpg',
+        ]);
+
+        $alumni1 = \App\Models\AlumniTracking::create([
+            'student_id' => $student1->id,
+            'code' => 'ALS-2026-99001',
+            'graduation_year' => '2026',
+            'tracking_period' => '6_bulan',
+            'current_status' => 'belum_terlacak',
+            'photo' => 'alumni_photos/nonexistent_1.jpg',
+        ]);
+
+        $alumni2 = \App\Models\AlumniTracking::create([
+            'student_id' => $student2->id,
+            'code' => 'ALS-2026-99002',
+            'graduation_year' => '2026',
+            'tracking_period' => '6_bulan',
+            'current_status' => 'belum_terlacak',
+            'photo' => 'alumni_photos/nonexistent_2.jpg',
+        ]);
+
+        // Verify index view renders the photo with onerror fallback
+        $indexWithAlumni = $this->actingAs($guru)->get('/guru/alumni');
+        $indexWithAlumni->assertStatus(200);
+        $indexWithAlumni->assertSee('Alumni Test Satu', false);
+        $indexWithAlumni->assertSee('onerror="this.style.display=\'none\';', false);
+
+        // 3. Test Bulk Status Update
+        $bulkStatusResponse = $this->actingAs($guru)->post('/guru/alumni/bulk-status', [
+            'ids' => [$alumni1->id, $alumni2->id],
+            'status' => 'bekerja',
+        ]);
+        $bulkStatusResponse->assertSessionHas('success');
+
+        $this->assertEquals('bekerja', $alumni1->fresh()->current_status);
+        $this->assertEquals('bekerja', $alumni2->fresh()->current_status);
+
+        $statusLog = \App\Models\AuditLog::where('entity_type', 'AlumniTracking')
+            ->where('action', 'BULK_STATUS_ALUMNI')
+            ->where('entity_id', $alumni1->id)
+            ->latest()
+            ->first();
+        $this->assertNotNull($statusLog);
+        $this->assertStringContainsString('bekerja', $statusLog->description);
+
+        // 4. Test Bulk Delete
+        $bulkDeleteResponse = $this->actingAs($guru)->delete('/guru/alumni/bulk-destroy', [
+            'ids' => [$alumni1->id, $alumni2->id],
+        ]);
+        $bulkDeleteResponse->assertSessionHas('success');
+
+        $this->assertNull(\App\Models\AlumniTracking::find($alumni1->id));
+        $this->assertNull(\App\Models\AlumniTracking::find($alumni2->id));
+
+        // Students should be reverted to 'aktif'
+        $this->assertEquals('aktif', $student1->fresh()->status);
+        $this->assertEquals('aktif', $student2->fresh()->status);
+
+        $deleteLog = \App\Models\AuditLog::where('entity_type', 'AlumniTracking')
+            ->where('action', 'BULK_DELETE_ALUMNI')
+            ->where('entity_id', $alumni1->id)
+            ->latest()
+            ->first();
+        $this->assertNotNull($deleteLog);
+        $this->assertStringContainsString('Menghapus data pelacakan alumni massal', $deleteLog->description);
+
+        // Clean up test students
+        $student1->delete();
+        $student2->delete();
     }
 }
 

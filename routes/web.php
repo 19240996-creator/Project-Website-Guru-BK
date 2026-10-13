@@ -127,6 +127,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
 
     // 23 - 25. Kelulusan & Alumni (Tracer Study)
     Route::get('/alumni', [GuruAlumniController::class, 'index'])->name('alumni.index');
+    Route::delete('/alumni/bulk-destroy', [GuruAlumniController::class, 'bulkDestroy'])->name('alumni.bulk_destroy');
+    Route::post('/alumni/bulk-status', [GuruAlumniController::class, 'bulkStatus'])->name('alumni.bulk_status');
     Route::put('/alumni/{id}', [GuruAlumniController::class, 'update'])->name('alumni.update');
     Route::delete('/alumni/{id}', [GuruAlumniController::class, 'destroy'])->name('alumni.destroy');
     Route::post('/siswa/{studentId}/graduate', [GuruAlumniController::class, 'graduateStudent'])->name('alumni.graduate');
@@ -203,4 +205,22 @@ Route::get('/storage/avatars/{filename}', function ($filename) {
 
     abort(404);
 })->where('filename', '[A-Za-z0-9_\-\.]+')->name('storage.avatar');
+
+Route::get('/storage/alumni_photos/{filename}', function ($filename) {
+    $path = 'alumni_photos/' . $filename;
+    if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        return \Illuminate\Support\Facades\Storage::disk('public')->response($path, null, [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    $publicPath = public_path('storage/alumni_photos/' . $filename);
+    if (file_exists($publicPath)) {
+        return response()->file($publicPath, [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
+
+    abort(404);
+})->where('filename', '[A-Za-z0-9_\-\.]+')->name('storage.alumni_photo');
 

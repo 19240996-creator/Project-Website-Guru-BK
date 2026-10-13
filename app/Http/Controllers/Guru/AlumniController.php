@@ -9,6 +9,7 @@ use App\Models\AlumniTracking;
 use App\Models\AuditLog;
 
 use App\Models\StudentClass;
+use Illuminate\Support\Facades\DB;
 
 class AlumniController extends Controller
 {
@@ -204,5 +205,62 @@ class AlumniController extends Controller
         AuditLog::log('DELETE_ALUMNI', 'AlumniTracking', $id, "Menghapus data pelacakan alumni {$studentName} ({$code}).");
 
         return back()->with('success', "Data pelacakan alumni {$studentName} berhasil dihapus.");
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer',
+        ]);
+
+        $ids = $validated['ids'];
+
+        DB::transaction(function () use ($ids) {
+            $trackings = AlumniTracking::with('student')->whereIn('id', $ids)->get();
+
+            foreach ($trackings as $tracking) {
+                $studentName = $tracking->student ? $tracking->student->name : 'Alumni';
+                $code = $tracking->code;
+
+                if ($tracking->student && $tracking->student->status === 'lulus') {
+                    $tracking->student->update(['status' => 'aktif']);
+                }
+
+                $tracking->delete();
+
+                AuditLog::log('BULK_DELETE_ALUMNI', 'AlumniTracking', $tracking->id, "Menghapus data pelacakan alumni massal {$studentName} ({$code}).");
+            }
+        });
+
+        $count = count($ids);
+        return back()->with('success', "Berhasil menghapus {$count} data pelacakan alumni yang dipilih.");
+    }
+
+    public function bulkStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'required|integer',
+            'status' => 'required|in:bekerja,kuliah,wirausaha,mencari_kerja,belum_bekerja,belum_terlacak',
+        ]);
+
+        $ids = $validated['ids'];
+        $newStatus = $validated['status'];
+
+        DB::transaction(function () use ($ids, $newStatus) {
+            $trackings = AlumniTracking::with('student')->whereIn('id', $ids)->get();
+
+            foreach ($trackings as $tracking) {
+                $tracking->update(['current_status' => $newStatus]);
+
+                $studentName = $tracking->student ? $tracking->student->name : 'Alumni';
+                AuditLog::log('BULK_STATUS_ALUMNI', 'AlumniTracking', $tracking->id, "Memperbarui status pelacakan alumni massal {$studentName} ({$tracking->code}) menjadi {$newStatus}.");
+            }
+        });
+
+        $count = count($ids);
+        $statusLabel = ucfirst(str_replace('_', ' ', $newStatus));
+        return back()->with('success', "Berhasil memperbarui status {$count} alumni menjadi '{$statusLabel}'.");
     }
 }
