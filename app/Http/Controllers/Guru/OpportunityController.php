@@ -8,6 +8,7 @@ use App\Models\Opportunity;
 use App\Models\OpportunityRegistration;
 use App\Models\Partner;
 use App\Models\AuditLog;
+use Illuminate\Support\Facades\DB;
 
 class OpportunityController extends Controller
 {
@@ -48,7 +49,8 @@ class OpportunityController extends Controller
     public function show($id)
     {
         $opportunity = Opportunity::with(['partner', 'registrations.student.studentClass'])->findOrFail($id);
-        return view('guru.peluang.show', compact('opportunity'));
+        $partners = Partner::orderBy('name')->get();
+        return view('guru.peluang.show', compact('opportunity', 'partners'));
     }
 
     public function store(Request $request)
@@ -73,6 +75,51 @@ class OpportunityController extends Controller
         AuditLog::log('SIMPAN', 'Opportunity', $op->id, "Membuat pengumuman peluang baru {$op->title} ({$op->code}).");
 
         return redirect()->route('guru.peluang.show', $op->id)->with('success', 'Peluang berhasil dibuat dan dipublikasikan.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $opportunity = Opportunity::findOrFail($id);
+
+        $validated = $request->validate([
+            'partner_id' => 'nullable|exists:partners,id',
+            'title' => 'required|string|max:255',
+            'type' => 'required|in:beasiswa,magang,lowongan_kerja,pelatihan,sertifikasi,kompetisi,campus_visit',
+            'description' => 'required|string',
+            'requirements' => 'nullable|string',
+            'target_audience' => 'nullable|string|max:255',
+            'deadline' => 'nullable|date',
+            'quota' => 'nullable|integer|min:1',
+            'registration_link' => 'nullable|url',
+            'status' => 'required|in:draf,dipublikasikan,ditutup,selesai',
+        ]);
+
+        $opportunity->update($validated);
+        AuditLog::log('PERBARUI', 'Opportunity', $opportunity->id, "Memperbarui pengumuman peluang '{$opportunity->title}' ({$opportunity->code}).");
+
+        return back()->with('success', "Data peluang {$opportunity->title} ({$opportunity->code}) berhasil diperbarui.");
+    }
+
+    public function destroy($id)
+    {
+        $opportunity = Opportunity::findOrFail($id);
+        $title = $opportunity->title;
+        $code = $opportunity->code;
+        $opId = $opportunity->id;
+        $regCount = $opportunity->registrations()->count();
+
+        DB::transaction(function () use ($opportunity, $title, $code, $opId, $regCount) {
+            $opportunity->registrations()->delete();
+            $opportunity->delete();
+            AuditLog::log(
+                'HAPUS',
+                'Opportunity',
+                $opId,
+                "Menghapus pengumuman peluang '{$title}' ({$code}) beserta {$regCount} data pendaftaran siswa."
+            );
+        });
+
+        return redirect()->route('guru.peluang.index')->with('success', "Pengumuman peluang {$title} ({$code}) berhasil dihapus dari sistem.");
     }
 
     public function updateRegistrationStatus(Request $request, $regId)

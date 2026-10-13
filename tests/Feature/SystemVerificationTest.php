@@ -997,5 +997,84 @@ class SystemVerificationTest extends TestCase
         $this->assertNotNull($deleteLog);
         $this->assertStringContainsString('Menghapus secara massal 2 agenda kegiatan', $deleteLog->description);
     }
+
+    public function test_guru_bk_can_filter_update_and_delete_opportunities(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+        $this->assertNotNull($guru);
+
+        // 1. Visit index page and assert actions (Profile, Ubah, Hapus) and filters
+        $indexResponse = $this->actingAs($guru)->get('/guru/peluang');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Tindakan', false);
+        $indexResponse->assertSee('Profile', false);
+        $indexResponse->assertSee('Ubah', false);
+        $indexResponse->assertSee('Hapus', false);
+        $indexResponse->assertSee('editOpportunityModal', false);
+        $indexResponse->assertSee('deleteOpportunityModal', false);
+
+        // 2. Create a test opportunity
+        $testOp = \App\Models\Opportunity::create([
+            'code' => 'PEL-TEST-' . uniqid(),
+            'title' => 'Beasiswa Riset Masa Depan AI',
+            'type' => 'beasiswa',
+            'description' => 'Program beasiswa riset teknologi kecerdasan buatan.',
+            'target_audience' => 'Kelas XII TKJ dan RPL',
+            'deadline' => now()->addMonth()->format('Y-m-d'),
+            'quota' => 10,
+            'status' => 'dipublikasikan',
+        ]);
+
+        // 3. Test filter by keyword
+        $filterResponse = $this->actingAs($guru)->get('/guru/peluang?q=Riset+Masa+Depan');
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertSee('Beasiswa Riset Masa Depan AI', false);
+        $filterResponse->assertSee('Reset Filter', false);
+
+        // 4. Test updating opportunity (PUT /guru/peluang/{id})
+        $updateResponse = $this->actingAs($guru)->put("/guru/peluang/{$testOp->id}", [
+            'title' => 'Beasiswa Riset Masa Depan AI Terbarukan',
+            'type' => 'beasiswa',
+            'description' => 'Deskripsi yang telah diperbarui dengan benefit penuh.',
+            'target_audience' => 'Seluruh Siswa Kelas XII',
+            'deadline' => now()->addMonths(2)->format('Y-m-d'),
+            'quota' => 20,
+            'status' => 'dipublikasikan',
+        ]);
+        $updateResponse->assertSessionHas('success');
+
+        $this->assertEquals('Beasiswa Riset Masa Depan AI Terbarukan', $testOp->fresh()->title);
+        $this->assertEquals(20, $testOp->fresh()->quota);
+
+        // Verify AuditLog for update
+        $updateLog = \App\Models\AuditLog::where('entity_type', 'Opportunity')
+            ->where('action', 'PERBARUI')
+            ->latest()
+            ->first();
+        $this->assertNotNull($updateLog);
+        $this->assertStringContainsString('Beasiswa Riset Masa Depan AI Terbarukan', $updateLog->description);
+
+        // 5. Test detail / profile page has actions and renders properly
+        $showResponse = $this->actingAs($guru)->get("/guru/peluang/{$testOp->id}");
+        $showResponse->assertStatus(200);
+        $showResponse->assertSee('Ubah Peluang', false);
+        $showResponse->assertSee('Hapus', false);
+        $showResponse->assertSee('Beasiswa Riset Masa Depan AI Terbarukan', false);
+
+        // 6. Test deleting opportunity (DELETE /guru/peluang/{id})
+        $deleteResponse = $this->actingAs($guru)->delete("/guru/peluang/{$testOp->id}");
+        $deleteResponse->assertRedirect('/guru/peluang');
+        $deleteResponse->assertSessionHas('success');
+
+        $this->assertNull(\App\Models\Opportunity::find($testOp->id));
+
+        // Verify AuditLog for delete
+        $deleteLog = \App\Models\AuditLog::where('entity_type', 'Opportunity')
+            ->where('action', 'HAPUS')
+            ->latest()
+            ->first();
+        $this->assertNotNull($deleteLog);
+        $this->assertStringContainsString('Menghapus pengumuman peluang', $deleteLog->description);
+    }
 }
 

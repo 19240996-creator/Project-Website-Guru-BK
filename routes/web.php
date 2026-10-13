@@ -121,6 +121,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::get('/peluang', [GuruOpportunityController::class, 'index'])->name('peluang.index');
     Route::post('/peluang', [GuruOpportunityController::class, 'store'])->name('peluang.store');
     Route::get('/peluang/{id}', [GuruOpportunityController::class, 'show'])->name('peluang.show');
+    Route::put('/peluang/{id}', [GuruOpportunityController::class, 'update'])->name('peluang.update');
+    Route::delete('/peluang/{id}', [GuruOpportunityController::class, 'destroy'])->name('peluang.destroy');
     Route::post('/peluang/registrasi/{regId}/status', [GuruOpportunityController::class, 'updateRegistrationStatus'])->name('peluang.reg_status');
 
     // 23 - 25. Kelulusan & Alumni (Tracer Study)
