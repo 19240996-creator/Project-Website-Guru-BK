@@ -115,6 +115,26 @@ class SystemVerificationTest extends TestCase
         $resC = $this->actingAs($guru)->get('/guru/laporan/cetak?package=paket_c');
         $resC->assertStatus(200);
         $resC->assertSee('LAPORAN EKSEKUTIF KEPALA SEKOLAH', false);
+
+        // Test Laporan & Grafik index with diagrams & filters
+        $resIndex = $this->actingAs($guru)->get('/guru/laporan');
+        $resIndex->assertStatus(200);
+        $resIndex->assertSee('Laporan & Grafik Analitik Bimbingan Konseling', false);
+        $resIndex->assertSee('Distribusi Kategori Layanan Konseling', false);
+        $resIndex->assertSee('counselingCategoryColumnChart', false);
+        $resIndex->assertSee('Peta Rencana Masa Depan Siswa', false);
+        $resIndex->assertSee('futurePlanPieChart', false);
+        $resIndex->assertSee('Status Penyelesaian Layanan Konseling', false);
+        $resIndex->assertSee('Distribusi Tingkat Perhatian & Pembinaan Siswa', false);
+        $resIndex->assertSee('Distribusi Siswa per Jenjang Kelas', false);
+        $resIndex->assertSee('Peta Penyerapan Alumni (Tracer Study)', false);
+        $resIndex->assertSee('Paket Template Laporan Otomatis Pimpinan', false);
+
+        // Test Laporan & Grafik with active filtering
+        $resFiltered = $this->actingAs($guru)->get('/guru/laporan?grade=XII&period=1_bulan');
+        $resFiltered->assertStatus(200);
+        $resFiltered->assertSee('Filter Aktif', false);
+        $resFiltered->assertSee('Reset Filter', false);
     }
 
     public function test_siswa_can_login_and_access_dashboard()
@@ -990,6 +1010,7 @@ class SystemVerificationTest extends TestCase
         // Verify audit log for bulk delete
         $deleteLog = \App\Models\AuditLog::where('entity_type', 'PartnerActivity')
             ->where('action', 'HAPUS')
+            ->whereNull('entity_id')
             ->latest()
             ->first();
         $this->assertNotNull($deleteLog);
