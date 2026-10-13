@@ -9,24 +9,45 @@ use App\Models\PartnerActivity;
 use App\Models\StudentClass;
 use App\Models\AuditLog;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class PartnerController extends Controller
 {
     public function index(Request $request)
     {
         $type = $request->query('type', 'all');
+        $status = $request->query('status', 'all');
+        $category = $request->query('category', 'all');
+        $city = $request->query('city', 'all');
+        $q = $request->query('q', '');
+
         $query = Partner::withCount(['activities', 'opportunities'])->latest();
 
         if ($type !== 'all' && in_array($type, ['perguruan_tinggi', 'perusahaan'])) {
             $query->where('type', $type);
         }
 
+        if ($status !== 'all' && in_array($status, ['aktif', 'akan_berakhir', 'berakhir', 'tidak_aktif'])) {
+            $query->where('partnership_status', $status);
+        }
+
+        if ($category !== 'all' && filled($category)) {
+            $query->where('category', $category);
+        }
+
+        if ($city !== 'all' && filled($city)) {
+            $query->where('city', $city);
+        }
+
         if ($request->filled('q')) {
-            $q = $request->q;
-            $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', "%{$q}%")
-                    ->orWhere('city', 'like', "%{$q}%")
-                    ->orWhere('partnership_doc_number', 'like', "%{$q}%");
+            $search = trim($request->q);
+            $query->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('partnership_doc_number', 'like', "%{$search}%");
             });
         }
 
@@ -39,7 +60,19 @@ class PartnerController extends Controller
             'total_kegiatan' => PartnerActivity::count(),
         ];
 
-        return view('guru.mitra.index', compact('partners', 'stats', 'type'));
+        $categories = Partner::whereNotNull('category')
+            ->where('category', '!=', '')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category');
+
+        $cities = Partner::whereNotNull('city')
+            ->where('city', '!=', '')
+            ->distinct()
+            ->orderBy('city')
+            ->pluck('city');
+
+        return view('guru.mitra.index', compact('partners', 'stats', 'type', 'status', 'category', 'city', 'q', 'categories', 'cities'));
     }
 
     public function show($id)
@@ -75,6 +108,49 @@ class PartnerController extends Controller
         AuditLog::log('SIMPAN', 'Partner', $partner->id, "Menambahkan data mitra baru: {$partner->name} ({$partner->code}).");
 
         return redirect()->route('guru.mitra.show', $partner->id)->with('success', 'Data mitra baru berhasil disimpan.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $partner = Partner::findOrFail($id);
+
+        $validated = $request->validate([
+            'type' => 'required|in:perguruan_tinggi,perusahaan',
+            'category' => 'nullable|string|max:100',
+            'name' => 'required|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'address' => 'nullable|string',
+            'website' => 'nullable|url',
+            'contact_person' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:25',
+            'email' => 'nullable|email',
+            'partnership_doc_number' => 'nullable|string|max:100',
+            'partnership_status' => 'required|in:aktif,akan_berakhir,berakhir,tidak_aktif',
+            'partnership_start_date' => 'nullable|date',
+            'partnership_end_date' => 'nullable|date|after_or_equal:partnership_start_date',
+            'notes' => 'nullable|string',
+        ]);
+
+        $partner->update($validated);
+
+        AuditLog::log('PERBARUI', 'Partner', $partner->id, "Memperbarui data mitra: {$partner->name} ({$partner->code}).");
+
+        return back()->with('success', "Data mitra {$partner->name} ({$partner->code}) berhasil diperbarui.");
+    }
+
+    public function destroy($id)
+    {
+        $partner = Partner::findOrFail($id);
+        $name = $partner->name;
+        $code = $partner->code;
+        $partnerId = $partner->id;
+
+        DB::transaction(function () use ($partner, $name, $code, $partnerId) {
+            $partner->delete();
+            AuditLog::log('HAPUS', 'Partner', $partnerId, "Menghapus data mitra: {$name} ({$code}).");
+        });
+
+        return redirect()->route('guru.mitra.index')->with('success', "Data mitra {$name} ({$code}) berhasil dihapus dari sistem.");
     }
 
     public function activities(Request $request)

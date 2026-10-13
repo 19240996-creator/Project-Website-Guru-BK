@@ -108,6 +108,8 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::get('/mitra', [GuruPartnerController::class, 'index'])->name('mitra.index');
     Route::post('/mitra', [GuruPartnerController::class, 'store'])->name('mitra.store');
     Route::get('/mitra/{id}', [GuruPartnerController::class, 'show'])->name('mitra.show');
+    Route::put('/mitra/{id}', [GuruPartnerController::class, 'update'])->name('mitra.update');
+    Route::delete('/mitra/{id}', [GuruPartnerController::class, 'destroy'])->name('mitra.destroy');
     Route::get('/mitra-kegiatan', [GuruPartnerController::class, 'activities'])->name('mitra.activities');
     Route::post('/mitra-kegiatan', [GuruPartnerController::class, 'storeActivity'])->name('mitra.activity.store');
     Route::put('/mitra-kegiatan/{id}', [GuruPartnerController::class, 'updateActivity'])->name('mitra.activity.update');

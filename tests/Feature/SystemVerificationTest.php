@@ -606,6 +606,82 @@ class SystemVerificationTest extends TestCase
         $auditPageResponse->assertSee($updatedTitle, false);
     }
 
+    public function test_guru_bk_can_filter_update_and_delete_partners(): void
+    {
+        $guru = User::where('role', 'guru_bk')->first();
+        $this->assertNotNull($guru);
+
+        // 1. Visit index page and assert filters and action buttons are present
+        $indexResponse = $this->actingAs($guru)->get('/guru/mitra');
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('Tindakan', false);
+        $indexResponse->assertSee('Profile', false);
+        $indexResponse->assertSee('Ubah', false);
+        $indexResponse->assertSee('Hapus', false);
+        $indexResponse->assertSee('editPartnerModal', false);
+        $indexResponse->assertSee('deletePartnerModal', false);
+        $indexResponse->assertSee('filterMitraForm', false);
+
+        // 2. Create a specific test partner for edit & delete testing
+        $code = 'MIT-TEST-' . uniqid();
+        $testPartner = \App\Models\Partner::create([
+            'code' => $code,
+            'type' => 'perusahaan',
+            'category' => 'Industri Teknologi Uji Coba',
+            'name' => 'PT Mitra Uji Coba Integrasi',
+            'city' => 'Bandung',
+            'contact_person' => 'Budi Tester',
+            'phone' => '081299998888',
+            'email' => 'partner@test.com',
+            'partnership_status' => 'aktif',
+        ]);
+
+        // 3. Test filtering by keyword
+        $filterResponse = $this->actingAs($guru)->get('/guru/mitra?q=Integrasi');
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertSee('PT Mitra Uji Coba Integrasi', false);
+
+        // 4. Test updating partner (PUT /guru/mitra/{id})
+        $updateResponse = $this->actingAs($guru)->put("/guru/mitra/{$testPartner->id}", [
+            'type' => 'perguruan_tinggi',
+            'category' => 'Kampus Unggulan Baru',
+            'name' => 'Universitas Mitra Uji Coba Diperbarui',
+            'city' => 'Surabaya',
+            'contact_person' => 'Prof. Dr. Tester',
+            'phone' => '081277776666',
+            'email' => 'univ@test.ac.id',
+            'partnership_status' => 'akan_berakhir',
+        ]);
+        $updateResponse->assertSessionHas('success');
+
+        $testPartner->refresh();
+        $this->assertEquals('Universitas Mitra Uji Coba Diperbarui', $testPartner->name);
+        $this->assertEquals('perguruan_tinggi', $testPartner->type);
+        $this->assertEquals('Surabaya', $testPartner->city);
+        $this->assertEquals('akan_berakhir', $testPartner->partnership_status);
+
+        // Verify Audit Log for PERBARUI
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'PERBARUI',
+            'entity_type' => 'Partner',
+            'entity_id' => $testPartner->id,
+        ]);
+
+        // 5. Test deleting partner (DELETE /guru/mitra/{id})
+        $deleteResponse = $this->actingAs($guru)->delete("/guru/mitra/{$testPartner->id}");
+        $deleteResponse->assertRedirect(route('guru.mitra.index'));
+        $deleteResponse->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('partners', ['id' => $testPartner->id]);
+
+        // Verify Audit Log for HAPUS
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'HAPUS',
+            'entity_type' => 'Partner',
+            'entity_id' => $testPartner->id,
+        ]);
+    }
+
     public function test_guru_bk_can_edit_and_delete_alumni_tracking()
     {
         $guru = User::where('username', 'gurubk')->first();

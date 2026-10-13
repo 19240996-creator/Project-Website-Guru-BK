@@ -16,15 +16,37 @@
             {{ ucfirst(str_replace('_', ' ', $partner->type)) }} | Kode: <strong>{{ $partner->code }}</strong>
         </p>
     </div>
-    <div style="display: flex; gap: 10px;">
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
         <a href="{{ route('guru.mitra.index') }}" class="btn btn-secondary">
             Kembali ke Daftar
         </a>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('editCurrentPartnerModal').style.display = 'block'; document.body.style.overflow = 'hidden';">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            <span>Ubah Profil</span>
+        </button>
+        <button type="button" class="btn btn-sm" style="background-color: var(--color-danger-bg); color: var(--color-danger); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 0 12px;" onclick="document.getElementById('deleteCurrentPartnerModal').style.display = 'flex'; document.body.style.overflow = 'hidden';">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span>Hapus</span>
+        </button>
         <button type="button" class="btn btn-primary" onclick="document.getElementById('addActivityModal').style.display = 'block';">
             + Jadwalkan Kegiatan Baru
         </button>
     </div>
 </div>
+
+@if(session('success'))
+    <div class="alert alert-success" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span>{{ session('success') }}</span>
+    </div>
+@endif
+
+@if(session('warning'))
+    <div class="alert alert-warning" style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span>{{ session('warning') }}</span>
+    </div>
+@endif
 
 <div class="grid-2" style="margin-bottom: 24px;">
     <!-- Informasi Detail Mitra -->
@@ -515,10 +537,177 @@
                 </div>
             </div>
         </div>
+<!-- Modal Ubah Data Mitra (Halaman Profil) -->
+<div id="editCurrentPartnerModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 90; backdrop-filter: blur(2px); overflow-y: auto;">
+    <div style="max-width: 680px; margin: 40px auto; background: var(--color-surface); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); border: 1px solid var(--color-border);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--color-border); padding-bottom: 12px;">
+            <div>
+                <h3 style="font-size: 17px; font-weight: 800; color: var(--color-text-main); margin: 0;">Ubah Data Mitra</h3>
+                <p style="font-size: 12px; color: var(--color-text-muted); margin: 4px 0 0 0;">Perbarui data profil lembaga, narahubung, dan dokumen kerja sama (Kode: <strong>{{ $partner->code }}</strong>).</p>
+            </div>
+            <button type="button" onclick="closeEditCurrentPartnerModal()" style="background: none; border: none; font-size: 20px; color: var(--color-text-subtle); cursor: pointer; padding: 4px 8px;">&times;</button>
+        </div>
+
+        <form action="{{ route('guru.mitra.update', $partner->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Tipe Mitra *</label>
+                    <select name="type" class="form-select" required>
+                        <option value="perguruan_tinggi" {{ $partner->type === 'perguruan_tinggi' ? 'selected' : '' }}>Perguruan Tinggi (Kampus)</option>
+                        <option value="perusahaan" {{ $partner->type === 'perusahaan' ? 'selected' : '' }}>Perusahaan / Industri (DUDI)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Kategori Spesifik</label>
+                    <input type="text" name="category" value="{{ $partner->category }}" class="form-control" placeholder="Contoh: PTN, PTS, BUMN, Manufaktur, IT">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nama Lembaga / Perguruan Tinggi / Perusahaan *</label>
+                <input type="text" name="name" value="{{ $partner->name }}" class="form-control" placeholder="Nama lengkap instansi..." required>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Kota / Lokasi</label>
+                    <input type="text" name="city" value="{{ $partner->city }}" class="form-control" placeholder="Contoh: Bandung, Jakarta">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Alamat Website</label>
+                    <input type="url" name="website" value="{{ $partner->website }}" class="form-control" placeholder="https://...">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Nama Kontak PIC</label>
+                    <input type="text" name="contact_person" value="{{ $partner->contact_person }}" class="form-control" placeholder="Nama narahubung">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">No. Telepon / WhatsApp</label>
+                    <input type="text" name="phone" value="{{ $partner->phone }}" class="form-control" placeholder="08...">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label">Email Resmi</label>
+                    <input type="email" name="email" value="{{ $partner->email }}" class="form-control" placeholder="info@instansi.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nomor Dokumen MoU / PKS</label>
+                    <input type="text" name="partnership_doc_number" value="{{ $partner->partnership_doc_number }}" class="form-control" placeholder="PKS/001/2026">
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="form-group">
+                    <label class="form-label">Status Kerja Sama *</label>
+                    <select name="partnership_status" class="form-select" required>
+                        <option value="aktif" {{ $partner->partnership_status === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                        <option value="akan_berakhir" {{ $partner->partnership_status === 'akan_berakhir' ? 'selected' : '' }}>Akan Berakhir</option>
+                        <option value="berakhir" {{ $partner->partnership_status === 'berakhir' ? 'selected' : '' }}>Berakhir</option>
+                        <option value="tidak_aktif" {{ $partner->partnership_status === 'tidak_aktif' ? 'selected' : '' }}>Tidak Aktif</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Mulai Berlaku MoU</label>
+                    <input type="date" name="partnership_start_date" value="{{ $partner->partnership_start_date ? $partner->partnership_start_date->format('Y-m-d') : '' }}" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Berakhir MoU</label>
+                    <input type="date" name="partnership_end_date" value="{{ $partner->partnership_end_date ? $partner->partnership_end_date->format('Y-m-d') : '' }}" class="form-control">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Alamat Lengkap</label>
+                <textarea name="address" class="form-control" rows="2" placeholder="Alamat kantor / kampus...">{{ $partner->address }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Catatan Lingkup Kerja Sama</label>
+                <textarea name="notes" class="form-control" rows="2" placeholder="Bidang kerja sama yang disepakati...">{{ $partner->notes }}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditCurrentPartnerModal()">Batal</button>
+                <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Mitra (Halaman Profil) -->
+<div id="deleteCurrentPartnerModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); z-index: 100; backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+    <div style="max-width: 460px; width: 92%; background: var(--color-surface); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); padding: 24px; border: 1px solid var(--color-border);">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background-color: var(--color-danger-bg); color: var(--color-danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="font-size: 16px; font-weight: 700; color: var(--color-text-main); margin-bottom: 6px;">
+                    Hapus Data Mitra?
+                </h4>
+                <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.5; margin-bottom: 8px;">
+                    Apakah Anda yakin ingin menghapus data mitra <strong style="color: var(--color-text-main);">{{ $partner->name }}</strong> (<span style="font-family: monospace;">{{ $partner->code }}</span>)?
+                </p>
+                @if($partner->activities->count() > 0 || $partner->opportunities->count() > 0)
+                    <div style="margin-bottom: 12px; padding: 10px 12px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: var(--radius-sm); font-size: 12px; color: #9f1239; line-height: 1.4;">
+                        Perhatian: Terdapat {{ $partner->activities->count() }} agenda kegiatan dan {{ $partner->opportunities->count() }} peluang terkait yang akan ikut terpengaruh.
+                    </div>
+                @endif
+                <p style="font-size: 12px; color: var(--color-text-subtle); margin-bottom: 16px;">
+                    * Tindakan ini bersifat permanen dan riwayat penghapusan akan dicatat ke dalam <strong>Audit Log Sistem</strong>.
+                </p>
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="closeDeleteCurrentPartnerModal()" style="padding: 6px 14px;">
+                        Batal
+                    </button>
+                    <form action="{{ route('guru.mitra.destroy', $partner->id) }}" method="POST" style="margin: 0;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm" style="padding: 6px 14px; background-color: var(--color-danger); color: #ffffff; border: 1px solid var(--color-danger); border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">
+                            Ya, Hapus Mitra
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
+function closeEditCurrentPartnerModal() {
+    const modal = document.getElementById('editCurrentPartnerModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+function closeDeleteCurrentPartnerModal() {
+    const modal = document.getElementById('deleteCurrentPartnerModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
 function toggleTargetClassDropdown(e) {
     if (e) {
         e.stopPropagation();
@@ -696,10 +885,32 @@ document.addEventListener('click', function(e) {
     if (deleteModal && e.target === deleteModal) {
         closeDeleteConfirmModal();
     }
+
+    const editPartnerModal = document.getElementById('editCurrentPartnerModal');
+    if (editPartnerModal && e.target === editPartnerModal) {
+        closeEditCurrentPartnerModal();
+    }
+
+    const delPartnerModal = document.getElementById('deleteCurrentPartnerModal');
+    if (delPartnerModal && e.target === delPartnerModal) {
+        closeDeleteCurrentPartnerModal();
+    }
 });
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
+        const editPartnerModal = document.getElementById('editCurrentPartnerModal');
+        if (editPartnerModal && editPartnerModal.style.display !== 'none') {
+            closeEditCurrentPartnerModal();
+            return;
+        }
+
+        const delPartnerModal = document.getElementById('deleteCurrentPartnerModal');
+        if (delPartnerModal && delPartnerModal.style.display !== 'none') {
+            closeDeleteCurrentPartnerModal();
+            return;
+        }
+
         const deleteModal = document.getElementById('deleteConfirmModal');
         if (deleteModal && deleteModal.style.display !== 'none') {
             closeDeleteConfirmModal();
