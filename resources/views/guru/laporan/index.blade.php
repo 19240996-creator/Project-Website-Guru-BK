@@ -250,7 +250,7 @@
                 <!-- SVG Donut Graphic with Center Text -->
                 <div style="position: relative; width: 146px; height: 146px; margin: 0 auto; flex-shrink: 0;">
                     <svg viewBox="0 0 140 140" width="146" height="146" style="transform: rotate(-90deg);">
-                        <circle cx="70" cy="70" r="54" fill="transparent" stroke="#F1F4FA" stroke-width="18" />
+                        <circle cx="70" cy="70" r="54" fill="transparent" stroke="#F1F4FA" stroke-width="16" />
                         @if($totalPlanStudents > 0)
                             @foreach($futurePlanChartLabels as $idx => $label)
                                 @php
@@ -266,21 +266,21 @@
                                 @if($val > 0)
                                     <circle cx="70" cy="70" r="54" fill="transparent"
                                             stroke="{{ $hexColor }}"
-                                            stroke-width="18"
+                                            stroke-width="16"
                                             stroke-dasharray="{{ $dashArray }}"
                                             stroke-dashoffset="{{ $dashOffset }}" />
                                 @endif
                             @endforeach
                         @else
-                            <circle cx="70" cy="70" r="54" fill="transparent" stroke="#E5E9F2" stroke-width="18" />
+                            <circle cx="70" cy="70" r="54" fill="transparent" stroke="#E5E9F2" stroke-width="16" />
                         @endif
                     </svg>
                     <!-- Center Metric Text -->
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
-                        <span style="font-size: 26px; font-weight: 800; color: var(--color-navy); line-height: 1; letter-spacing: -0.02em;">
+                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; padding: 0 12px;">
+                        <span style="font-size: 25px; font-weight: 800; color: var(--color-navy); line-height: 1; letter-spacing: -0.02em;">
                             {{ $totalPlanStudents }}
                         </span>
-                        <span style="font-size: 10.5px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px;">
+                        <span style="font-size: 10px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; white-space: nowrap;">
                             Siswa Binaan
                         </span>
                     </div>
@@ -350,7 +350,7 @@
                 <!-- SVG Donut -->
                 <div style="position: relative; width: 146px; height: 146px; margin: 0 auto; flex-shrink: 0;">
                     <svg viewBox="0 0 140 140" width="146" height="146" style="transform: rotate(-90deg);">
-                        <circle cx="70" cy="70" r="54" fill="transparent" stroke="#F1F4FA" stroke-width="18" />
+                        <circle cx="70" cy="70" r="54" fill="transparent" stroke="#F1F4FA" stroke-width="16" />
                         @if($totalFilteredCounselings > 0)
                             @foreach($counselingStatusCounts as $stName => $stVal)
                                 @php
@@ -365,21 +365,21 @@
                                 @if($stVal > 0)
                                     <circle cx="70" cy="70" r="54" fill="transparent"
                                             stroke="{{ $hexColor }}"
-                                            stroke-width="18"
+                                            stroke-width="16"
                                             stroke-dasharray="{{ $dashArray }}"
                                             stroke-dashoffset="{{ $dashOffset }}" />
                                 @endif
                             @endforeach
                         @else
-                            <circle cx="70" cy="70" r="54" fill="transparent" stroke="#E5E9F2" stroke-width="18" />
+                            <circle cx="70" cy="70" r="54" fill="transparent" stroke="#E5E9F2" stroke-width="16" />
                         @endif
                     </svg>
                     <!-- Center Metric Text -->
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
-                        <span style="font-size: 26px; font-weight: 800; color: #10B981; line-height: 1; letter-spacing: -0.02em;">
+                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; padding: 0 12px;">
+                        <span style="font-size: 25px; font-weight: 800; color: #10B981; line-height: 1; letter-spacing: -0.02em;">
                             {{ $totalFilteredCounselings > 0 ? round(($counselingStatusCounts['Selesai'] / $totalFilteredCounselings) * 100) : 0 }}%
                         </span>
-                        <span style="font-size: 10px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px;">
+                        <span style="font-size: 10px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 4px; white-space: nowrap;">
                             Kasus Tuntas
                         </span>
                     </div>
@@ -543,7 +543,7 @@
                 <!-- SVG Donut -->
                 <div style="position: relative; width: 146px; height: 146px; margin: 0 auto; flex-shrink: 0;">
                     <svg viewBox="0 0 140 140" width="146" height="146" style="transform: rotate(-90deg);">
-                        <circle cx="70" cy="70" r="54" fill="transparent" stroke="#F1F4FA" stroke-width="18" />
+                        <circle cx="70" cy="70" r="54" fill="transparent" stroke="#F1F4FA" stroke-width="16" />
                         @if($totalAlumni > 0)
                             @foreach($alumniStatusCounts as $alName => $alVal)
                                 @php
@@ -558,21 +558,21 @@
                                 @if($alVal > 0)
                                     <circle cx="70" cy="70" r="54" fill="transparent"
                                             stroke="{{ $hexColor }}"
-                                            stroke-width="18"
+                                            stroke-width="16"
                                             stroke-dasharray="{{ $dashArray }}"
                                             stroke-dashoffset="{{ $dashOffset }}" />
                                 @endif
                             @endforeach
                         @else
-                            <circle cx="70" cy="70" r="54" fill="transparent" stroke="#E5E9F2" stroke-width="18" />
+                            <circle cx="70" cy="70" r="54" fill="transparent" stroke="#E5E9F2" stroke-width="16" />
                         @endif
                     </svg>
                     <!-- Center Metric Text -->
-                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none;">
-                        <span style="font-size: 26px; font-weight: 800; color: var(--color-navy); line-height: 1; letter-spacing: -0.02em;">
+                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; padding: 0 10px;">
+                        <span style="font-size: 25px; font-weight: 800; color: var(--color-navy); line-height: 1; letter-spacing: -0.02em;">
                             {{ $totalAlumni }}
                         </span>
-                        <span style="font-size: 10px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 3px;">
+                        <span style="font-size: 9px; font-weight: 700; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 4px; white-space: nowrap;">
                             Alumni Terlacak
                         </span>
                     </div>
