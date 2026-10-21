@@ -636,5 +636,8 @@ class DatabaseSeeder extends Seeder
             'description' => 'Guru BK membuat rencana tindak lanjut verifikasi sertifikat eligible SNBP untuk Ahmad Rizky Pratama.',
             'ip_address' => '127.0.0.1',
         ]);
+
+        // 10. Seed Koordinator BK and initial counselor assignments
+        $this->call(KoordinatorSeeder::class);
     }
 }
