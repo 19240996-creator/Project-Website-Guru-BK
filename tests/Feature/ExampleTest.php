@@ -16,4 +16,13 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(302);
     }
+
+    public function test_logout_works_with_both_get_and_post(): void
+    {
+        $responseGet = $this->get('/logout');
+        $responseGet->assertRedirect('/login');
+
+        $responsePost = $this->post('/logout');
+        $responsePost->assertRedirect('/login');
+    }
 }
