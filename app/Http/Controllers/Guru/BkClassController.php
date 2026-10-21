@@ -732,4 +732,70 @@ class BkClassController extends Controller
 
         return Storage::disk('public')->download($submission->file_path, $submission->file_name ?: basename($submission->file_path));
     }
+
+    /**
+     * Lihat / Stream berkas tugas siswa secara inline (foto/dokumen/PDF)
+     */
+    public function viewSubmissionFile($id, $submissionId)
+    {
+        $class = BkClass::findOrFail($id);
+        $submission = BkClassTaskSubmission::findOrFail($submissionId);
+
+        if (!$submission->file_path || !Storage::disk('public')->exists($submission->file_path)) {
+            abort(404, 'Berkas jawaban siswa tidak ditemukan.');
+        }
+
+        $path = Storage::disk('public')->path($submission->file_path);
+        $mime = Storage::disk('public')->mimeType($submission->file_path) ?: 'application/octet-stream';
+
+        return response()->file($path, [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . ($submission->file_name ?: basename($submission->file_path)) . '"',
+        ]);
+    }
+
+    /**
+     * Penilaian Tugas Siswa secara manual (baik yang sudah upload maupun penilaian offline/tatap muka)
+     */
+    public function gradeTaskStudent(Request $request, $id, $taskId)
+    {
+        $class = BkClass::findOrFail($id);
+        $user = auth()->user();
+        if ($user->role === 'guru_bk' && $class->counselor_id !== $user->id) {
+            abort(403);
+        }
+
+        $task = BkClassTask::where('bk_class_id', $class->id)->findOrFail($taskId);
+
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'score' => 'nullable|integer|min:0|max:100',
+            'status' => 'required|in:dinilai,perlu_revisi,diserahkan',
+            'counselor_feedback' => 'nullable|string',
+        ]);
+
+        $student = Student::findOrFail($request->student_id);
+
+        $submission = BkClassTaskSubmission::firstOrNew([
+            'bk_class_task_id' => $task->id,
+            'student_id' => $student->id,
+        ]);
+
+        if (!$submission->exists) {
+            $submission->submitted_at = Carbon::now('Asia/Jakarta');
+            $submission->submission_text = $request->submission_text ?: '(Penilaian langsung / manual oleh Guru BK)';
+        }
+
+        $submission->score = $request->score;
+        $submission->status = $request->status;
+        $submission->counselor_feedback = $request->counselor_feedback;
+        $submission->graded_at = Carbon::now('Asia/Jakarta');
+        $submission->graded_by = $user->id;
+        $submission->save();
+
+        AuditLog::log('UPDATE', 'BkClassTaskSubmission', $submission->id, "Menilai tugas {$task->title} untuk siswa {$student->name}: Nilai {$request->score}");
+
+        return redirect()->route('guru.kelas.show', ['id' => $class->id, 'tab' => 'tugas'])
+                         ->with('success', "Nilai tugas untuk {$student->name} berhasil disimpan.");
+    }
 }

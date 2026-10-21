@@ -363,6 +363,31 @@
                                     @forelse($targetStudents as $st)
                                     @php
                                         $submission = $subMap->get($st->id);
+                                        $ext = $submission && $submission->file_path ? strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION)) : '';
+                                        $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
+                                        $isPdf = $ext === 'pdf';
+                                        $viewUrl = $submission && $submission->file_path ? route('guru.kelas.tugas.view_submission', ['id' => $class->id, 'submissionId' => $submission->id]) : null;
+                                        $downloadUrl = $submission && $submission->file_path ? route('guru.kelas.tugas.download_submission', ['id' => $class->id, 'submissionId' => $submission->id]) : null;
+                                        $modalPayload = [
+                                            'task_id' => $task->id,
+                                            'submission_id' => $submission ? $submission->id : null,
+                                            'student_id' => $st->id,
+                                            'student_name' => $st->name,
+                                            'student_nisn' => $st->nisn,
+                                            'student_class' => optional($st->studentClass)->name,
+                                            'submitted_at' => $submission && $submission->submitted_at ? $submission->submitted_at->format('d/m/Y H:i') . ' WIB' : 'Belum mengumpulkan secara online',
+                                            'status' => $submission ? $submission->status : 'belum_kumpul',
+                                            'score' => $submission ? $submission->score : '',
+                                            'counselor_feedback' => $submission ? $submission->counselor_feedback : '',
+                                            'submission_text' => $submission ? $submission->submission_text : '',
+                                            'file_path' => $submission ? $submission->file_path : null,
+                                            'file_name' => $submission ? ($submission->file_name ?: basename($submission->file_path)) : null,
+                                            'file_size' => $submission ? $submission->formatted_file_size : '',
+                                            'view_url' => $viewUrl,
+                                            'download_url' => $downloadUrl,
+                                            'is_image' => $isImg,
+                                            'is_pdf' => $isPdf,
+                                        ];
                                     @endphp
                                     <tr style="border-bottom: 1px solid var(--color-border);">
                                         <td style="padding: 10px;">
@@ -372,61 +397,92 @@
                                             </div>
                                         </td>
                                         <td style="padding: 10px; white-space: nowrap;">
-                                            @if($submission)
-                                                {{ $submission->submitted_at ? $submission->submitted_at->format('d/m/Y H:i') : '-' }}
+                                            @if($submission && $submission->submitted_at)
+                                                <div style="font-size: 12px; font-weight: 600; color: var(--color-text-main);">{{ $submission->submitted_at->format('d/m/Y') }}</div>
+                                                <div style="font-size: 11px; color: var(--color-text-muted);">{{ $submission->submitted_at->format('H:i') }} WIB</div>
                                             @else
-                                                <span style="color: #94a3b8;">Belum mengumpulkan</span>
+                                                <span style="color: #94a3b8; font-size: 11.5px;">Belum kumpul</span>
                                             @endif
                                         </td>
                                         <td style="padding: 10px;">
                                             @if($submission)
                                                 @if($submission->file_path)
-                                                <a href="{{ route('guru.kelas.tugas.download_submission', ['id' => $class->id, 'submissionId' => $submission->id]) }}" style="color: var(--color-primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                                                    <span>{{ Str::limit($submission->file_name ?: 'Berkas Tugas', 25) }}</span>
-                                                </a>
+                                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                        @if($isImg)
+                                                        <button type="button" onclick='openReviewAndGradeModal(@json($modalPayload))' title="Klik untuk melihat foto tugas siswa" style="border: 0; background: transparent; padding: 0; cursor: pointer;">
+                                                            <img src="{{ $viewUrl }}" alt="Foto Jawaban Siswa" style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: block;">
+                                                        </button>
+                                                        <div>
+                                                            <button type="button" onclick='openReviewAndGradeModal(@json($modalPayload))' style="border: 0; background: transparent; padding: 0; font-size: 11.5px; font-weight: 700; color: var(--color-primary); text-decoration: none; cursor: pointer; text-align: left; display: flex; align-items: center; gap: 4px;">
+                                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                                <span>Lihat Foto Siswa</span>
+                                                            </button>
+                                                            <div style="font-size: 10.5px; color: var(--color-text-muted);">{{ Str::limit($submission->file_name ?: 'Foto Jawaban', 20) }}</div>
+                                                        </div>
+                                                        @elseif($isPdf)
+                                                        <button type="button" onclick='openReviewAndGradeModal(@json($modalPayload))' style="border: 0; background: transparent; padding: 0; cursor: pointer; display: flex; align-items: center; gap: 6px; text-align: left;">
+                                                            <span style="background: #fee2e2; color: #dc2626; padding: 4px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 800;">PDF</span>
+                                                            <div>
+                                                                <span style="font-size: 11.5px; font-weight: 700; color: var(--color-primary); display: block;">Periksa Dokumen PDF</span>
+                                                                <span style="font-size: 10.5px; color: var(--color-text-muted);">{{ Str::limit($submission->file_name ?: 'Dokumen PDF', 20) }}</span>
+                                                            </div>
+                                                        </button>
+                                                        @else
+                                                        <a href="{{ $downloadUrl }}" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; color: var(--color-text-main); padding: 4px 8px; border-radius: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none; border: 1px solid #e2e8f0;">
+                                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                            <span>{{ Str::limit($submission->file_name ?: 'Unduh Berkas', 20) }}</span>
+                                                        </a>
+                                                        @endif
+                                                    </div>
                                                 @endif
                                                 @if($submission->submission_text)
-                                                <div style="font-size: 11.5px; color: var(--color-text-muted); margin-top: 3px;">
-                                                    "{{ Str::limit($submission->submission_text, 60) }}"
+                                                <div style="font-size: 11.5px; color: var(--color-text-muted); font-style: italic; margin-top: 2px;">
+                                                    "{{ Str::limit($submission->submission_text, 50) }}"
                                                 </div>
                                                 @endif
+                                                @if(!$submission->file_path && !$submission->submission_text)
+                                                <span style="color: #94a3b8; font-size: 11px;">(Tanpa lampiran online)</span>
+                                                @endif
                                             @else
-                                                <span style="color: #94a3b8;">-</span>
+                                                <span style="color: #94a3b8; font-size: 11.5px;">-</span>
                                             @endif
                                         </td>
                                         <td style="padding: 10px;">
                                             @if($submission)
                                                 @if($submission->status === 'dinilai')
-                                                    <span style="background: #dcfce7; color: #15803d; font-weight: 700; padding: 2px 7px; border-radius: 4px;">Dinilai</span>
+                                                    <span style="background: #dcfce7; color: #15803d; font-weight: 700; padding: 2px 7px; border-radius: 4px; font-size: 11px;">Dinilai</span>
                                                 @elseif($submission->status === 'terlambat')
-                                                    <span style="background: #fee2e2; color: #991b1b; font-weight: 600; padding: 2px 7px; border-radius: 4px;">Terlambat</span>
+                                                    <span style="background: #fee2e2; color: #991b1b; font-weight: 600; padding: 2px 7px; border-radius: 4px; font-size: 11px;">Terlambat</span>
                                                 @elseif($submission->status === 'perlu_revisi')
-                                                    <span style="background: #fef3c7; color: #92400e; font-weight: 600; padding: 2px 7px; border-radius: 4px;">Perlu Revisi</span>
+                                                    <span style="background: #fef3c7; color: #92400e; font-weight: 600; padding: 2px 7px; border-radius: 4px; font-size: 11px;">Perlu Revisi</span>
                                                 @else
-                                                    <span style="background: #e0f2fe; color: #0369a1; font-weight: 600; padding: 2px 7px; border-radius: 4px;">Diserahkan</span>
+                                                    <span style="background: #e0f2fe; color: #0369a1; font-weight: 600; padding: 2px 7px; border-radius: 4px; font-size: 11px;">Diserahkan</span>
                                                 @endif
                                             @else
-                                                <span style="background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 4px;">Belum Kumpul</span>
+                                                <span style="background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 4px; font-size: 11px;">Belum Kumpul</span>
                                             @endif
                                         </td>
                                         <td style="padding: 10px;">
                                             @if($submission && $submission->score !== null)
-                                                <span style="font-weight: 800; font-size: 13px; color: var(--color-navy);">Nilai: {{ $submission->score }}</span>
+                                                <div style="font-weight: 800; font-size: 13.5px; color: var(--color-navy);">Nilai: {{ $submission->score }}</div>
                                                 @if($submission->counselor_feedback)
-                                                <div style="font-size: 11px; color: var(--color-text-muted);">{{ Str::limit($submission->counselor_feedback, 40) }}</div>
+                                                <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">{{ Str::limit($submission->counselor_feedback, 35) }}</div>
                                                 @endif
                                             @else
-                                                <span style="color: #94a3b8;">Belum dinilai</span>
+                                                <span style="color: #94a3b8; font-size: 11.5px;">Belum dinilai</span>
                                             @endif
                                         </td>
                                         <td style="padding: 10px; text-align: center;">
                                             @if($submission)
-                                            <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="openGradeModal({{ $submission->id }}, '{{ addslashes($st->name) }}', '{{ $submission->score }}', '{{ addslashes($submission->counselor_feedback) }}', '{{ $submission->status }}')">
-                                                Nilai
+                                            <button type="button" class="btn btn-primary" style="font-size: 11px; padding: 4px 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" onclick='openReviewAndGradeModal(@json($modalPayload))'>
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                                <span>{{ $submission->score !== null ? 'Ubah Nilai' : 'Periksa & Nilai' }}</span>
                                             </button>
                                             @else
-                                            <span style="color: #cbd5e1;">-</span>
+                                            <button type="button" class="btn btn-secondary" style="font-size: 11px; padding: 4px 9px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" onclick='openReviewAndGradeModal(@json($modalPayload))' title="Beri nilai manual langsung untuk tugas offline atau tatap muka">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                <span>Beri Nilai</span>
+                                            </button>
                                             @endif
                                         </td>
                                     </tr>
@@ -683,45 +739,158 @@
     </div>
 </div>
 
-<!-- Modal Penilaian Tugas Siswa -->
-<div id="gradingModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.5); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #fff; border-radius: 10px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg); overflow: hidden;">
-        <div style="padding: 14px 18px; background: var(--color-navy); color: #fff; display: flex; justify-content: space-between; align-items: center;">
-            <h4 style="font-size: 14px; font-weight: 700; margin: 0; color: #fff;">Penilaian Tugas Siswa</h4>
-            <button type="button" onclick="closeGradeModal()" style="background: none; border: 0; color: #cbd5e1; cursor: pointer; font-size: 18px;">&times;</button>
+<!-- Modal Pemeriksaan Berkas & Penilaian Tugas Siswa (Konsisten Desain Ruang BK) -->
+<div id="modalReviewAndGrade" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); z-index: 9999; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(2px);" onclick="if(event.target === this) closeReviewAndGradeModal()">
+    <div style="background: #ffffff; border-radius: 14px; max-width: 820px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25); border: 1px solid var(--color-border); overflow: hidden;">
+        <!-- Header Modal -->
+        <div style="padding: 16px 22px; background: var(--color-navy); color: #ffffff; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: center;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <div>
+                    <h4 id="modalReviewTitle" style="font-size: 15px; font-weight: 700; margin: 0; color: #ffffff;">Pemeriksaan Berkas &amp; Penilaian Siswa</h4>
+                    <span style="font-size: 11.5px; color: #cbd5e1;">Evaluasi tugas siswa dan berikan penilaian manual beserta umpan balik</span>
+                </div>
+            </div>
+            <button type="button" onclick="closeReviewAndGradeModal()" style="background: none; border: 0; color: #cbd5e1; cursor: pointer; font-size: 22px; line-height: 1; padding: 4px;" aria-label="Tutup Modal">&times;</button>
         </div>
-        <form id="gradeForm" action="" method="POST" style="padding: 18px;">
-            @csrf
-            <div style="margin-bottom: 12px;">
-                <label style="font-size: 11.5px; color: var(--color-text-muted); display: block; margin-bottom: 2px;">Nama Siswa</label>
-                <div id="gradeStudentName" style="font-size: 13.5px; font-weight: 700; color: var(--color-navy);"></div>
-            </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+        <!-- Scrollable Modal Body -->
+        <div style="padding: 22px; overflow-y: auto; flex: 1;">
+            <!-- Profil Siswa & Info Status -->
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; background: #f8fafc; border: 1px solid var(--color-border); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;">
                 <div>
-                    <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Nilai Angka (0-100)</label>
-                    <input type="number" min="0" max="100" name="score" id="gradeScoreInput" class="form-control" placeholder="0 - 100" style="font-size: 13px;">
+                    <div id="modalReviewStudentName" style="font-size: 15px; font-weight: 800; color: var(--color-navy);"></div>
+                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">
+                        NISN: <span id="modalReviewStudentNisn" style="font-weight: 600; color: var(--color-text-main);">-</span> &bull; 
+                        Kelas: <span id="modalReviewStudentClass" style="font-weight: 600; color: var(--color-text-main);">-</span>
+                    </div>
                 </div>
-                <div>
-                    <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Status Penilaian</label>
-                    <select name="status" id="gradeStatusSelect" class="form-select" style="font-size: 12.5px;">
-                        <option value="dinilai">Telah Dinilai</option>
-                        <option value="perlu_revisi">Perlu Revisi</option>
-                        <option value="diserahkan">Diserahkan</option>
-                    </select>
+                <div style="display: flex; align-items: center; gap: 10px; font-size: 12px;">
+                    <div>
+                        <span style="color: var(--color-text-muted);">Waktu Kirim:</span>
+                        <strong id="modalReviewSubmittedAt" style="color: var(--color-text-main); display: block;">-</strong>
+                    </div>
+                    <span id="modalReviewStatusBadge" style="padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">-</span>
                 </div>
             </div>
 
-            <div style="margin-bottom: 16px;">
-                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Catatan / Umpan Balik Guru BK</label>
-                <textarea name="counselor_feedback" id="gradeFeedbackInput" rows="3" class="form-control" placeholder="Apresiasi atau catatan bimbingan untuk siswa..." style="font-size: 12.5px;"></textarea>
+            <!-- Bagian Jawaban / Berkas Siswa -->
+            <div style="margin-bottom: 22px;">
+                <h5 style="font-size: 13px; font-weight: 700; color: var(--color-navy); margin: 0 0 10px 0; display: flex; align-items: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    <span>Berkas Lampiran &amp; Jawaban Siswa</span>
+                </h5>
+
+                <!-- Catatan / Teks Siswa -->
+                <div id="modalReviewTextContainer" style="display: none; background: #ffffff; border: 1px solid var(--color-border); border-left: 3px solid var(--color-primary); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+                    <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--color-text-muted); display: block; margin-bottom: 4px;">Pesan / Catatan Siswa:</span>
+                    <p id="modalReviewText" style="margin: 0; font-size: 12.5px; color: var(--color-text-main); line-height: 1.5; white-space: pre-wrap;"></p>
+                </div>
+
+                <!-- Pratinjau Berkas / Foto Siswa -->
+                <div id="modalReviewFileBox" style="display: none; border: 1px solid var(--color-border); border-radius: 10px; padding: 14px; background: #ffffff;">
+                    <!-- Bar info berkas + tombol aksi cepat -->
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="modalReviewFileIcon" style="display: flex; align-items: center;"></span>
+                            <div>
+                                <span id="modalReviewFileName" style="font-size: 12.5px; font-weight: 700; color: var(--color-text-main);"></span>
+                                <span id="modalReviewFileSize" style="font-size: 11px; color: var(--color-text-muted); margin-left: 6px;"></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <a id="modalReviewFileViewBtn" href="#" target="_blank" class="btn btn-secondary" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                <span>Buka Tab Penuh</span>
+                            </a>
+                            <a id="modalReviewFileDownloadBtn" href="#" class="btn btn-secondary" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                <span>Unduh Berkas</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Live Image Viewer -->
+                    <div id="modalReviewImageViewer" style="display: none; background: #0f172a; border-radius: 8px; padding: 12px; text-align: center; max-height: 420px; overflow: auto;">
+                        <img id="modalReviewImageTag" src="" alt="Pratinjau Foto Siswa" style="max-width: 100%; max-height: 390px; object-fit: contain; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+                    </div>
+
+                    <!-- PDF Viewer -->
+                    <div id="modalReviewPdfViewer" style="display: none; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;">
+                        <iframe id="modalReviewPdfFrame" src="" style="width: 100%; height: 380px; border: 0; background: #f8fafc;"></iframe>
+                    </div>
+
+                    <!-- Office / Other File Card -->
+                    <div id="modalReviewDocViewer" style="display: none; text-align: center; padding: 24px 16px; background: #f8fafc; border-radius: 8px; border: 1px dashed var(--color-border);">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.8" style="margin-bottom: 8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        <p style="margin: 0 0 8px 0; font-size: 12.5px; color: var(--color-text-main); font-weight: 600;">Format dokumen ini dapat diperiksa dengan mengunduh berkas.</p>
+                        <a id="modalReviewDocDownloadBtn" href="#" class="btn btn-primary" style="font-size: 12px; padding: 6px 14px; text-decoration: none;">Unduh Berkas Jawaban</a>
+                    </div>
+                </div>
+
+                <!-- State jika siswa belum kumpul berkas online -->
+                <div id="modalReviewEmptyNotice" style="display: none; background: #f8fafc; border: 1px dashed var(--color-border); border-radius: 8px; padding: 14px; font-size: 12px; color: var(--color-text-muted); text-align: center;">
+                    Siswa belum mengunggah berkas secara online. Guru BK tetap dapat memberikan nilai secara manual di bawah ini (misalnya untuk pengumpulan tugas fisik atau penilaian tatap muka langsung).
+                </div>
             </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                <button type="button" class="btn btn-secondary" onclick="closeGradeModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
-                <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 700;">Simpan Nilai</button>
-            </div>
-        </form>
+            <!-- Form Penilaian Manual -->
+            <form id="modalReviewGradeForm" method="POST" action="" style="background: #f8fafc; border: 1px solid var(--color-border); border-radius: 10px; padding: 16px;">
+                @csrf
+                <input type="hidden" name="student_id" id="modalReviewStudentId" value="">
+
+                <h5 style="font-size: 13px; font-weight: 700; color: var(--color-navy); margin: 0 0 12px 0; display: flex; align-items: center; gap: 6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    <span>Formulir Penilaian Guru BK</span>
+                </h5>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+                    <div>
+                        <label class="form-label" style="font-size: 12px; font-weight: 700; margin-bottom: 4px; color: var(--color-text-main);">
+                            Nilai Angka (0 sampai 100)
+                        </label>
+                        <input type="number" min="0" max="100" name="score" id="modalReviewScoreInput" class="form-control" placeholder="Contoh: 85" style="font-size: 13px; font-weight: 700;">
+                        
+                        <!-- Quick score presets -->
+                        <div style="display: flex; align-items: center; gap: 4px; margin-top: 6px; flex-wrap: wrap;">
+                            <span style="font-size: 10.5px; color: var(--color-text-muted);">Pilihan Cepat:</span>
+                            <button type="button" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;" onclick="setQuickScore(75)">75</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;" onclick="setQuickScore(80)">80</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;" onclick="setQuickScore(85)">85</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;" onclick="setQuickScore(90)">90</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;" onclick="setQuickScore(95)">95</button>
+                            <button type="button" class="btn btn-secondary" style="font-size: 10px; padding: 2px 6px;" onclick="setQuickScore(100)">100</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" style="font-size: 12px; font-weight: 700; margin-bottom: 4px; color: var(--color-text-main);">
+                            Status Penilaian <span style="color: #dc2626;">*</span>
+                        </label>
+                        <select name="status" id="modalReviewStatusSelect" class="form-select" style="font-size: 12.5px;">
+                            <option value="dinilai">Telah Dinilai</option>
+                            <option value="perlu_revisi">Perlu Revisi (Siswa diminta perbaiki)</option>
+                            <option value="diserahkan">Diserahkan (Belum Final)</option>
+                        </select>
+                        <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 4px;">Pilih status kelayakan tugas siswa.</small>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label class="form-label" style="font-size: 12px; font-weight: 700; margin-bottom: 4px; color: var(--color-text-main);">
+                        Catatan &amp; Umpan Balik Guru BK (Opsional)
+                    </label>
+                    <textarea name="counselor_feedback" id="modalReviewFeedbackInput" rows="3" class="form-control" placeholder="Tuliskan apresiasi, penguatan refleksi, atau saran perbaikan bagi siswa..." style="font-size: 12.5px;"></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeReviewAndGradeModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
+                    <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 18px; font-weight: 700;">Simpan Nilai Tugas</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -749,19 +918,161 @@ function closeCorrectionModal() {
     document.getElementById('correctionModal').style.display = 'none';
 }
 
+function openReviewAndGradeModal(data) {
+    var modal = document.getElementById('modalReviewAndGrade');
+    var form = document.getElementById('modalReviewGradeForm');
+
+    // Action endpoint for manual or submission grading
+    form.action = "{{ url('guru/kelas/' . $class->id . '/tugas') }}/" + data.task_id + "/nilai-siswa";
+    document.getElementById('modalReviewStudentId').value = data.student_id;
+
+    // Student identity
+    document.getElementById('modalReviewStudentName').textContent = data.student_name;
+    document.getElementById('modalReviewStudentNisn').textContent = data.student_nisn || '-';
+    document.getElementById('modalReviewStudentClass').textContent = data.student_class || '-';
+    document.getElementById('modalReviewSubmittedAt').textContent = data.submitted_at || '-';
+
+    // Status badge
+    var statusBadge = document.getElementById('modalReviewStatusBadge');
+    if (data.status === 'dinilai') {
+        statusBadge.textContent = 'Telah Dinilai';
+        statusBadge.style.background = '#dcfce7';
+        statusBadge.style.color = '#15803d';
+    } else if (data.status === 'perlu_revisi') {
+        statusBadge.textContent = 'Perlu Revisi';
+        statusBadge.style.background = '#fef3c7';
+        statusBadge.style.color = '#92400e';
+    } else if (data.status === 'terlambat') {
+        statusBadge.textContent = 'Terlambat';
+        statusBadge.style.background = '#fee2e2';
+        statusBadge.style.color = '#991b1b';
+    } else if (data.status === 'diserahkan') {
+        statusBadge.textContent = 'Diserahkan';
+        statusBadge.style.background = '#e0f2fe';
+        statusBadge.style.color = '#0369a1';
+    } else {
+        statusBadge.textContent = 'Belum Kumpul';
+        statusBadge.style.background = '#f1f5f9';
+        statusBadge.style.color = '#64748b';
+    }
+
+    // Student text
+    var textContainer = document.getElementById('modalReviewTextContainer');
+    var textElem = document.getElementById('modalReviewText');
+    if (data.submission_text && data.submission_text.trim() !== '') {
+        textElem.textContent = data.submission_text;
+        textContainer.style.display = 'block';
+    } else {
+        textContainer.style.display = 'none';
+    }
+
+    // Student file
+    var fileBox = document.getElementById('modalReviewFileBox');
+    var emptyNotice = document.getElementById('modalReviewEmptyNotice');
+    var imgViewer = document.getElementById('modalReviewImageViewer');
+    var imgTag = document.getElementById('modalReviewImageTag');
+    var pdfViewer = document.getElementById('modalReviewPdfViewer');
+    var pdfFrame = document.getElementById('modalReviewPdfFrame');
+    var docViewer = document.getElementById('modalReviewDocViewer');
+
+    if (data.file_path && data.view_url) {
+        fileBox.style.display = 'block';
+        emptyNotice.style.display = 'none';
+        document.getElementById('modalReviewFileName').textContent = data.file_name || 'Berkas Jawaban';
+        document.getElementById('modalReviewFileSize').textContent = data.file_size ? '(' + data.file_size + ')' : '';
+        document.getElementById('modalReviewFileViewBtn').href = data.view_url;
+        document.getElementById('modalReviewFileDownloadBtn').href = data.download_url;
+
+        if (data.is_image) {
+            imgViewer.style.display = 'block';
+            imgTag.src = data.view_url;
+            pdfViewer.style.display = 'none';
+            pdfFrame.src = '';
+            docViewer.style.display = 'none';
+            document.getElementById('modalReviewFileIcon').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+        } else if (data.is_pdf) {
+            imgViewer.style.display = 'none';
+            imgTag.src = '';
+            pdfViewer.style.display = 'block';
+            pdfFrame.src = data.view_url;
+            docViewer.style.display = 'none';
+            document.getElementById('modalReviewFileIcon').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
+        } else {
+            imgViewer.style.display = 'none';
+            imgTag.src = '';
+            pdfViewer.style.display = 'none';
+            pdfFrame.src = '';
+            docViewer.style.display = 'block';
+            document.getElementById('modalReviewDocDownloadBtn').href = data.download_url;
+            document.getElementById('modalReviewFileIcon').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>';
+        }
+    } else {
+        fileBox.style.display = 'none';
+        imgViewer.style.display = 'none';
+        imgTag.src = '';
+        pdfViewer.style.display = 'none';
+        pdfFrame.src = '';
+        docViewer.style.display = 'none';
+        emptyNotice.style.display = 'block';
+    }
+
+    // Grading fields
+    document.getElementById('modalReviewScoreInput').value = (data.score !== null && data.score !== undefined && data.score !== '') ? data.score : '';
+    document.getElementById('modalReviewStatusSelect').value = (data.status && data.status !== 'belum_kumpul') ? data.status : 'dinilai';
+    document.getElementById('modalReviewFeedbackInput').value = data.counselor_feedback || '';
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReviewAndGradeModal() {
+    var modal = document.getElementById('modalReviewAndGrade');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        var pdfFrame = document.getElementById('modalReviewPdfFrame');
+        if (pdfFrame) pdfFrame.src = '';
+        var imgTag = document.getElementById('modalReviewImageTag');
+        if (imgTag) imgTag.src = '';
+    }
+}
+
+function setQuickScore(val) {
+    var input = document.getElementById('modalReviewScoreInput');
+    if (input) {
+        input.value = val;
+    }
+}
+
+// Fallback compatibility
 function openGradeModal(submissionId, studentName, score, feedback, status) {
-    var form = document.getElementById('gradeForm');
-    form.action = "{{ url('guru/kelas/' . $class->id . '/tugas/submission') }}/" + submissionId + "/nilai";
-    document.getElementById('gradeStudentName').textContent = studentName;
-    document.getElementById('gradeScoreInput').value = score || '';
-    document.getElementById('gradeFeedbackInput').value = feedback || '';
-    document.getElementById('gradeStatusSelect').value = status || 'dinilai';
-    document.getElementById('gradingModal').style.display = 'flex';
+    openReviewAndGradeModal({
+        task_id: '',
+        submission_id: submissionId,
+        student_id: '',
+        student_name: studentName,
+        score: score,
+        counselor_feedback: feedback,
+        status: status
+    });
 }
 
 function closeGradeModal() {
-    document.getElementById('gradingModal').style.display = 'none';
+    closeReviewAndGradeModal();
 }
+
+// Keyboard escape handler for accessibility (R-32)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeReviewAndGradeModal();
+        closeCorrectionModal();
+        if (typeof closeEditMaterialModal === 'function') closeEditMaterialModal();
+        if (typeof closeEditTaskModal === 'function') closeEditTaskModal();
+        if (typeof closeDeleteClassDetailModal === 'function') closeDeleteClassDetailModal();
+        if (typeof closeDeleteMaterialModal === 'function') closeDeleteMaterialModal();
+        if (typeof closeDeleteTaskModal === 'function') closeDeleteTaskModal();
+    }
+});
 </script>
 
 <!-- Modal Edit Materi Pembelajaran -->

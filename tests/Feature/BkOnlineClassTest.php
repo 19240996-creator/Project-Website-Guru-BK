@@ -671,4 +671,115 @@ class BkOnlineClassTest extends TestCase
             'allowed_file_types' => 'pdf',
         ]);
     }
+
+    /**
+     * Skenario 14: Guru BK dapat melihat file/foto jawaban tugas siswa secara inline
+     */
+    public function test_guru_bk_can_view_submission_file_inline()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Pratinjau Berkas',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Tugas Mengunggah Foto Refleksi',
+            'instructions' => 'Kirim foto lembar kerja LKPD',
+            'start_time' => Carbon::now('Asia/Jakarta')->subHours(1),
+            'due_time' => Carbon::now('Asia/Jakarta')->addDays(1),
+        ]);
+
+        $file = UploadedFile::fake()->image('lembar_refleksi.jpg');
+        $filePath = $file->store('bk_classes/submissions', 'public');
+
+        $submission = BkClassTaskSubmission::create([
+            'bk_class_task_id' => $task->id,
+            'student_id' => $this->targetStudent->id,
+            'file_path' => $filePath,
+            'file_name' => 'lembar_refleksi.jpg',
+            'file_size' => 1024,
+            'submission_text' => 'Berikut foto lembar refleksi saya bu guru.',
+            'submitted_at' => Carbon::now('Asia/Jakarta'),
+            'status' => 'diserahkan',
+        ]);
+
+        $res = $this->actingAs($this->counselor)->get(route('guru.kelas.tugas.view_submission', [
+            'id' => $class->id,
+            'submissionId' => $submission->id,
+        ]));
+
+        $res->assertStatus(200);
+        $this->assertStringContainsString('inline', $res->headers->get('Content-Disposition') ?? '');
+    }
+
+    /**
+     * Skenario 15: Guru BK dapat memberikan penilaian tugas secara manual baik daring maupun luring
+     */
+    public function test_guru_bk_can_grade_student_manually()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Penilaian Manual',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Tugas Refleksi Manual',
+            'instructions' => 'Kerjakan refleksi',
+            'start_time' => Carbon::now('Asia/Jakarta')->subHours(1),
+            'due_time' => Carbon::now('Asia/Jakarta')->addDays(1),
+        ]);
+
+        // 1. Berikan nilai secara manual untuk siswa yang belum mengumpulkan online
+        $resManual = $this->actingAs($this->counselor)->post(route('guru.kelas.tugas.grade_student', [
+            'id' => $class->id,
+            'taskId' => $task->id,
+        ]), [
+            'student_id' => $this->targetStudent->id,
+            'score' => 92,
+            'status' => 'dinilai',
+            'counselor_feedback' => 'Refleksi tatap muka sangat baik dan menunjukkan pemahaman mendalam.',
+        ]);
+
+        $resManual->assertRedirect(route('guru.kelas.show', ['id' => $class->id, 'tab' => 'tugas']));
+        $this->assertDatabaseHas('bk_class_task_submissions', [
+            'bk_class_task_id' => $task->id,
+            'student_id' => $this->targetStudent->id,
+            'score' => 92,
+            'status' => 'dinilai',
+            'counselor_feedback' => 'Refleksi tatap muka sangat baik dan menunjukkan pemahaman mendalam.',
+        ]);
+
+        // 2. Berikan opsi revisi dengan catatan bimbingan
+        $resRevisi = $this->actingAs($this->counselor)->post(route('guru.kelas.tugas.grade_student', [
+            'id' => $class->id,
+            'taskId' => $task->id,
+        ]), [
+            'student_id' => $this->targetStudent->id,
+            'score' => 70,
+            'status' => 'perlu_revisi',
+            'counselor_feedback' => 'Tolong lengkapi poin tindakan nyata di masa depan.',
+        ]);
+
+        $resRevisi->assertRedirect();
+        $this->assertDatabaseHas('bk_class_task_submissions', [
+            'bk_class_task_id' => $task->id,
+            'student_id' => $this->targetStudent->id,
+            'score' => 70,
+            'status' => 'perlu_revisi',
+        ]);
+    }
 }

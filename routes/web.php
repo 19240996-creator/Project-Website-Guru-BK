@@ -128,7 +128,9 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
     Route::delete('/kelas/{id}/tugas/{taskId}', [GuruBkClassController::class, 'destroyTask'])->name('kelas.tugas.destroy');
     Route::get('/kelas/{id}/tugas/{taskId}/lampiran', [GuruBkClassController::class, 'downloadTaskAttachment'])->name('kelas.tugas.download_attachment');
     Route::post('/kelas/{id}/tugas/submission/{submissionId}/nilai', [GuruBkClassController::class, 'gradeSubmission'])->name('kelas.tugas.grade');
+    Route::post('/kelas/{id}/tugas/{taskId}/nilai-siswa', [GuruBkClassController::class, 'gradeTaskStudent'])->name('kelas.tugas.grade_student');
     Route::get('/kelas/{id}/tugas/submission/{submissionId}/unduh', [GuruBkClassController::class, 'downloadSubmissionFile'])->name('kelas.tugas.download_submission');
+    Route::get('/kelas/{id}/tugas/submission/{submissionId}/lihat', [GuruBkClassController::class, 'viewSubmissionFile'])->name('kelas.tugas.view_submission');
 
     // Koreksi Presensi
     Route::post('/kelas/{id}/presensi/koreksi', [GuruBkClassController::class, 'correctAttendance'])->name('kelas.presensi.correct');
