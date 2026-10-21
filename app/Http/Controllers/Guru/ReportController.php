@@ -12,6 +12,7 @@ use App\Models\PartnerActivity;
 use App\Models\StudentFuturePlan;
 use App\Models\AlumniTracking;
 use App\Models\CounselingCategory;
+use App\Models\User;
 use Carbon\Carbon;
 
 class ReportController extends Controller
@@ -138,28 +139,36 @@ class ReportController extends Controller
         $availableGrades = ['X', 'XI', 'XII'];
         $availableMajors = StudentClass::distinct()->whereNotNull('major')->where('major', '!=', '')->orderBy('major')->pluck('major');
 
-        return view('guru.laporan.index', compact(
-            'selectedGrade',
-            'selectedMajor',
-            'selectedPeriod',
-            'availableGrades',
-            'availableMajors',
-            'totalFilteredStudents',
-            'totalFilteredCounselings',
-            'attentionStudentsCount',
-            'activePartnersCount',
-            'totalActivitiesCount',
-            'categoryChartLabels',
-            'categoryChartFullNames',
-            'categoryChartData',
-            'futurePlanChartLabels',
-            'futurePlanChartData',
-            'totalPlanStudents',
-            'counselingStatusCounts',
-            'attentionLevelCounts',
-            'gradeCounts',
-            'alumniStatusCounts',
-            'totalAlumni'
+        $periodicData = $this->getPeriodicReportData($request, $user);
+        $activeTab = $request->input('tab', ($request->has('period_type') || $request->has('week_date') || $request->has('month') || $request->has('year') || $request->has('counselor_id')) ? 'berkala' : 'grafik');
+
+        return view('guru.laporan.index', array_merge(
+            compact(
+                'selectedGrade',
+                'selectedMajor',
+                'selectedPeriod',
+                'availableGrades',
+                'availableMajors',
+                'totalFilteredStudents',
+                'totalFilteredCounselings',
+                'attentionStudentsCount',
+                'activePartnersCount',
+                'totalActivitiesCount',
+                'categoryChartLabels',
+                'categoryChartFullNames',
+                'categoryChartData',
+                'futurePlanChartLabels',
+                'futurePlanChartData',
+                'totalPlanStudents',
+                'counselingStatusCounts',
+                'attentionLevelCounts',
+                'gradeCounts',
+                'alumniStatusCounts',
+                'totalAlumni',
+                'activeTab',
+                'user'
+            ),
+            $periodicData
         ));
     }
 
@@ -262,5 +271,212 @@ class ReportController extends Controller
                 'today'
             ));
         }
+    }
+
+    public function generatePeriodic(Request $request)
+    {
+        $user = auth()->user();
+        $periodicData = $this->getPeriodicReportData($request, $user);
+        $today = Carbon::today();
+        $koordinator = User::where('role', 'koordinator_bk')->first();
+
+        return view('guru.laporan.berkala_print', array_merge($periodicData, [
+            'today' => $today,
+            'user' => $user,
+            'koordinator' => $koordinator,
+        ]));
+    }
+
+    private function getPeriodicReportData(Request $request, $user): array
+    {
+        $periodType = $request->input('period_type', 'bulanan');
+        if (!in_array($periodType, ['mingguan', 'bulanan', 'tahunan'])) {
+            $periodType = 'bulanan';
+        }
+
+        $now = Carbon::now();
+        $weekDate = $request->input('week_date', $now->format('Y-m-d'));
+        $selectedMonth = (int) $request->input('month', $now->month);
+        $selectedYear = (int) $request->input('year', $now->year);
+        $selectedGrade = $request->input('berkala_grade', '');
+        $selectedMajor = $request->input('berkala_major', '');
+        $selectedCounselorId = $request->input('counselor_id', 'semua');
+
+        // Rentang Waktu berdasarkan Jenis Periode
+        if ($periodType === 'mingguan') {
+            try {
+                $base = Carbon::parse($weekDate);
+            } catch (\Exception $e) {
+                $base = $now->copy();
+            }
+            $startDate = $base->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
+            $endDate = $base->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+            $periodLabel = 'Minggu ' . $startDate->translatedFormat('d F Y') . ' s.d. ' . $endDate->translatedFormat('d F Y');
+            $reportTitle = 'Laporan Mingguan Layanan Bimbingan & Konseling';
+        } elseif ($periodType === 'tahunan') {
+            $startDate = Carbon::create($selectedYear, 1, 1, 0, 0, 0)->startOfYear();
+            $endDate = Carbon::create($selectedYear, 12, 31, 23, 59, 59)->endOfYear();
+            $periodLabel = 'Tahun Kalender / Ajaran ' . $selectedYear;
+            $reportTitle = 'Laporan Tahunan Layanan Bimbingan & Konseling';
+        } else { // Bulanan (default)
+            $startDate = Carbon::create($selectedYear, $selectedMonth, 1, 0, 0, 0)->startOfMonth();
+            $endDate = Carbon::create($selectedYear, $selectedMonth, 1, 23, 59, 59)->endOfMonth();
+            $periodLabel = 'Bulan ' . $startDate->translatedFormat('F Y');
+            $reportTitle = 'Laporan Bulanan Layanan Bimbingan & Konseling';
+        }
+
+        // Penentuan Role dan Sasaran Konselor
+        $isKoordinator = $user->isKoordinatorBk();
+        $allCounselors = User::whereIn('role', ['guru_bk', 'koordinator_bk'])
+            ->orderBy('role', 'desc')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $targetCounselor = null;
+        if ($isKoordinator) {
+            if ($selectedCounselorId && $selectedCounselorId !== 'semua') {
+                $targetCounselor = User::find($selectedCounselorId);
+            }
+        } else {
+            $targetCounselor = $user;
+        }
+
+        // Query Konseling dalam Periode
+        $counselingQuery = Counseling::with(['student.studentClass', 'counselor', 'category', 'followUps'])
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('created_at', [$startDate, $endDate])
+                  ->orWhere(function ($sq) use ($startDate, $endDate) {
+                      $sq->whereNotNull('scheduled_date')
+                         ->whereBetween('scheduled_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+                  });
+            });
+
+        if ($targetCounselor) {
+            $counselingQuery->where(function ($q) use ($targetCounselor) {
+                $q->where('counselor_id', $targetCounselor->id)
+                  ->orWhereHas('student', fn($sq) => $sq->accessibleBy($targetCounselor));
+            });
+        }
+
+        if ($selectedGrade) {
+            $counselingQuery->whereHas('student.studentClass', fn($q) => $q->where('grade', $selectedGrade));
+        }
+        if ($selectedMajor) {
+            $counselingQuery->whereHas('student.studentClass', fn($q) => $q->where('major', $selectedMajor));
+        }
+
+        $counselings = $counselingQuery->orderBy('created_at', 'desc')->get();
+        $totalCases = $counselings->count();
+
+        // Statistik Penanganan Kasus
+        $completedCases = $counselings->where('status', 'selesai')->count();
+        $inProgressCases = $counselings->filter(fn($c) => in_array($c->status, ['dilaksanakan', 'dijadwalkan']))->count();
+        $followUpCases = $counselings->where('status', 'tindak_lanjut')->count();
+        $newCases = $counselings->filter(fn($c) => in_array($c->status, ['diajukan', 'ditinjau']))->count();
+        $cancelledCases = $counselings->where('status', 'dibatalkan')->count();
+
+        $completionRate = $totalCases > 0 ? round(($completedCases / $totalCases) * 100, 1) : 0;
+
+        // Breakdown Kategori Masalah
+        $categories = CounselingCategory::orderBy('id')->get();
+        $categoryBreakdown = [];
+        foreach ($categories as $cat) {
+            $cnt = $counselings->where('category_id', $cat->id)->count();
+            $pct = $totalCases > 0 ? round(($cnt / $totalCases) * 100, 1) : 0;
+            $categoryBreakdown[] = [
+                'id' => $cat->id,
+                'name' => $cat->name,
+                'count' => $cnt,
+                'percentage' => $pct,
+            ];
+        }
+
+        // Breakdown Tingkat Urgensi Kasus
+        $urgencyBreakdown = [
+            'rendah' => $counselings->where('urgency', 'rendah')->count(),
+            'sedang' => $counselings->where('urgency', 'sedang')->count(),
+            'tinggi' => $counselings->where('urgency', 'tinggi')->count(),
+            'darurat' => $counselings->where('urgency', 'darurat')->count(),
+        ];
+
+        // Siswa Perlu Perhatian Khusus dalam Lingkup
+        $attentionStudentsQuery = Student::with('studentClass')->where('status', 'aktif')
+            ->whereIn('attention_level', ['perlu_perhatian', 'prioritas', 'segera_ditindaklanjuti']);
+
+        if ($targetCounselor) {
+            $attentionStudentsQuery->accessibleBy($targetCounselor);
+        }
+        if ($selectedGrade) {
+            $attentionStudentsQuery->whereHas('studentClass', fn($q) => $q->where('grade', $selectedGrade));
+        }
+        if ($selectedMajor) {
+            $attentionStudentsQuery->whereHas('studentClass', fn($q) => $q->where('major', $selectedMajor));
+        }
+        $attentionStudents = $attentionStudentsQuery->get();
+
+        // Agenda / Kegiatan Mitra & Karier dalam Periode
+        $activitiesInPeriod = PartnerActivity::with(['partner', 'targetClass'])
+            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->get();
+
+        // Rekapitulasi Beban & Kinerja Guru BK (Khusus Koordinator melihat seluruh sekolah)
+        $counselorWorkload = [];
+        if ($isKoordinator && (!$targetCounselor || $selectedCounselorId === 'semua')) {
+            foreach ($allCounselors as $counselor) {
+                $assignedCount = Student::accessibleBy($counselor)->where('status', 'aktif')->count();
+                $handledCounselings = Counseling::where(function ($q) use ($counselor) {
+                    $q->where('counselor_id', $counselor->id)
+                      ->orWhereHas('student', fn($sq) => $sq->accessibleBy($counselor));
+                })->where(function ($q) use ($startDate, $endDate) {
+                    $q->whereBetween('created_at', [$startDate, $endDate])
+                      ->orWhere(function ($sq) use ($startDate, $endDate) {
+                          $sq->whereNotNull('scheduled_date')
+                             ->whereBetween('scheduled_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+                      });
+                })->get();
+
+                $handledTotal = $handledCounselings->count();
+                $handledDone = $handledCounselings->where('status', 'selesai')->count();
+                $handledRate = $handledTotal > 0 ? round(($handledDone / $handledTotal) * 100, 1) : 0;
+
+                $counselorWorkload[] = [
+                    'counselor' => $counselor,
+                    'assigned_students' => $assignedCount,
+                    'total_cases' => $handledTotal,
+                    'completed_cases' => $handledDone,
+                    'completion_rate' => $handledRate,
+                ];
+            }
+        }
+
+        return compact(
+            'periodType',
+            'weekDate',
+            'selectedMonth',
+            'selectedYear',
+            'selectedGrade',
+            'selectedMajor',
+            'selectedCounselorId',
+            'startDate',
+            'endDate',
+            'periodLabel',
+            'reportTitle',
+            'isKoordinator',
+            'allCounselors',
+            'targetCounselor',
+            'counselings',
+            'totalCases',
+            'completedCases',
+            'inProgressCases',
+            'followUpCases',
+            'newCases',
+            'cancelledCases',
+            'completionRate',
+            'categoryBreakdown',
+            'urgencyBreakdown',
+            'attentionStudents',
+            'activitiesInPeriod',
+            'counselorWorkload'
+        );
     }
 }

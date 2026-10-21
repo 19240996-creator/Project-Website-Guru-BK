@@ -136,9 +136,10 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
     Route::post('/siswa/{studentId}/graduate', [GuruAlumniController::class, 'graduateStudent'])->name('alumni.graduate');
     Route::post('/alumni/{id}/toggle-showcase', [GuruAlumniController::class, 'toggleShowcase'])->name('alumni.toggle_showcase');
 
-    // 26 - 30. Laporan (Paket A Kesiswaan, Paket B Kurikulum, Paket C Kepala Sekolah)
+    // 26 - 30. Laporan (Paket A Kesiswaan, Paket B Kurikulum, Paket C Kepala Sekolah, Laporan Berkala)
     Route::get('/laporan', [GuruReportController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/cetak', [GuruReportController::class, 'generate'])->name('laporan.generate');
+    Route::get('/laporan/cetak-berkala', [GuruReportController::class, 'generatePeriodic'])->name('laporan.generate_periodic');
 
     // ==========================================
     // KHUSUS GURU KOORDINATOR BK
