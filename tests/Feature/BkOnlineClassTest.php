@@ -677,6 +677,13 @@ class BkOnlineClassTest extends TestCase
             'title' => 'Tugas Revisi Perpanjangan Waktu',
             'allowed_file_types' => 'pdf',
         ]);
+
+        // Guru BK melihat tombol Buat Penugasan Baru dan modal form penugasan
+        $resGuruTaskShow = $this->actingAs($this->counselor)->get(route('guru.kelas.show', ['id' => $class->id, 'tab' => 'tugas']));
+        $resGuruTaskShow->assertStatus(200);
+        $resGuruTaskShow->assertSee('Buat Penugasan Baru');
+        $resGuruTaskShow->assertSee('modalCreateTask');
+        $resGuruTaskShow->assertSee('openCreateTaskModal');
     }
 
     /**

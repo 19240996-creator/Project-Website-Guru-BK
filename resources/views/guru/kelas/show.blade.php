@@ -254,19 +254,38 @@
     <!-- TAB 2: TUGAS & PENGUMPULAN -->
     <!-- ======================================================== -->
     @if($activeTab === 'tugas')
-    <div style="display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: flex-start;">
-        <!-- Daftar Tugas & Rekap Pengumpulan -->
-        <div>
-            @if($class->tasks->isEmpty())
-            <div class="card" style="padding: 40px 20px; text-align: center; border: 1px dashed var(--color-border); border-radius: 10px; background: #fff;">
-                <div style="font-size: 14px; font-weight: 700; color: var(--color-navy); margin-bottom: 6px;">Belum Ada Tugas Pembelajaran</div>
-                <p style="font-size: 12.5px; color: var(--color-text-muted); margin: 0 auto; max-width: 400px;">
-                    Buat penugasan atau lembar kerja siswa melalui formulir di samping kanan. Batas pengumpulan tugas berjalan independen dari waktu absensi.
+    <div>
+        <!-- Top Action Bar Tab Tugas -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h4 style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin: 0 0 2px 0;">Penugasan &amp; Lembar Kerja</h4>
+                <p style="font-size: 12px; color: var(--color-text-muted); margin: 0;">
+                    Kelola penugasan siswa, unduh lembar kerja, dan nilai hasil pengumpulan tugas secara langsung.
                 </p>
             </div>
-            @else
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                @foreach($class->tasks as $task)
+            <button type="button" class="btn btn-primary" onclick="openCreateTaskModal()" style="font-size: 12.5px; padding: 8px 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Buat Penugasan Baru</span>
+            </button>
+        </div>
+
+        @if($class->tasks->isEmpty())
+        <div class="card" style="padding: 48px 20px; text-align: center; border: 1px dashed var(--color-border); border-radius: 12px; background: #fff;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin-bottom: 6px;">Belum Ada Tugas Pembelajaran</div>
+            <p style="font-size: 12.5px; color: var(--color-text-muted); margin: 0 auto 16px auto; max-width: 440px; line-height: 1.5;">
+                Buat penugasan atau lembar kerja refleksi bimbingan karier untuk dikerjakan siswa. Batas pengumpulan tugas dapat disesuaikan secara fleksibel.
+            </p>
+            <button type="button" class="btn btn-primary" onclick="openCreateTaskModal()" style="font-size: 12.5px; padding: 8px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Buat Penugasan Sekarang</span>
+            </button>
+        </div>
+        @else
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            @foreach($class->tasks as $task)
                 @php
                     $submissions = ($task->relationLoaded('submissions') && $task->submissions->isNotEmpty())
                         ? $task->submissions
@@ -509,56 +528,8 @@
                     </div>
                 </div>
                 @endforeach
-            </div>
-            @endif
         </div>
-
-        <!-- Form Buat Tugas Baru -->
-        <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; overflow: hidden; position: sticky; top: 20px;">
-            <div style="padding: 12px 16px; background: var(--color-surface-subtle, #f8fafd); border-bottom: 1px solid var(--color-border);">
-                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--color-navy); margin: 0;">
-                    Buat Penugasan Baru
-                </h4>
-            </div>
-            <div class="card-body" style="padding: 16px;">
-                <form action="{{ route('guru.kelas.tugas.store', $class->id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Judul Tugas <span style="color: #dc2626;">*</span></label>
-                        <input type="text" name="title" required class="form-control" placeholder="Contoh: Lembar Refleksi Peminatan Karier" style="font-size: 12.5px; min-height: 36px;">
-                    </div>
-
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Instruksi Pengerjaan <span style="color: #dc2626;">*</span></label>
-                        <textarea name="instructions" rows="3" required class="form-control" placeholder="Tuliskan petunjuk pengerjaan dan format jawaban..." style="font-size: 12px;"></textarea>
-                    </div>
-
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Waktu Mulai Pengerjaan</label>
-                        @php
-                            $defaultStartDt = \Carbon\Carbon::parse($class->class_date->format('Y-m-d') . ' ' . ($class->start_time ?? '07:00'), 'Asia/Jakarta');
-                        @endphp
-                        <input type="datetime-local" name="start_time" value="{{ $defaultStartDt->format('Y-m-d\TH:i') }}" required class="form-control" style="font-size: 12px;">
-                        <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 3px;">Tugas otomatis terbuka untuk siswa di kelas saat sesi pembelajaran berlangsung.</small>
-                    </div>
-
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Batas Akhir Pengumpulan (Deadline)</label>
-                        <input type="datetime-local" name="due_time" value="{{ \Carbon\Carbon::parse($class->class_date->format('Y-m-d') . ' 23:59', 'Asia/Jakarta')->format('Y-m-d\TH:i') }}" required class="form-control" style="font-size: 12px;">
-                    </div>
-
-                    <div style="margin-bottom: 14px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Lampiran Guru (Opsional LKPD / Template)</label>
-                        <input type="file" name="attachment" class="form-control" style="font-size: 12px;">
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%; font-weight: 700; font-size: 13px; padding: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Terbitkan Tugas Siswa</span>
-                    </button>
-                </form>
-            </div>
-        </div>
+        @endif
     </div>
     @endif
 
@@ -948,6 +919,22 @@ function closeCreateMaterialModal() {
     }
 }
 
+function openCreateTaskModal() {
+    var modal = document.getElementById('modalCreateTask');
+    if (modal) {
+        modal.style.display = 'flex';
+        var firstInput = modal.querySelector('input[name="title"]');
+        if (firstInput) setTimeout(function() { firstInput.focus(); }, 50);
+    }
+}
+
+function closeCreateTaskModal() {
+    var modal = document.getElementById('modalCreateTask');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 function toggleMaterialInput(val) {
     var fileContainer = document.getElementById('fileUploadContainer');
     var videoContainer = document.getElementById('videoUrlContainer');
@@ -1120,6 +1107,7 @@ document.addEventListener('keydown', function(e) {
         closeReviewAndGradeModal();
         closeCorrectionModal();
         if (typeof closeCreateMaterialModal === 'function') closeCreateMaterialModal();
+        if (typeof closeCreateTaskModal === 'function') closeCreateTaskModal();
         if (typeof closeEditMaterialModal === 'function') closeEditMaterialModal();
         if (typeof closeEditTaskModal === 'function') closeEditTaskModal();
         if (typeof closeDeleteClassDetailModal === 'function') closeDeleteClassDetailModal();
@@ -1223,6 +1211,69 @@ document.addEventListener('keydown', function(e) {
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
                 <button type="button" class="btn btn-secondary" onclick="closeEditMaterialModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
                 <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 700;">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Buat Penugasan Baru (Bersih, Rapi & Fokus) -->
+<div id="modalCreateTask" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center; padding: 20px;" onclick="if(event.target === this) closeCreateTaskModal()">
+    <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+        <div style="padding: 16px 20px; background: var(--color-surface-subtle, #f8fafc); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-navy);">Buat Penugasan Baru</h4>
+            </div>
+            <button type="button" onclick="closeCreateTaskModal()" style="border: 0; background: transparent; font-size: 20px; cursor: pointer; color: #64748b;" aria-label="Tutup">&times;</button>
+        </div>
+        <form action="{{ route('guru.kelas.tugas.store', $class->id) }}" method="POST" enctype="multipart/form-data" style="padding: 20px;">
+            @csrf
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Judul Tugas <span style="color: #dc2626;">*</span></label>
+                <input type="text" name="title" required class="form-control" placeholder="Contoh: Lembar Refleksi Peminatan Karier" style="font-size: 12.5px; min-height: 38px;">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Instruksi Pengerjaan <span style="color: #dc2626;">*</span></label>
+                <textarea name="instructions" rows="3" required class="form-control" placeholder="Tuliskan petunjuk pengerjaan dan format jawaban..." style="font-size: 12px;"></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Waktu Mulai Pengerjaan <span style="color: #dc2626;">*</span></label>
+                    @php
+                        $defaultStartDt = \Carbon\Carbon::parse($class->class_date->format('Y-m-d') . ' ' . ($class->start_time ?? '07:00'), 'Asia/Jakarta');
+                    @endphp
+                    <input type="datetime-local" name="start_time" value="{{ $defaultStartDt->format('Y-m-d\TH:i') }}" required class="form-control" style="font-size: 12px; min-height: 38px;">
+                    <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 3px;">Tugas terbuka otomatis untuk siswa di kelas saat sesi bimbingan berlangsung.</small>
+                </div>
+
+                <div>
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Batas Akhir Pengumpulan (Deadline) <span style="color: #dc2626;">*</span></label>
+                    <input type="datetime-local" name="due_time" value="{{ \Carbon\Carbon::parse($class->class_date->format('Y-m-d') . ' 23:59', 'Asia/Jakarta')->format('Y-m-d\TH:i') }}" required class="form-control" style="font-size: 12px; min-height: 38px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Format Berkas yang Diizinkan (Opsional)</label>
+                <input type="text" name="allowed_file_types" class="form-control" placeholder="pdf,docx,doc,ppt,pptx,zip,jpg,png" style="font-size: 12px; min-height: 38px;">
+                <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 3px;">Pisahkan dengan koma. Kosongkan untuk mengizinkan seluruh format berkas standar.</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Lampiran Guru (Opsional LKPD / Template)</label>
+                <input type="file" name="attachment" class="form-control" style="font-size: 12px;">
+                <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 3px;">Format yang didukung: dokumen, PDF, slide, atau gambar (maksimal 20 MB).</small>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateTaskModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
+                <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Terbitkan Tugas Siswa</span>
+                </button>
             </div>
         </form>
     </div>
