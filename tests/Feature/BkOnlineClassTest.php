@@ -782,4 +782,94 @@ class BkOnlineClassTest extends TestCase
             'status' => 'perlu_revisi',
         ]);
     }
+
+    /**
+     * Skenario 16: Siswa dapat mengumpulkan tugas saat sesi kelas aktif meskipun start_time penugasan di masa depan beberapa menit
+     */
+    public function test_student_can_submit_task_in_active_class_even_if_task_start_time_in_future()
+    {
+        $now = Carbon::now('Asia/Jakarta');
+
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Masa Depan Aktif',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $now->toDateString(),
+            'start_time' => $now->copy()->subMinutes(10)->format('H:i'),
+            'end_time' => $now->copy()->addMinutes(50)->format('H:i'),
+            'attendance_start_time' => $now->copy()->subMinutes(10)->format('H:i'),
+            'attendance_end_time' => $now->copy()->addMinutes(50)->format('H:i'),
+        ]);
+
+        // Tugas dengan start_time 15 menit ke depan (misal kasus guru mengeset waktu 17:01 saat kelas mulai 16:50)
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Tugas Kelas Sedang Berlangsung',
+            'instructions' => 'Tuliskan refleksi di kertas atau teks',
+            'start_time' => $now->copy()->addMinutes(15),
+            'due_time' => $now->copy()->addHours(2),
+        ]);
+
+        $this->assertTrue($task->isOpen());
+
+        $res = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.tugas.submit', [
+            'id' => $class->id,
+            'taskId' => $task->id,
+        ]), [
+            'submission_text' => 'Jawaban siswa saat kelas sedang berlangsung.',
+        ]);
+
+        $res->assertRedirect();
+        $res->assertSessionHas('success');
+        $this->assertDatabaseHas('bk_class_task_submissions', [
+            'bk_class_task_id' => $task->id,
+            'student_id' => $this->targetStudent->id,
+            'status' => 'diserahkan',
+        ]);
+    }
+
+    /**
+     * Skenario 17: Siswa melihat pemberitahuan terjadwal jika kelas di masa depan dan tugas belum buka
+     */
+    public function test_student_future_class_task_shows_notice_and_rejects_with_exact_time()
+    {
+        $futureDate = Carbon::now('Asia/Jakarta')->addDays(5);
+
+        $futureClass = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Minggu Depan',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $futureDate->toDateString(),
+            'start_time' => '09:00',
+            'end_time' => '10:30',
+            'attendance_start_time' => '08:55',
+            'attendance_end_time' => '09:15',
+        ]);
+
+        $futureTask = BkClassTask::create([
+            'bk_class_id' => $futureClass->id,
+            'title' => 'Tugas Minggu Depan',
+            'instructions' => 'Instruksi minggu depan',
+            'start_time' => $futureDate->copy()->setTime(9, 0),
+            'due_time' => $futureDate->copy()->setTime(23, 59),
+        ]);
+
+        $this->assertFalse($futureTask->isOpen());
+
+        // Halaman siswa menampilkan keterangan belum dibuka
+        $resView = $this->actingAs($this->targetStudent->user)->get(route('siswa.kelas.show', $futureClass->id));
+        $resView->assertStatus(200);
+        $resView->assertSee('Waktu Pengerjaan Tugas Belum Dibuka');
+
+        // Submit sebelum dibuka ditolak dengan pesan waktu yang ramah
+        $resSubmit = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.tugas.submit', [
+            'id' => $futureClass->id,
+            'taskId' => $futureTask->id,
+        ]), [
+            'submission_text' => 'Coba kirim tugas lebih awal.',
+        ]);
+
+        $resSubmit->assertRedirect();
+        $resSubmit->assertSessionHas('error');
+    }
 }

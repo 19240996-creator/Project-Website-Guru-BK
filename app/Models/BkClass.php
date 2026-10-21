@@ -155,6 +155,11 @@ class BkClass extends Model
         return $this->attendance_status === 'dibuka';
     }
 
+    public function isOngoing(): bool
+    {
+        return $this->computed_status === 'berlangsung';
+    }
+
     // ==========================================
     // TARGET STUDENTS & ACCESS SCOPE
     // ==========================================

@@ -249,10 +249,16 @@
             <div class="card" style="border: 1px solid var(--color-border); border-radius: 12px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm);">
                 <div style="padding: 18px 22px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                             <span style="background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">Tugas BK</span>
+                            @if($task->start_time)
                             <span style="font-size: 11.5px; color: var(--color-text-muted);">
-                                Batas Pengumpulan: <strong>{{ $task->due_time ? $task->due_time->format('d M Y, H:i') : '-' }} WIB</strong>
+                                Waktu Mulai: <strong style="color: var(--color-text-main);">{{ $task->start_time->format('d M Y, H:i') }} WIB</strong>
+                            </span>
+                            <span style="color: #cbd5e1;">&bull;</span>
+                            @endif
+                            <span style="font-size: 11.5px; color: var(--color-text-muted);">
+                                Batas Pengumpulan: <strong style="color: var(--color-text-main);">{{ $task->due_time ? $task->due_time->format('d M Y, H:i') : '-' }} WIB</strong>
                             </span>
                         </div>
                         <h4 style="font-size: 16px; font-weight: 700; color: var(--color-navy); margin: 0 0 6px 0;">
@@ -336,6 +342,16 @@
                     </div>
                     @endif
 
+                    @if(!$task->isOpen())
+                    <div style="padding: 16px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; text-align: center;">
+                        <div style="font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 4px;">
+                            Waktu Pengerjaan Tugas Belum Dibuka
+                        </div>
+                        <div style="font-size: 12px; color: #b45309;">
+                            Tugas ini dijadwalkan dibuka untuk pengumpulan pada tanggal <strong>{{ $task->start_time ? $task->start_time->format('d F Y, H:i') : '-' }} WIB</strong>.
+                        </div>
+                    </div>
+                    @else
                     <!-- Formulir Pengumpulan atau Revisi Tugas -->
                     <div>
                         <div style="font-size: 13px; font-weight: 700; color: var(--color-navy); margin-bottom: 8px;">
@@ -369,6 +385,7 @@
                             </div>
                         </form>
                     </div>
+                    @endif
                 </div>
             </div>
             @endforeach

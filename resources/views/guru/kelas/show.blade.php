@@ -303,10 +303,16 @@
                 <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm);">
                     <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap;">
                         <div>
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
                                 <span style="background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;">Penugasan BK</span>
+                                @if($task->start_time)
                                 <span style="font-size: 11.5px; color: var(--color-text-muted);">
-                                    Batas Akhir: <strong>{{ $task->due_time ? $task->due_time->format('d M Y, H:i') : '-' }} WIB</strong>
+                                    Mulai: <strong style="color: var(--color-text-main);">{{ $task->start_time->format('d M Y, H:i') }} WIB</strong>
+                                </span>
+                                <span style="color: #cbd5e1;">&bull;</span>
+                                @endif
+                                <span style="font-size: 11.5px; color: var(--color-text-muted);">
+                                    Batas Akhir: <strong style="color: var(--color-text-main);">{{ $task->due_time ? $task->due_time->format('d M Y, H:i') : '-' }} WIB</strong>
                                 </span>
                             </div>
                             <h4 style="font-size: 16px; font-weight: 700; color: var(--color-navy); margin: 0 0 6px 0;">
@@ -525,7 +531,11 @@
 
                     <div style="margin-bottom: 12px;">
                         <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Waktu Mulai Pengerjaan</label>
-                        <input type="datetime-local" name="start_time" value="{{ \Carbon\Carbon::now('Asia/Jakarta')->format('Y-m-d\TH:i') }}" required class="form-control" style="font-size: 12px;">
+                        @php
+                            $defaultStartDt = \Carbon\Carbon::parse($class->class_date->format('Y-m-d') . ' ' . ($class->start_time ?? '07:00'), 'Asia/Jakarta');
+                        @endphp
+                        <input type="datetime-local" name="start_time" value="{{ $defaultStartDt->format('Y-m-d\TH:i') }}" required class="form-control" style="font-size: 12px;">
+                        <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 3px;">Tugas otomatis terbuka untuk siswa di kelas saat sesi pembelajaran berlangsung.</small>
                     </div>
 
                     <div style="margin-bottom: 12px;">
@@ -1140,6 +1150,7 @@ document.addEventListener('keydown', function(e) {
                 <div>
                     <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Waktu Mulai <span style="color: #dc2626;">*</span></label>
                     <input type="datetime-local" name="start_time" id="editTaskStartTime" required class="form-control" style="font-size: 12px;">
+                    <small style="color: var(--color-text-muted); font-size: 10.5px; display: block; margin-top: 3px;">Siswa di kelas aktif dapat langsung mengumpulkan tugas.</small>
                 </div>
                 <div>
                     <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Batas Akhir (Tenggat) <span style="color: #dc2626;">*</span></label>

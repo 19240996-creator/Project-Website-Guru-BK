@@ -165,19 +165,28 @@ class BkClassController extends Controller
         }
 
         $task = BkClassTask::where('bk_class_id', $class->id)->findOrFail($taskId);
+        $task->setRelation('bkClass', $class);
 
         $request->validate([
             'submission_text' => 'nullable|string',
-            'file' => 'nullable|file|max:' . $task->max_file_size_kb,
+            'file' => 'nullable|file|max:' . ($task->max_file_size_kb ?: 20480),
         ]);
 
         if (!$request->filled('submission_text') && !$request->hasFile('file')) {
             return back()->with('error', 'Mohon tulis jawaban atau unggah berkas tugas Anda sebelum mengirimkan.');
         }
 
+        if ($request->hasFile('file') && $task->allowed_file_types) {
+            $allowed = array_map('trim', explode(',', strtolower($task->allowed_file_types)));
+            $clientExt = strtolower($request->file('file')->getClientOriginalExtension());
+            if (!in_array($clientExt, $allowed)) {
+                return back()->with('error', "Format berkas .{$clientExt} tidak diizinkan. Format yang diperbolehkan: {$task->allowed_file_types}");
+            }
+        }
+
         $now = Carbon::now('Asia/Jakarta');
-        if ($now->lt($task->start_time)) {
-            return back()->with('error', 'Waktu pengerjaan tugas ini belum dimulai.');
+        if (!$task->isOpen()) {
+            return back()->with('error', 'Waktu pengerjaan tugas ini belum dibuka (jadwal buka: ' . ($task->start_time ? $task->start_time->format('d/m/Y H:i') : '-') . ' WIB).');
         }
 
         $filePath = null;

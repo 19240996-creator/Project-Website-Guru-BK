@@ -44,7 +44,21 @@ class BkClassTask extends Model
 
     public function isOpen(): bool
     {
-        return Carbon::now('Asia/Jakarta')->gte($this->start_time);
+        $now = Carbon::now('Asia/Jakarta');
+        if (!$this->start_time) {
+            return true;
+        }
+
+        // Jika kelas sedang berlangsung atau hari pelaksanaan kelas adalah hari ini atau sudah dimulai,
+        // maka penugasan otomatis terbuka agar siswa di kelas dapat langsung mengumpulkan tugas
+        if ($this->bkClass) {
+            $class = $this->bkClass;
+            if ($class->isOngoing() || $class->class_date->isToday() || $now->gte($class->class_date->copy()->startOfDay())) {
+                return true;
+            }
+        }
+
+        return $now->gte($this->start_time);
     }
 
     public function submissionFor(?Student $student): ?BkClassTaskSubmission
