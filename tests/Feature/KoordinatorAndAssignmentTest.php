@@ -243,4 +243,26 @@ class KoordinatorAndAssignmentTest extends TestCase
         $response->assertSee('Jadwal Konseling Mendatang');
         $response->assertSee('Aktivitas Terkini Sistem');
     }
+
+    public function test_audit_log_only_accessible_to_koordinator_and_hidden_for_regular_guru()
+    {
+        // 1. Koordinator can access audit log page
+        $resKoordinator = $this->actingAs($this->koordinator)->get(route('guru.audit.index'));
+        $resKoordinator->assertStatus(200);
+        $resKoordinator->assertSee('Audit Log Aktivitas');
+
+        // 2. Koordinator sees Audit Log link in sidebar
+        $dashKoordinator = $this->actingAs($this->koordinator)->get(route('guru.dashboard'));
+        $dashKoordinator->assertStatus(200);
+        $dashKoordinator->assertSee(route('guru.audit.index'));
+
+        // 3. Regular Guru BK CANNOT access audit log page (403)
+        $resGuru = $this->actingAs($this->guruA)->get(route('guru.audit.index'));
+        $resGuru->assertStatus(403);
+
+        // 4. Regular Guru BK sidebar does NOT have audit log link
+        $dashGuru = $this->actingAs($this->guruA)->get(route('guru.dashboard'));
+        $dashGuru->assertStatus(200);
+        $dashGuru->assertDontSee(route('guru.audit.index'));
+    }
 }

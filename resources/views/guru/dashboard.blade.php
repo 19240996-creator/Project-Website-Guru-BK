@@ -658,9 +658,11 @@
     <div class="card" style="margin-bottom: 0;">
         <div class="card-header card-header-navy" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px;">
             <h2 class="card-title" style="margin: 0; font-size: 14.5px; color: #FFFFFF;">Aktivitas Terkini Sistem</h2>
+            @if($isKoordinator)
             <a href="{{ route('guru.audit.index') }}" class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 3px 10px; border-radius: var(--radius-sm);" title="Lihat Semua Aktivitas">
                 Lihat Semua
             </a>
+            @endif
         </div>
         <div class="card-body" style="padding: 0;">
             @if(count($recentActivities) > 0)

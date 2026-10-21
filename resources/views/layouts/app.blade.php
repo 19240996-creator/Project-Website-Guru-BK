@@ -122,10 +122,12 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                     <span>Laporan & Grafik</span>
                 </a>
+                @if(auth()->user()->isKoordinatorBk())
                 <a href="{{ route('guru.audit.index') }}" class="nav-item {{ request()->routeIs('guru.audit.*') ? 'active' : '' }}" title="Audit Log Aktivitas">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     <span>Audit Log Aktivitas</span>
                 </a>
+                @endif
 
                 <div class="nav-group-label">
                     <span class="nav-group-label-icon">

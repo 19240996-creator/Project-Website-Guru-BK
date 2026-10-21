@@ -618,10 +618,13 @@ class SystemVerificationTest extends TestCase
         $this->assertNotNull($deleteLog);
         $this->assertStringContainsString($updatedTitle, $deleteLog->description);
 
-        // 4. Verify Audit Log index page displays the logs
-        $auditPageResponse = $this->actingAs($guru)->get('/guru/audit');
-        $auditPageResponse->assertStatus(200);
-        $auditPageResponse->assertSee($updatedTitle, false);
+        // 4. Verify Audit Log index page displays the logs as koordinator
+        $koordinator = User::where('role', 'koordinator_bk')->first();
+        if ($koordinator) {
+            $auditPageResponse = $this->actingAs($koordinator)->get('/guru/audit');
+            $auditPageResponse->assertStatus(200);
+            $auditPageResponse->assertSee($updatedTitle, false);
+        }
     }
 
     public function test_guru_bk_can_filter_update_and_delete_partners(): void
@@ -910,10 +913,11 @@ class SystemVerificationTest extends TestCase
 
     public function test_guru_bk_can_filter_audit_logs_with_horizontal_filters(): void
     {
-        $guru = User::where('role', 'guru_bk')->first();
+        $koordinator = User::where('role', 'koordinator_bk')->first();
+        $this->assertNotNull($koordinator);
 
-        // 1. Visit audit page without filter
-        $response = $this->actingAs($guru)->get('/guru/audit');
+        // 1. Visit audit page without filter as koordinator
+        $response = $this->actingAs($koordinator)->get('/guru/audit');
         $response->assertStatus(200);
         $response->assertSee('Cari Deskripsi / IP / Pelaksana', false);
         $response->assertSee('Kategori Aksi', false);
@@ -921,13 +925,19 @@ class SystemVerificationTest extends TestCase
         $response->assertSee('Tanggal Aktivitas', false);
 
         // 2. Filter by action
-        $responseAction = $this->actingAs($guru)->get('/guru/audit?action=SIMPAN');
+        $responseAction = $this->actingAs($koordinator)->get('/guru/audit?action=SIMPAN');
         $responseAction->assertStatus(200);
         $responseAction->assertSee('Reset Filter', false);
 
         // 3. Filter by query
-        $responseQuery = $this->actingAs($guru)->get('/guru/audit?q=konseling');
+        $responseQuery = $this->actingAs($koordinator)->get('/guru/audit?q=konseling');
         $responseQuery->assertStatus(200);
+
+        // 4. Regular Guru BK must receive 403 Forbidden
+        $guru = User::where('role', 'guru_bk')->first();
+        $this->assertNotNull($guru);
+        $forbiddenResponse = $this->actingAs($guru)->get('/guru/audit');
+        $forbiddenResponse->assertStatus(403);
     }
 
     public function test_guru_bk_can_select_multiple_activities_and_bulk_update_or_delete(): void

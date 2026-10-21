@@ -140,12 +140,6 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
     Route::get('/laporan', [GuruReportController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/cetak', [GuruReportController::class, 'generate'])->name('laporan.generate');
 
-    // 41. Audit Log
-    Route::get('/audit', [GuruAuditLogController::class, 'index'])->name('audit.index');
-    Route::delete('/audit/bulk', [GuruAuditLogController::class, 'bulkDestroy'])->name('audit.bulk-destroy');
-    Route::post('/audit/clear', [GuruAuditLogController::class, 'clear'])->name('audit.clear');
-    Route::delete('/audit/{id}', [GuruAuditLogController::class, 'destroy'])->name('audit.destroy');
-
     // ==========================================
     // KHUSUS GURU KOORDINATOR BK
     // ==========================================
@@ -164,6 +158,12 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
         Route::get('/koordinator/guru-bk/{id}/edit', [KoordinatorGuruBkController::class, 'edit'])->name('koordinator.guru_bk.edit');
         Route::put('/koordinator/guru-bk/{id}', [KoordinatorGuruBkController::class, 'update'])->name('koordinator.guru_bk.update');
         Route::delete('/koordinator/guru-bk/{id}', [KoordinatorGuruBkController::class, 'destroy'])->name('koordinator.guru_bk.destroy');
+
+        // 41. Audit Log Aktivitas & Perubahan Data (Khusus Koordinator BK)
+        Route::get('/audit', [GuruAuditLogController::class, 'index'])->name('audit.index');
+        Route::delete('/audit/bulk', [GuruAuditLogController::class, 'bulkDestroy'])->name('audit.bulk-destroy');
+        Route::post('/audit/clear', [GuruAuditLogController::class, 'clear'])->name('audit.clear');
+        Route::delete('/audit/{id}', [GuruAuditLogController::class, 'destroy'])->name('audit.destroy');
     });
 });
 

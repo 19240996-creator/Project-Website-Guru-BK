@@ -1,15 +1,23 @@
 @extends('layouts.app')
 
-@section('title', 'Audit Log Aktivitas - Guru BK')
+@section('title', 'Audit Log Aktivitas - Koordinator BK')
 @section('header_title', 'Audit Log & Rekam Jejak Sistem')
 
 @section('content')
 <div style="margin-bottom: 24px;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+        <span class="badge badge-primary" style="font-size: 11px; padding: 3px 8px; font-weight: 700;">
+            KOORDINATOR BK
+        </span>
+        <span style="font-size: 12px; color: var(--color-text-muted);">
+            Pengawasan & Akuntabilitas Sistem
+        </span>
+    </div>
     <h1 style="font-size: 20px; font-weight: 800; color: var(--color-navy); margin-bottom: 4px;">
         Audit Log Aktivitas & Perubahan Data
     </h1>
     <p style="font-size: 13px; color: var(--color-text-muted); margin: 0;">
-        Rekam jejak setiap tindakan pada data konseling, penjadwalan, dan profil siswa untuk menjamin akuntabilitas serta keamanan data.
+        Rekam jejak setiap tindakan pada data konseling, penjadwalan, penugasan, dan profil siswa untuk menjamin akuntabilitas serta keamanan data sekolah.
     </p>
 </div>
 
