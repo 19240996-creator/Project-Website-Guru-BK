@@ -128,13 +128,25 @@ class SystemVerificationTest extends TestCase
         $resIndex->assertSee('Distribusi Tingkat Perhatian & Pembinaan Siswa', false);
         $resIndex->assertSee('Distribusi Siswa per Jenjang Kelas', false);
         $resIndex->assertSee('Peta Penyerapan Alumni (Tracer Study)', false);
-        $resIndex->assertSee('Paket Template Laporan Otomatis Pimpinan', false);
+        $resIndex->assertSee('Paket Laporan Pimpinan', false);
+        $resIndex->assertDontSee('4. Paket Template Laporan Otomatis Pimpinan', false);
+
+        // Verify Paket Laporan tab contains the package cards
+        $resPaket = $this->actingAs($guru)->get('/guru/laporan?tab=paket');
+        $resPaket->assertStatus(200);
+        $resPaket->assertSee('Paket Template Laporan Otomatis Pimpinan', false);
 
         // Test Laporan & Grafik with active filtering
         $resFiltered = $this->actingAs($guru)->get('/guru/laporan?grade=XII&period=1_bulan');
         $resFiltered->assertStatus(200);
         $resFiltered->assertSee('Filter Aktif', false);
         $resFiltered->assertSee('Reset Filter', false);
+
+        // Test Laporan & Grafik with custom period range
+        $resCustom = $this->actingAs($guru)->get('/guru/laporan?period=custom&start_date=2026-10-18&end_date=2026-10-21');
+        $resCustom->assertStatus(200);
+        $resCustom->assertSee('Filter Aktif', false);
+        $resCustom->assertSee('Kustom:', false);
     }
 
     public function test_siswa_can_login_and_access_dashboard()
@@ -964,6 +976,8 @@ class SystemVerificationTest extends TestCase
             'partnership_status' => 'aktif',
         ]);
 
+        \App\Models\PartnerActivity::whereIn('code', ['KGT-BULK-001', 'KGT-BULK-002'])->delete();
+
         $act1 = \App\Models\PartnerActivity::create([
             'partner_id' => $partner->id,
             'code' => 'KGT-BULK-001',
@@ -1003,7 +1017,8 @@ class SystemVerificationTest extends TestCase
         // Verify audit log for bulk status update
         $statusLog = \App\Models\AuditLog::where('entity_type', 'PartnerActivity')
             ->where('action', 'PERBARUI')
-            ->latest()
+            ->whereNull('entity_id')
+            ->latest('id')
             ->first();
         $this->assertNotNull($statusLog);
         $this->assertStringContainsString('Terlaksana', $statusLog->description);

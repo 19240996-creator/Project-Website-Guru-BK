@@ -86,6 +86,17 @@ class PeriodicReportTest extends TestCase
         ]));
         $resTahunan->assertStatus(200);
         $resTahunan->assertSee('Laporan Tahunan Layanan Bimbingan & Konseling');
+
+        // 4. Kustom Tanggal (misal hari ini dan 2 hari sebelumnya)
+        $resCustom = $this->actingAs($this->guruA)->get(route('guru.laporan.index', [
+            'tab' => 'berkala',
+            'period_type' => 'custom',
+            'custom_start_date' => '2026-10-19',
+            'custom_end_date' => '2026-10-21',
+        ]));
+        $resCustom->assertStatus(200);
+        $resCustom->assertSee('Laporan Kustom Layanan Bimbingan & Konseling');
+        $resCustom->assertSee('19 Oktober 2026 s.d. 21 Oktober 2026');
     }
 
     public function test_koordinator_sees_all_counselor_filter_and_workload_table(): void
@@ -138,5 +149,15 @@ class PeriodicReportTest extends TestCase
         $resPrintKoord->assertStatus(200);
         $resPrintKoord->assertSee('LAPORAN MINGGUAN LAYANAN BIMBINGAN &amp; KONSELING', false);
         $resPrintKoord->assertSee('Kepala Sekolah SMKN 1 Sumedang', false);
+
+        // 3. Guru BK prints custom date report
+        $resPrintCustom = $this->actingAs($this->guruA)->get(route('guru.laporan.generate_periodic', [
+            'period_type' => 'custom',
+            'custom_start_date' => '2026-10-19',
+            'custom_end_date' => '2026-10-21',
+        ]));
+        $resPrintCustom->assertStatus(200);
+        $resPrintCustom->assertSee('LAPORAN KUSTOM LAYANAN BIMBINGAN &amp; KONSELING', false);
+        $resPrintCustom->assertSee('19 Oktober 2026 s.d. 21 Oktober 2026');
     }
 }

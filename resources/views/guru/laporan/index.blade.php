@@ -62,7 +62,7 @@
     <!-- Filter Bar Card -->
     <div class="card" style="margin-bottom: 22px; border-left: 4px solid var(--color-primary);">
         <div class="card-body" style="padding: 18px 20px;">
-            <form method="GET" action="{{ route('guru.laporan.index') }}" style="margin: 0;">
+            <form method="GET" action="{{ route('guru.laporan.index') }}" id="formGrafikFilter" style="margin: 0;">
                 <input type="hidden" name="tab" value="grafik">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 12px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -73,9 +73,9 @@
                     </div>
 
                     @if($selectedGrade || $selectedMajor || $selectedPeriod)
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                             <span class="badge badge-primary" style="font-size: 11px;">
-                                Filter Aktif: {{ ($selectedGrade ? 'Kelas ' . $selectedGrade : '') . ($selectedGrade && $selectedMajor ? ' • ' : '') . ($selectedMajor ?: '') . (($selectedGrade || $selectedMajor) && $selectedPeriod ? ' • ' : '') . ($selectedPeriod ? str_replace('_', ' ', $selectedPeriod) : '') }}
+                                Filter Aktif: {{ ($selectedGrade ? 'Kelas ' . $selectedGrade : '') . ($selectedGrade && $selectedMajor ? ' • ' : '') . ($selectedMajor ?: '') . (($selectedGrade || $selectedMajor) && $selectedPeriod ? ' • ' : '') . ($selectedPeriod === 'custom' ? ('Kustom: ' . ($selectedStartDate ? \Carbon\Carbon::parse($selectedStartDate)->format('d/m/Y') : '') . ' s.d. ' . ($selectedEndDate ? \Carbon\Carbon::parse($selectedEndDate)->format('d/m/Y') : '')) : ($selectedPeriod ? ucfirst(str_replace('_', ' ', $selectedPeriod)) : '')) }}
                             </span>
                             <a href="{{ route('guru.laporan.index', ['tab' => 'grafik']) }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">
                                 ✕ Reset Filter
@@ -107,12 +107,15 @@
 
                     <div>
                         <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 5px;">Rentang Periode Konseling</label>
-                        <select name="period" class="form-select" style="min-height: 38px; font-size: 13px;">
+                        <select name="period" id="grafikPeriodSelect" class="form-select" style="min-height: 38px; font-size: 13px;" onchange="toggleGrafikCustomDate(this.value)">
                             <option value="">Semua Periode Waktu</option>
-                            <option value="1_bulan" {{ $selectedPeriod === '1_bulan' ? 'selected' : '' }}>1 Bulan Terakhir</option>
-                            <option value="3_bulan" {{ $selectedPeriod === '3_bulan' ? 'selected' : '' }}>3 Bulan Terakhir</option>
-                            <option value="6_bulan" {{ $selectedPeriod === '6_bulan' ? 'selected' : '' }}>6 Bulan Terakhir</option>
-                            <option value="1_tahun" {{ $selectedPeriod === '1_tahun' ? 'selected' : '' }}>1 Tahun Terakhir</option>
+                            <option value="mingguan" {{ $selectedPeriod === 'mingguan' ? 'selected' : '' }}>Mingguan (7 Hari Terakhir)</option>
+                            <option value="bulanan" {{ in_array($selectedPeriod, ['bulanan', '1_bulan']) ? 'selected' : '' }}>Bulanan (30 Hari Terakhir)</option>
+                            <option value="tahunan" {{ in_array($selectedPeriod, ['tahunan', '1_tahun']) ? 'selected' : '' }}>Tahunan (1 Tahun Terakhir)</option>
+                            <option value="custom" {{ $selectedPeriod === 'custom' ? 'selected' : '' }}>Kustom Rentang Tanggal</option>
+                            @if(in_array($selectedPeriod, ['3_bulan', '6_bulan']))
+                                <option value="{{ $selectedPeriod }}" selected>{{ str_replace('_', ' ', $selectedPeriod) }} Terakhir</option>
+                            @endif
                         </select>
                     </div>
 
@@ -121,6 +124,32 @@
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                             <span>Filter Data</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Input Tanggal Kustom Dinamis dengan Pilihan Cepat -->
+                <div id="grafikCustomDateContainer" style="{{ $selectedPeriod === 'custom' ? 'display: block;' : 'display: none;' }} margin-top: 14px; padding: 12px 14px; background: var(--color-surface-subtle, #F8FAFD); border: 1px solid var(--color-border); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 12px; font-weight: 700; color: var(--color-navy);">
+                            Pilih Rentang Tanggal Kustom:
+                        </span>
+                        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <span style="font-size: 11px; color: var(--color-text-muted);">Pilihan Cepat:</span>
+                            <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setGrafikDatePreset(0)">Hari Ini</button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setGrafikDatePreset(2)">3 Hari Terakhir (Hari Ini & 2 Hari Lalu)</button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setGrafikDatePreset(6)">7 Hari Terakhir</button>
+                            <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setGrafikDatePreset(29)">30 Hari Terakhir</button>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div>
+                            <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">Tanggal Mulai</label>
+                            <input type="date" name="start_date" id="grafikStartDate" value="{{ $selectedStartDate }}" class="form-control" style="min-height: 36px; font-size: 12.5px;">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">Tanggal Selesai</label>
+                            <input type="date" name="end_date" id="grafikEndDate" value="{{ $selectedEndDate }}" class="form-control" style="min-height: 36px; font-size: 12.5px;">
+                        </div>
                     </div>
                 </div>
             </form>
@@ -613,103 +642,6 @@
         </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- SECTION 4: PAKET DOKUMEN LAPORAN PIMPINAN (3 KARTU SIAP CETAK)             -->
-    <!-- ========================================================================= -->
-    <div style="margin-bottom: 14px;">
-        <h3 style="font-size: 18px; font-weight: 800; color: var(--color-navy); margin: 0 0 4px 0;">
-            4. Paket Template Laporan Otomatis Pimpinan
-        </h3>
-        <p style="font-size: 13px; color: var(--color-text-muted); margin: 0;">
-            Guru BK membuat dan mendistribusikan berkas laporan resmi siap cetak / PDF sesuai format standar pimpinan sekolah.
-        </p>
-    </div>
-
-    <div class="grid-3" style="margin-bottom: 24px;">
-        <!-- Laporan Kesiswaan -->
-        <div class="card" style="border-top: 4px solid #2563eb; display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3 class="card-title">Wakasek Kesiswaan</h3>
-                    <span class="badge badge-primary">Kesiswaan</span>
-                </div>
-                <div class="card-body">
-                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--color-text-main);">
-                        Laporan Perkembangan & Kondisi Siswa
-                    </div>
-                    <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 12px;">
-                        Memuat data agregat kondisi siswa, distribusi kelas, daftar siswa yang memerlukan pembinaan/perhatian, serta rekapitulasi layanan konseling sekolah.
-                    </p>
-                    <ul style="font-size: 12px; color: var(--color-text-subtle); padding-left: 18px; margin-bottom: 16px; line-height: 1.6;">
-                        <li>Data agregat privasi terlindungi</li>
-                        <li>Daftar prioritas penanganan siswa</li>
-                        <li>Statistik penyelesaian layanan BK</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card-footer">
-                <a href="{{ route('guru.laporan.generate', ['package' => 'paket_a']) }}" target="_blank" class="btn btn-primary" style="width: 100%; font-weight: 600;">
-                    Buka & Cetak Laporan
-                </a>
-            </div>
-        </div>
-
-        <!-- Laporan Kurikulum -->
-        <div class="card" style="border-top: 4px solid #059669; display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3 class="card-title">Wakasek Kurikulum</h3>
-                    <span class="badge badge-success">Kurikulum</span>
-                </div>
-                <div class="card-body">
-                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--color-text-main);">
-                        Laporan Jadwal & Kegiatan Kampus/Industri
-                    </div>
-                    <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 12px;">
-                        Fokus pada sinkronisasi jadwal pembelajaran dengan agenda mitra: sosialisasi kampus, kunjungan industri, seminar vokasi, dan status verifikasi ruang/kelas.
-                    </p>
-                    <ul style="font-size: 12px; color: var(--color-text-subtle); padding-left: 18px; margin-bottom: 16px; line-height: 1.6;">
-                        <li>Rincian tanggal, jam, dan ruang</li>
-                        <li>Kelas rombel yang terdampak kegiatan</li>
-                        <li>Status verifikasi benturan jadwal</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card-footer">
-                <a href="{{ route('guru.laporan.generate', ['package' => 'paket_b']) }}" target="_blank" class="btn btn-accent" style="width: 100%; font-weight: 600;">
-                    Buka & Cetak Laporan
-                </a>
-            </div>
-        </div>
-
-        <!-- Laporan Kepala Sekolah -->
-        <div class="card" style="border-top: 4px solid #d97706; display: flex; flex-direction: column; justify-content: space-between;">
-            <div>
-                <div class="card-header" style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3 class="card-title">Kepala Sekolah</h3>
-                    <span class="badge badge-warning">Eksekutif</span>
-                </div>
-                <div class="card-body">
-                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: var(--color-text-main);">
-                        Laporan Eksekutif Bimbingan, Karier & Lulusan
-                    </div>
-                    <p style="font-size: 13px; color: var(--color-text-muted); line-height: 1.6; margin-bottom: 12px;">
-                        Ringkasan tingkat pimpinan: efektivitas bimbingan, peta persentase rencana masa depan lulusan kelas XII, capaian kemitraan, dan hasil penyerapan alumni.
-                    </p>
-                    <ul style="font-size: 12px; color: var(--color-text-subtle); padding-left: 18px; margin-bottom: 16px; line-height: 1.6;">
-                        <li>Peta persentase kuliah vs kerja vs usaha</li>
-                        <li>Rekap kemitraan PT & Industri</li>
-                        <li>Hasil tracer study alumni</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card-footer">
-                <a href="{{ route('guru.laporan.generate', ['package' => 'paket_c']) }}" target="_blank" class="btn btn-warning" style="width: 100%; font-weight: 600;">
-                    Buka & Cetak Laporan
-                </a>
-            </div>
-        </div>
-    </div>
 
 {{-- ========================================================================= --}}
 {{-- TAB 2: LAPORAN BERKALA (MINGGUAN, BULANAN, TAHUNAN)                       --}}
@@ -748,7 +680,7 @@
                     <label class="form-label" style="font-size: 12.5px; font-weight: 700; color: var(--color-navy); margin-bottom: 8px; display: block;">
                         1. Pilih Jenis Periode Laporan:
                     </label>
-                    <div style="display: inline-flex; background: var(--color-surface-hover, #F1F4FA); padding: 4px; border-radius: var(--radius-sm); gap: 6px; border: 1px solid var(--color-border);">
+                    <div id="periodTypeBtnGroup" style="display: inline-flex; background: var(--color-surface-hover, #F1F4FA); padding: 4px; border-radius: var(--radius-sm); gap: 6px; border: 1px solid var(--color-border); flex-wrap: wrap;">
                         <button type="button" 
                                 onclick="setPeriodType('mingguan')" 
                                 class="btn btn-sm {{ $periodType === 'mingguan' ? 'btn-primary' : 'btn-secondary' }}" 
@@ -767,11 +699,44 @@
                                 style="font-weight: 700; padding: 6px 16px; border-radius: 6px;">
                             Laporan Tahunan
                         </button>
+                        <button type="button" 
+                                id="btnTypeCustom"
+                                onclick="setPeriodType('custom')" 
+                                class="btn btn-sm {{ $periodType === 'custom' ? 'btn-primary' : 'btn-secondary' }}" 
+                                style="font-weight: 700; padding: 6px 16px; border-radius: 6px;">
+                            Kustom Rentang Tanggal
+                        </button>
                     </div>
                 </div>
 
                 <!-- Input Kontrol Waktu Dinamis -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 16px; background: var(--color-surface-subtle, #F8FAFD); padding: 14px 16px; border-radius: 8px; border: 1px solid var(--color-border);">
+                    <!-- Kustom: Rentang Bebas Tanggal Mulai & Tanggal Selesai -->
+                    <div id="fieldCustom" style="{{ $periodType === 'custom' ? 'grid-column: 1 / -1;' : 'display: none;' }}">
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+                            <label class="form-label" style="font-size: 12px; font-weight: 700; color: var(--color-navy); margin: 0;">
+                                Rentang Bebas Tanggal:
+                            </label>
+                            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                <span style="font-size: 11px; color: var(--color-text-muted);">Pilihan Cepat:</span>
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setBerkalaCustomPreset(0)">Hari Ini</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setBerkalaCustomPreset(2)">3 Hari Terakhir (Hari Ini & 2 Hari Lalu)</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setBerkalaCustomPreset(6)">7 Hari Terakhir</button>
+                                <button type="button" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 2px 8px;" onclick="setBerkalaCustomPreset(29)">30 Hari Terakhir</button>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                            <div>
+                                <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">Tanggal Mulai</label>
+                                <input type="date" name="custom_start_date" id="berkalaStartDate" value="{{ $customStartDate }}" class="form-control" style="min-height: 38px; font-size: 13px;">
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">Tanggal Selesai</label>
+                                <input type="date" name="custom_end_date" id="berkalaEndDate" value="{{ $customEndDate }}" class="form-control" style="min-height: 38px; font-size: 13px;">
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Mingguan: Pilih Tanggal dalam Minggu -->
                     <div id="fieldMingguan" style="{{ $periodType === 'mingguan' ? '' : 'display: none;' }}">
                         <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 5px;">Pilih Tanggal dalam Minggu</label>
@@ -801,7 +766,7 @@
                     </div>
 
                     <!-- Bulanan & Tahunan: Pilih Tahun -->
-                    <div id="fieldTahun" style="{{ $periodType === 'mingguan' ? 'display: none;' : '' }}">
+                    <div id="fieldTahun" style="{{ in_array($periodType, ['mingguan', 'custom']) ? 'display: none;' : '' }}">
                         <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 5px;">Tahun</label>
                         <select name="year" class="form-select" style="min-height: 38px; font-size: 13px;">
                             @for($y = 2024; $y <= 2027; $y++)
@@ -1293,7 +1258,7 @@
 @elseif($activeTab === 'paket')
     <div style="margin-bottom: 14px;">
         <h3 style="font-size: 18px; font-weight: 800; color: var(--color-navy); margin: 0 0 4px 0;">
-            Paket Template Laporan Resmi Pimpinan
+            Paket Template Laporan Otomatis Pimpinan
         </h3>
         <p style="font-size: 13px; color: var(--color-text-muted); margin: 0;">
             Format dokumen siap cetak / PDF terstandarisasi untuk didistribusikan kepada jajaran manajemen sekolah.
@@ -1388,6 +1353,50 @@
 @endif
 
 <script>
+    // Tab 1: Grafik & Analisis Visual Custom Date Controls
+    function toggleGrafikCustomDate(val) {
+        var box = document.getElementById('grafikCustomDateContainer');
+        if (!box) return;
+        if (val === 'custom') {
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    function setGrafikDatePreset(daysAgo) {
+        var today = new Date();
+        var past = new Date();
+        past.setDate(today.getDate() - daysAgo);
+
+        var formatYMD = function(d) {
+            var month = '' + (d.getMonth() + 1);
+            var day = '' + d.getDate();
+            var year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        };
+
+        var startInput = document.getElementById('grafikStartDate');
+        var endInput = document.getElementById('grafikEndDate');
+        var periodSelect = document.getElementById('grafikPeriodSelect');
+        var box = document.getElementById('grafikCustomDateContainer');
+
+        if (periodSelect) periodSelect.value = 'custom';
+        if (box) box.style.display = 'block';
+        if (startInput && endInput) {
+            startInput.value = formatYMD(past);
+            endInput.value = formatYMD(today);
+        }
+
+        var form = document.getElementById('formGrafikFilter');
+        if (form) {
+            form.submit();
+        }
+    }
+
+    // Tab 2: Laporan Berkala Controls
     function setPeriodType(type) {
         var input = document.getElementById('periodTypeInput');
         if (input) {
@@ -1397,19 +1406,68 @@
         var fieldMingguan = document.getElementById('fieldMingguan');
         var fieldBulan = document.getElementById('fieldBulan');
         var fieldTahun = document.getElementById('fieldTahun');
+        var fieldCustom = document.getElementById('fieldCustom');
 
         if (type === 'mingguan') {
             if (fieldMingguan) fieldMingguan.style.display = 'block';
             if (fieldBulan) fieldBulan.style.display = 'none';
             if (fieldTahun) fieldTahun.style.display = 'none';
+            if (fieldCustom) fieldCustom.style.display = 'none';
+            document.getElementById('formLaporanBerkala')?.submit();
         } else if (type === 'bulanan') {
             if (fieldMingguan) fieldMingguan.style.display = 'none';
             if (fieldBulan) fieldBulan.style.display = 'block';
             if (fieldTahun) fieldTahun.style.display = 'block';
+            if (fieldCustom) fieldCustom.style.display = 'none';
+            document.getElementById('formLaporanBerkala')?.submit();
         } else if (type === 'tahunan') {
             if (fieldMingguan) fieldMingguan.style.display = 'none';
             if (fieldBulan) fieldBulan.style.display = 'none';
             if (fieldTahun) fieldTahun.style.display = 'block';
+            if (fieldCustom) fieldCustom.style.display = 'none';
+            document.getElementById('formLaporanBerkala')?.submit();
+        } else if (type === 'custom') {
+            if (fieldMingguan) fieldMingguan.style.display = 'none';
+            if (fieldBulan) fieldBulan.style.display = 'none';
+            if (fieldTahun) fieldTahun.style.display = 'none';
+            if (fieldCustom) fieldCustom.style.display = 'block';
+
+            var group = document.getElementById('periodTypeBtnGroup');
+            if (group) {
+                var buttons = group.querySelectorAll('button');
+                buttons.forEach(function(b) {
+                    b.className = 'btn btn-sm btn-secondary';
+                });
+            }
+            var btnCustom = document.getElementById('btnTypeCustom');
+            if (btnCustom) {
+                btnCustom.className = 'btn btn-sm btn-primary';
+            }
+        }
+    }
+
+    function setBerkalaCustomPreset(daysAgo) {
+        var today = new Date();
+        var past = new Date();
+        past.setDate(today.getDate() - daysAgo);
+
+        var formatYMD = function(d) {
+            var month = '' + (d.getMonth() + 1);
+            var day = '' + d.getDate();
+            var year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [year, month, day].join('-');
+        };
+
+        var startInput = document.getElementById('berkalaStartDate');
+        var endInput = document.getElementById('berkalaEndDate');
+        var input = document.getElementById('periodTypeInput');
+
+        if (input) input.value = 'custom';
+        if (startInput && endInput) {
+            startInput.value = formatYMD(past);
+            endInput.value = formatYMD(today);
         }
 
         var form = document.getElementById('formLaporanBerkala');

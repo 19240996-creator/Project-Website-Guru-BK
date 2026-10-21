@@ -22,6 +22,8 @@ class ReportController extends Controller
         $selectedGrade = $request->input('grade') ?: $request->input('tingkat');
         $selectedMajor = $request->input('major') ?: $request->input('jurusan');
         $selectedPeriod = $request->input('period') ?: $request->input('periode');
+        $selectedStartDate = $request->input('start_date');
+        $selectedEndDate = $request->input('end_date');
 
         $user = auth()->user();
 
@@ -42,15 +44,27 @@ class ReportController extends Controller
         }
 
         if ($selectedPeriod) {
-            $cutoff = match ($selectedPeriod) {
-                '1_bulan' => Carbon::now()->subMonth(),
-                '3_bulan' => Carbon::now()->subMonths(3),
-                '6_bulan' => Carbon::now()->subMonths(6),
-                '1_tahun' => Carbon::now()->subYear(),
-                default => null,
-            };
-            if ($cutoff) {
-                $counselingsQuery->where('created_at', '>=', $cutoff);
+            if ($selectedPeriod === 'mingguan') {
+                $counselingsQuery->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay());
+            } elseif ($selectedPeriod === 'bulanan' || $selectedPeriod === '1_bulan') {
+                $counselingsQuery->where('created_at', '>=', Carbon::now()->subDays(30)->startOfDay());
+            } elseif ($selectedPeriod === 'tahunan' || $selectedPeriod === '1_tahun') {
+                $counselingsQuery->where('created_at', '>=', Carbon::now()->subYear()->startOfDay());
+            } elseif ($selectedPeriod === '3_bulan') {
+                $counselingsQuery->where('created_at', '>=', Carbon::now()->subMonths(3)->startOfDay());
+            } elseif ($selectedPeriod === '6_bulan') {
+                $counselingsQuery->where('created_at', '>=', Carbon::now()->subMonths(6)->startOfDay());
+            } elseif ($selectedPeriod === 'custom') {
+                if ($selectedStartDate && $selectedEndDate) {
+                    $counselingsQuery->whereBetween('created_at', [
+                        Carbon::parse($selectedStartDate)->startOfDay(),
+                        Carbon::parse($selectedEndDate)->endOfDay(),
+                    ]);
+                } elseif ($selectedStartDate) {
+                    $counselingsQuery->where('created_at', '>=', Carbon::parse($selectedStartDate)->startOfDay());
+                } elseif ($selectedEndDate) {
+                    $counselingsQuery->where('created_at', '<=', Carbon::parse($selectedEndDate)->endOfDay());
+                }
             }
         }
 
@@ -147,6 +161,8 @@ class ReportController extends Controller
                 'selectedGrade',
                 'selectedMajor',
                 'selectedPeriod',
+                'selectedStartDate',
+                'selectedEndDate',
                 'availableGrades',
                 'availableMajors',
                 'totalFilteredStudents',
@@ -290,7 +306,7 @@ class ReportController extends Controller
     private function getPeriodicReportData(Request $request, $user): array
     {
         $periodType = $request->input('period_type', 'bulanan');
-        if (!in_array($periodType, ['mingguan', 'bulanan', 'tahunan'])) {
+        if (!in_array($periodType, ['mingguan', 'bulanan', 'tahunan', 'custom'])) {
             $periodType = 'bulanan';
         }
 
@@ -298,12 +314,27 @@ class ReportController extends Controller
         $weekDate = $request->input('week_date', $now->format('Y-m-d'));
         $selectedMonth = (int) $request->input('month', $now->month);
         $selectedYear = (int) $request->input('year', $now->year);
+        $customStartDate = $request->input('custom_start_date', $request->input('start_date', $now->copy()->subDays(2)->format('Y-m-d')));
+        $customEndDate = $request->input('custom_end_date', $request->input('end_date', $now->format('Y-m-d')));
         $selectedGrade = $request->input('berkala_grade', '');
         $selectedMajor = $request->input('berkala_major', '');
         $selectedCounselorId = $request->input('counselor_id', 'semua');
 
         // Rentang Waktu berdasarkan Jenis Periode
-        if ($periodType === 'mingguan') {
+        if ($periodType === 'custom') {
+            try {
+                $startDate = Carbon::parse($customStartDate)->startOfDay();
+            } catch (\Exception $e) {
+                $startDate = $now->copy()->subDays(2)->startOfDay();
+            }
+            try {
+                $endDate = Carbon::parse($customEndDate)->endOfDay();
+            } catch (\Exception $e) {
+                $endDate = $now->copy()->endOfDay();
+            }
+            $periodLabel = 'Periode ' . $startDate->translatedFormat('d F Y') . ' s.d. ' . $endDate->translatedFormat('d F Y');
+            $reportTitle = 'Laporan Kustom Layanan Bimbingan & Konseling';
+        } elseif ($periodType === 'mingguan') {
             try {
                 $base = Carbon::parse($weekDate);
             } catch (\Exception $e) {
@@ -454,6 +485,8 @@ class ReportController extends Controller
             'weekDate',
             'selectedMonth',
             'selectedYear',
+            'customStartDate',
+            'customEndDate',
             'selectedGrade',
             'selectedMajor',
             'selectedCounselorId',
