@@ -241,25 +241,6 @@
     </div>
 </div>
 
-<!-- Navigasi Pintas Halaman Terpadu (Single Page Navigation) -->
-<div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid var(--color-border); overflow-x: auto;">
-    <a href="#section-grafik" 
-       style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; text-decoration: none; border-bottom: 3px solid var(--color-primary); color: var(--color-primary); white-space: nowrap;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
-        <span>1. Ringkasan &amp; Grafik Visual</span>
-    </a>
-    <a href="#section-laporan-berkala" 
-       style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; text-decoration: none; border-bottom: 3px solid transparent; color: var(--color-text-muted); white-space: nowrap;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        <span>2. Laporan Berkala (Mingguan, Bulanan, Tahunan)</span>
-        <span class="badge badge-primary" style="font-size: 10px; padding: 2px 7px;">Data Riil Database</span>
-    </a>
-    <a href="#section-paket" 
-       style="display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; text-decoration: none; border-bottom: 3px solid transparent; color: var(--color-text-muted); white-space: nowrap;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-        <span>3. Paket Laporan Pimpinan</span>
-    </a>
-</div>
 
 <!-- Live Report Presentation Banner -->
 <div style="background: linear-gradient(135deg, #101A35 0%, #1E3A8A 100%); border-radius: var(--radius-md); padding: 22px 26px; color: #FFFFFF; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; box-shadow: var(--shadow-md);">
@@ -776,7 +757,24 @@
 {{-- ========================================================================= --}}
 {{-- BAGIAN 2: LAPORAN BERKALA & RINCIAN KASUS (DATA RIIL DATABASE)            --}}
 {{-- ========================================================================= --}}
-<div id="section-laporan-berkala" style="scroll-margin-top: 80px;">
+<div id="section-laporan-berkala" style="scroll-margin-top: 80px; margin-top: 16px;">
+    <div style="margin-bottom: 14px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span class="badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
+                Laporan Berkala (Mingguan, Bulanan, Tahunan)
+            </span>
+            <span style="font-size: 12px; color: var(--color-text-muted);">
+                Data Riil Database
+            </span>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--color-navy); margin: 0 0 4px 0;">
+            Rekapitulasi Layanan &amp; Penanganan Kasus Konseling Siswa
+        </h3>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin: 0;">
+            Catatan aktivitas riil penanganan bimbingan dan konseling yang tersimpan di dalam database sekolah.
+        </p>
+    </div>
+
     <!-- Khusus Koordinator: Tabel Rekapitulasi Beban Penanganan Guru BK -->
     @if($isKoordinator && count($counselorWorkload) > 0)
         <div class="card" style="margin-bottom: 24px;">
