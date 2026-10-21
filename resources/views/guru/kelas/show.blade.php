@@ -345,7 +345,7 @@
                     <div style="padding: 16px 20px;">
                         <div style="border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm);">
                             <!-- Header Blok Navy: Judul & Pencarian Siswa -->
-                            <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; flex-wrap: wrap; gap: 10px;">
+                            <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.12);">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                                     <h5 class="card-title" style="font-size: 13.5px; font-weight: 700; color: #FFFFFF; margin: 0;">
@@ -373,12 +373,12 @@
                                 <table class="table" style="font-size: 12px; margin: 0;">
                                     <thead class="table-thead-navy">
                                         <tr>
-                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Siswa Peserta</th>
-                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Waktu Kirim</th>
-                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Berkas / Catatan</th>
-                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Status</th>
-                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Nilai &amp; Umpan Balik</th>
-                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center;">Aksi</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Siswa Peserta</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Waktu Kirim</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Berkas / Catatan</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Status</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Nilai &amp; Umpan Balik</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Aksi</th>
                                         </tr>
                                     </thead>
                                 <tbody>
@@ -628,12 +628,12 @@
                 <table class="table" style="font-size: 12.5px; margin: 0;">
                     <thead class="table-thead-navy">
                         <tr>
-                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Nama Siswa</th>
-                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">NISN / Kelas</th>
-                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Status Kehadiran</th>
-                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Waktu Presensi (WIB)</th>
-                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Keterangan / Audit Log</th>
-                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center;">Koreksi Guru BK</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Nama Siswa</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">NISN / Kelas</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Status Kehadiran</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Waktu Presensi (WIB)</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Keterangan / Audit Log</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center; border-bottom: 2px solid var(--color-navy-dark, #0a1124);">Koreksi Guru BK</th>
                         </tr>
                     </thead>
                     <tbody>
