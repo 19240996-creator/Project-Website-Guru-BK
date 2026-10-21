@@ -339,16 +339,26 @@
 {{-- ========================================================================= --}}
 {{-- BAGIAN 1: GRAFIK & ANALISIS VISUAL                                        --}}
 {{-- ========================================================================= --}}
-<div id="section-grafik" style="scroll-margin-top: 80px;">
-    <!-- Section 1: Diagram Kasus & Rencana Masa Depan -->
-    <div style="margin-bottom: 12px;">
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--color-navy); margin: 0 0 4px 0;">
-            1. Analisis Kategori Konseling &amp; Peta Rencana Masa Depan
+<div id="section-grafik" style="scroll-margin-top: 80px; margin-bottom: 28px;">
+    <!-- Bagian 1 Header: Harmonized with Bagian 2 and Bagian 3 -->
+    <div style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span class="badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
+                Grafik &amp; Analisis Visual
+            </span>
+            <span style="font-size: 12px; color: var(--color-text-muted);">
+                Visualisasi Data Komprehensif
+            </span>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 800; color: var(--color-navy); margin: 0 0 4px 0;">
+            Analisis Visual &amp; Tren Bimbingan Konseling
         </h3>
-        <small style="color: var(--color-text-subtle);">Diagram analitik terharmonisasi langsung dengan parameter filter periode aktif.</small>
+        <p style="font-size: 13px; color: var(--color-text-muted); margin: 0;">
+            Diagram analitik komprehensif terharmonisasi langsung dengan parameter filter periode aktif.
+        </p>
     </div>
 
-    <div class="grid-2" style="margin-bottom: 24px;">
+    <div class="grid-2" style="margin-bottom: 20px;">
         <!-- Diagram 1: Kategori Kasus Bimbingan (Column Chart) -->
         <div class="card" style="margin-bottom: 0;">
             <div class="card-header-clean">
@@ -488,15 +498,7 @@
         </div>
     </div>
 
-    <!-- Section 2: Status Penyelesaian Layanan & Tingkat Perhatian Siswa -->
-    <div style="margin-bottom: 12px;">
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--color-navy); margin: 0 0 4px 0;">
-            2. Status Penanganan Layanan &amp; Distribusi Tingkat Perhatian Siswa
-        </h3>
-        <small style="color: var(--color-text-subtle);">Monitoring progres ketuntasan kasus konseling dan klasifikasi perhatian siswa.</small>
-    </div>
-
-    <div class="grid-2" style="margin-bottom: 24px;">
+    <div class="grid-2" style="margin-bottom: 20px;">
         <!-- Diagram 3: Status Penyelesaian Layanan Konseling (Donut Chart) -->
         <div class="card" style="margin-bottom: 0;">
             <div class="card-header-clean">
@@ -624,14 +626,6 @@
         </div>
     </div>
 
-    <!-- Section 3: Diagram Siswa per Jenjang & Peta Alumni -->
-    <div style="margin-bottom: 12px;">
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--color-navy); margin: 0 0 4px 0;">
-            3. Demografi Siswa per Jenjang &amp; Penyerapan Alumni
-        </h3>
-        <small style="color: var(--color-text-subtle);">Distribusi jenjang kelas aktif dan data hasil pelacakan lulusan sekolah.</small>
-    </div>
-
     <div class="grid-2" style="margin-bottom: 24px;">
         <div class="card" style="margin-bottom: 0;">
             <div class="card-header-clean">
@@ -757,8 +751,8 @@
 {{-- ========================================================================= --}}
 {{-- BAGIAN 2: LAPORAN BERKALA & RINCIAN KASUS (DATA RIIL DATABASE)            --}}
 {{-- ========================================================================= --}}
-<div id="section-laporan-berkala" style="scroll-margin-top: 80px; margin-top: 16px;">
-    <div style="margin-bottom: 14px;">
+<div id="section-laporan-berkala" style="scroll-margin-top: 80px; margin-top: 28px; margin-bottom: 28px;">
+    <div style="margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
             <span class="badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
                 Laporan Berkala (Mingguan, Bulanan, Tahunan)
@@ -1003,8 +997,8 @@
 {{-- ========================================================================= --}}
 {{-- BAGIAN 3: PAKET TEMPLATE LAPORAN PIMPINAN (A, B, C)                        --}}
 {{-- ========================================================================= --}}
-<div id="section-paket" style="scroll-margin-top: 80px; margin-top: 12px;">
-    <div style="margin-bottom: 14px;">
+<div id="section-paket" style="scroll-margin-top: 80px; margin-top: 28px; margin-bottom: 28px;">
+    <div style="margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
             <span class="badge badge-primary" style="font-size: 11px; padding: 3px 8px;">
                 Paket Laporan Pimpinan
