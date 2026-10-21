@@ -133,17 +133,38 @@
     <!-- TAB 1: MATERI PEMBELAJARAN -->
     <!-- ======================================================== -->
     @if($activeTab === 'materi')
-    <div style="display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: flex-start;">
-        <!-- Daftar Materi Tersedia -->
-        <div>
-            @if($class->materials->isEmpty())
-            <div class="card" style="padding: 40px 20px; text-align: center; border: 1px dashed var(--color-border); border-radius: 10px; background: #fff;">
-                <div style="font-size: 14px; font-weight: 700; color: var(--color-navy); margin-bottom: 6px;">Belum Ada Materi Pembelajaran</div>
-                <p style="font-size: 12.5px; color: var(--color-text-muted); margin: 0 auto; max-width: 400px;">
-                    Unggah file presentasi (PPT/PDF), video pembelajaran, atau dokumen materi melalui formulir di samping kanan.
+    <div>
+        <!-- Bar Judul & Aksi Tambah Materi -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 style="font-size: 16px; font-weight: 800; color: var(--color-navy); margin: 0 0 4px 0;">
+                    Materi &amp; Sumber Pembelajaran BK
+                </h3>
+                <p style="font-size: 12.5px; color: var(--color-text-muted); margin: 0;">
+                    Kelola bahan tayang presentasi, video pembelajaran, dan dokumen yang dapat diakses oleh siswa di kelas ini.
                 </p>
             </div>
-            @else
+            <button type="button" class="btn btn-primary" onclick="openCreateMaterialModal()" style="font-size: 12.5px; padding: 8px 16px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Tambah Materi Pembelajaran</span>
+            </button>
+        </div>
+
+        @if($class->materials->isEmpty())
+        <div class="card" style="padding: 48px 20px; text-align: center; border: 1px dashed var(--color-border); border-radius: 12px; background: #fff;">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: #e0f2fe; color: #0284c7; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin-bottom: 6px;">Belum Ada Materi Pembelajaran</div>
+            <p style="font-size: 12.5px; color: var(--color-text-muted); margin: 0 auto 16px auto; max-width: 440px; line-height: 1.5;">
+                Unggah bahan tayang (PPT/PDF), video panduan karier, atau dokumen materi untuk memperkaya sesi bimbingan kelas online ini.
+            </p>
+            <button type="button" class="btn btn-primary" onclick="openCreateMaterialModal()" style="font-size: 12.5px; padding: 8px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Tambah Materi Sekarang</span>
+            </button>
+        </div>
+        @else
             <div style="display: flex; flex-direction: column; gap: 14px;">
                 @foreach($class->materials as $mat)
                 <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; padding: 16px 20px; box-shadow: var(--shadow-sm);">
@@ -226,56 +247,6 @@
                 @endforeach
             </div>
             @endif
-        </div>
-
-        <!-- Formulir Tambah Materi Baru -->
-        <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; overflow: hidden; position: sticky; top: 20px;">
-            <div style="padding: 12px 16px; background: var(--color-surface-subtle, #f8fafd); border-bottom: 1px solid var(--color-border);">
-                <h4 style="font-size: 13.5px; font-weight: 700; color: var(--color-navy); margin: 0;">
-                    Tambah Materi Pembelajaran
-                </h4>
-            </div>
-            <div class="card-body" style="padding: 16px;">
-                <form action="{{ route('guru.kelas.materi.store', $class->id) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Jenis Materi</label>
-                        <select name="material_type" id="selectMaterialType" class="form-select" style="font-size: 12.5px; min-height: 36px;" onchange="toggleMaterialInput(this.value)">
-                            <option value="slide">Slide Presentasi (PPT / PPTX / PDF)</option>
-                            <option value="video">Video Pembelajaran (Upload / Link YouTube)</option>
-                            <option value="document">Dokumen / Modul Tambahan</option>
-                        </select>
-                    </div>
-
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Judul Materi <span style="color: #dc2626;">*</span></label>
-                        <input type="text" name="title" required class="form-control" placeholder="Contoh: Slide Modul Rencana Karier" style="font-size: 12.5px; min-height: 36px;">
-                    </div>
-
-                    <div style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Deskripsi Singkat</label>
-                        <textarea name="description" rows="2" class="form-control" placeholder="Petunjuk membaca materi..." style="font-size: 12px;"></textarea>
-                    </div>
-
-                    <div id="fileUploadContainer" style="margin-bottom: 12px;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Pilih Berkas File</label>
-                        <input type="file" name="file" class="form-control" style="font-size: 12px;">
-                        <small style="color: var(--color-text-muted); font-size: 11px; display: block; margin-top: 3px;">Maksimal 50 MB.</small>
-                    </div>
-
-                    <div id="videoUrlContainer" style="margin-bottom: 14px; display: none;">
-                        <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Tautan Video (YouTube / Google Drive)</label>
-                        <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." style="font-size: 12.5px; min-height: 36px;">
-                        <small style="color: var(--color-text-muted); font-size: 11px; display: block; margin-top: 3px;">Siswa dapat menonton video langsung di aplikasi.</small>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" style="width: 100%; font-weight: 700; font-size: 13px; padding: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        <span>Simpan Materi</span>
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
     @endif
 
@@ -961,6 +932,22 @@
 </div>
 
 <script>
+function openCreateMaterialModal() {
+    var modal = document.getElementById('modalCreateMaterial');
+    if (modal) {
+        modal.style.display = 'flex';
+        var firstInput = modal.querySelector('input[name="title"]');
+        if (firstInput) setTimeout(function() { firstInput.focus(); }, 50);
+    }
+}
+
+function closeCreateMaterialModal() {
+    var modal = document.getElementById('modalCreateMaterial');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
 function toggleMaterialInput(val) {
     var fileContainer = document.getElementById('fileUploadContainer');
     var videoContainer = document.getElementById('videoUrlContainer');
@@ -1132,6 +1119,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeReviewAndGradeModal();
         closeCorrectionModal();
+        if (typeof closeCreateMaterialModal === 'function') closeCreateMaterialModal();
         if (typeof closeEditMaterialModal === 'function') closeEditMaterialModal();
         if (typeof closeEditTaskModal === 'function') closeEditTaskModal();
         if (typeof closeDeleteClassDetailModal === 'function') closeDeleteClassDetailModal();
@@ -1140,6 +1128,62 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+<!-- Modal Tambah Materi Pembelajaran (Bersih & Nyaman Tanpa Mempersempit Tampilan) -->
+<div id="modalCreateMaterial" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center; padding: 20px;" onclick="if(event.target === this) closeCreateMaterialModal()">
+    <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 520px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+        <div style="padding: 16px 20px; background: var(--color-surface-subtle, #f8fafc); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 28px; height: 28px; border-radius: 6px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-navy);">Tambah Materi Pembelajaran</h4>
+            </div>
+            <button type="button" onclick="closeCreateMaterialModal()" style="border: 0; background: transparent; font-size: 20px; cursor: pointer; color: #64748b;" aria-label="Tutup">&times;</button>
+        </div>
+        <form action="{{ route('guru.kelas.materi.store', $class->id) }}" method="POST" enctype="multipart/form-data" style="padding: 20px;">
+            @csrf
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Jenis Materi</label>
+                <select name="material_type" id="selectMaterialType" class="form-select" style="font-size: 12.5px; min-height: 38px;" onchange="toggleMaterialInput(this.value)">
+                    <option value="slide">Slide Presentasi (PPT / PPTX / PDF)</option>
+                    <option value="video">Video Pembelajaran (Upload / Link YouTube)</option>
+                    <option value="document">Dokumen / Modul Tambahan</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Judul Materi <span style="color: #dc2626;">*</span></label>
+                <input type="text" name="title" required class="form-control" placeholder="Contoh: Slide Modul Rencana Karier" style="font-size: 12.5px; min-height: 38px;">
+            </div>
+
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Deskripsi Singkat</label>
+                <textarea name="description" rows="2" class="form-control" placeholder="Petunjuk membaca materi..." style="font-size: 12px;"></textarea>
+            </div>
+
+            <div id="fileUploadContainer" style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Pilih Berkas File</label>
+                <input type="file" name="file" class="form-control" style="font-size: 12px;">
+                <small style="color: var(--color-text-muted); font-size: 11px; display: block; margin-top: 3px;">Maksimal 50 MB.</small>
+            </div>
+
+            <div id="videoUrlContainer" style="margin-bottom: 16px; display: none;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Tautan Video (YouTube / Google Drive)</label>
+                <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." style="font-size: 12.5px; min-height: 38px;">
+                <small style="color: var(--color-text-muted); font-size: 11px; display: block; margin-top: 3px;">Siswa dapat menonton video langsung di aplikasi.</small>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeCreateMaterialModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
+                <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Simpan Materi</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Modal Edit Materi Pembelajaran -->
 <div id="modalEditMaterial" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">

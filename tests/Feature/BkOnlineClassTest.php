@@ -295,6 +295,13 @@ class BkOnlineClassTest extends TestCase
             'materialId' => $material->id,
         ]));
         $resDownForbidden->assertStatus(403);
+
+        // Guru BK melihat tombol tambah materi dan modal pembuatan materi
+        $resGuruShow = $this->actingAs($this->counselor)->get(route('guru.kelas.show', ['id' => $class->id, 'tab' => 'materi']));
+        $resGuruShow->assertStatus(200);
+        $resGuruShow->assertSee('Tambah Materi Pembelajaran');
+        $resGuruShow->assertSee('modalCreateMaterial');
+        $resGuruShow->assertSee('openCreateMaterialModal');
     }
 
     /**
