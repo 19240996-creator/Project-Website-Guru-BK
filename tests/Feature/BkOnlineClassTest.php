@@ -1,0 +1,571 @@
+<?php
+
+namespace Tests\Feature;
+
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+use Carbon\Carbon;
+use App\Models\User;
+use App\Models\Student;
+use App\Models\StudentClass;
+use App\Models\AcademicYear;
+use App\Models\CounselorAssignment;
+use App\Models\BkClass;
+use App\Models\BkClassMaterial;
+use App\Models\BkClassTask;
+use App\Models\BkClassTaskSubmission;
+use App\Models\BkClassAttendance;
+use App\Models\AuditLog;
+
+class BkOnlineClassTest extends TestCase
+{
+    protected $counselor;
+    protected $otherCounselor;
+    protected $koordinator;
+    protected $studentClassA;
+    protected $studentClassB;
+    protected $targetStudent;
+    protected $nonTargetStudent;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('public');
+
+        $academicYear = AcademicYear::firstOrCreate(
+            ['name' => '2026/2027'],
+            ['semester' => 'ganjil', 'is_active' => true]
+        );
+
+        $this->counselor = User::firstOrCreate(
+            ['username' => 'guru_pembina_a'],
+            [
+                'name' => 'Guru BK Pembina A',
+                'email' => 'guru_pembina_a@test.sch.id',
+                'password' => 'password123',
+                'role' => 'guru_bk',
+                'is_active' => true,
+            ]
+        );
+
+        $this->otherCounselor = User::firstOrCreate(
+            ['username' => 'guru_bk_lain'],
+            [
+                'name' => 'Guru BK Lain',
+                'email' => 'guru_bk_lain@test.sch.id',
+                'password' => 'password123',
+                'role' => 'guru_bk',
+                'is_active' => true,
+            ]
+        );
+
+        $this->koordinator = User::firstOrCreate(
+            ['username' => 'koordinator_test_bk'],
+            [
+                'name' => 'Koordinator BK Test',
+                'email' => 'koordinator_test_bk@test.sch.id',
+                'password' => 'password123',
+                'role' => 'koordinator_bk',
+                'is_active' => true,
+            ]
+        );
+
+        $this->studentClassA = StudentClass::firstOrCreate(
+            ['name' => 'X PPLG 1 Test'],
+            [
+                'academic_year_id' => $academicYear->id,
+                'grade' => 'X',
+                'major' => 'PPLG',
+            ]
+        );
+
+        $this->studentClassB = StudentClass::firstOrCreate(
+            ['name' => 'XI TKJ 1 Test'],
+            [
+                'academic_year_id' => $academicYear->id,
+                'grade' => 'XI',
+                'major' => 'TKJ',
+            ]
+        );
+
+        // Siswa sasaran: Di kelas A dan ditugaskan ke Guru A
+        $userStudentA = User::firstOrCreate(
+            ['username' => 'siswa_target_test'],
+            [
+                'name' => 'Siswa Sasaran Test',
+                'email' => 'siswa_target_test@test.sch.id',
+                'password' => 'password123',
+                'role' => 'siswa',
+                'is_active' => true,
+            ]
+        );
+
+        $this->targetStudent = Student::firstOrCreate(
+            ['nisn' => '001001999'],
+            [
+                'user_id' => $userStudentA->id,
+                'student_class_id' => $this->studentClassA->id,
+                'nis' => '1001999',
+                'name' => 'Siswa Sasaran Test',
+                'gender' => 'L',
+                'status' => 'aktif',
+            ]
+        );
+
+        CounselorAssignment::firstOrCreate(
+            [
+                'counselor_id' => $this->counselor->id,
+                'student_id' => $this->targetStudent->id,
+            ],
+            [
+                'student_class_id' => $this->studentClassA->id,
+                'assigned_by' => $this->koordinator->id,
+            ]
+        );
+
+        // Siswa bukan sasaran: Di kelas B dan ditugaskan ke Guru Lain
+        $userStudentB = User::firstOrCreate(
+            ['username' => 'siswa_non_target_test'],
+            [
+                'name' => 'Siswa Bukan Sasaran Test',
+                'email' => 'siswa_non_target_test@test.sch.id',
+                'password' => 'password123',
+                'role' => 'siswa',
+                'is_active' => true,
+            ]
+        );
+
+        $this->nonTargetStudent = Student::firstOrCreate(
+            ['nisn' => '002001999'],
+            [
+                'user_id' => $userStudentB->id,
+                'student_class_id' => $this->studentClassB->id,
+                'nis' => '2001999',
+                'name' => 'Siswa Bukan Sasaran Test',
+                'gender' => 'P',
+                'status' => 'aktif',
+            ]
+        );
+
+        CounselorAssignment::firstOrCreate(
+            [
+                'counselor_id' => $this->otherCounselor->id,
+                'student_id' => $this->nonTargetStudent->id,
+            ],
+            [
+                'student_class_id' => $this->studentClassB->id,
+                'assigned_by' => $this->koordinator->id,
+            ]
+        );
+    }
+
+    protected function tearDown(): void
+    {
+        // Clean up created classes and related rows
+        BkClass::whereIn('counselor_id', [$this->counselor->id, $this->otherCounselor->id, $this->koordinator->id])->delete();
+        parent::tearDown();
+    }
+
+    /**
+     * Skenario 1: Guru BK berhasil membuat kelas dan mengatur jadwal serta presensi
+     */
+    public function test_guru_bk_can_create_class_and_set_schedule()
+    {
+        $response = $this->actingAs($this->counselor)->post(route('guru.kelas.store'), [
+            'title' => 'Bimbingan Karier Kelas X Test',
+            'description' => 'Materi persiapan eksplorasi perguruan tinggi dan industri.',
+            'target_grade' => 'X',
+            'target_major' => 'PPLG',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => '2026-10-21',
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('bk_classes', [
+            'title' => 'Bimbingan Karier Kelas X Test',
+            'counselor_id' => $this->counselor->id,
+            'class_date' => '2026-10-21 00:00:00',
+        ]);
+    }
+
+    /**
+     * Skenario 2: Siswa yang sesuai sasaran dapat melihat dan mengakses kelas tersebut
+     */
+    public function test_target_student_can_see_and_access_class()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Eksplorasi Minat Test',
+            'target_grade' => 'X',
+            'target_major' => 'PPLG',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+            'status' => 'terjadwal',
+        ]);
+
+        // Akses daftar kelas oleh siswa target
+        $resIndex = $this->actingAs($this->targetStudent->user)->get(route('siswa.kelas.index'));
+        $resIndex->assertStatus(200);
+        $resIndex->assertSee('Kelas Eksplorasi Minat Test');
+
+        // Akses detail kelas oleh siswa target
+        $resShow = $this->actingAs($this->targetStudent->user)->get(route('siswa.kelas.show', $class->id));
+        $resShow->assertStatus(200);
+        $resShow->assertSee('Kelas Eksplorasi Minat Test');
+    }
+
+    /**
+     * Skenario 3: Siswa di luar sasaran tidak dapat melihat atau mengakses kelas tersebut
+     */
+    public function test_non_target_student_cannot_see_or_access_class()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Eksplorasi Minat Khusus A Test',
+            'target_grade' => 'X',
+            'target_major' => 'PPLG',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+            'status' => 'terjadwal',
+        ]);
+
+        // Siswa non target membuka daftar kelas: tidak boleh melihat kelas ini
+        $resIndex = $this->actingAs($this->nonTargetStudent->user)->get(route('siswa.kelas.index'));
+        $resIndex->assertStatus(200);
+        $resIndex->assertDontSee('Kelas Eksplorasi Minat Khusus A Test');
+
+        // Siswa non target langsung tembak URL show: ditolak 403 Forbidden
+        $resShow = $this->actingAs($this->nonTargetStudent->user)->get(route('siswa.kelas.show', $class->id));
+        $resShow->assertStatus(403);
+    }
+
+    /**
+     * Skenario 4: Materi slide, video, dan dokumen dapat diunggah dan diakses
+     */
+    public function test_materials_can_be_uploaded_and_downloaded()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Materi Slide & Video Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $file = UploadedFile::fake()->create('slide_materi.pdf', 1024, 'application/pdf');
+
+        $resUpload = $this->actingAs($this->counselor)->post(route('guru.kelas.materi.store', $class->id), [
+            'title' => 'Slide Modul 1 Test',
+            'description' => 'Materi utama dalam format PDF',
+            'material_type' => 'slide',
+            'file' => $file,
+        ]);
+        $resUpload->assertRedirect();
+
+        $material = BkClassMaterial::where('bk_class_id', $class->id)->first();
+        $this->assertNotNull($material);
+        $this->assertEquals('Slide Modul 1 Test', $material->title);
+
+        // Siswa target mengunduh materi
+        $resDown = $this->actingAs($this->targetStudent->user)->get(route('siswa.kelas.materi.download', [
+            'id' => $class->id,
+            'materialId' => $material->id,
+        ]));
+        $resDown->assertStatus(200);
+
+        // Siswa non target dilarang mengunduh
+        $resDownForbidden = $this->actingAs($this->nonTargetStudent->user)->get(route('siswa.kelas.materi.download', [
+            'id' => $class->id,
+            'materialId' => $material->id,
+        ]));
+        $resDownForbidden->assertStatus(403);
+    }
+
+    /**
+     * Skenario 5: Presensi berhasil dilakukan ketika waktu absensi dibuka
+     */
+    public function test_attendance_succeeds_when_window_is_open()
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $startTime = $now->copy()->subMinutes(5)->format('H:i');
+        $endTime = $now->copy()->addMinutes(15)->format('H:i');
+
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Jam Aktif Presensi Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $now->toDateString(),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'attendance_start_time' => $startTime,
+            'attendance_end_time' => $endTime,
+        ]);
+
+        $res = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.attendance.store', $class->id));
+        $res->assertRedirect();
+        $res->assertSessionHas('success');
+
+        $this->assertDatabaseHas('bk_class_attendances', [
+            'bk_class_id' => $class->id,
+            'student_id' => $this->targetStudent->id,
+            'status' => 'hadir',
+        ]);
+    }
+
+    /**
+     * Skenario 6: Presensi ditolak sebelum waktu dibuka dan setelah waktu ditutup
+     */
+    public function test_attendance_rejected_before_opening_and_after_closing()
+    {
+        $now = Carbon::now('Asia/Jakarta');
+
+        // Kasus A: Sebelum waktu dibuka
+        $futureStart = $now->copy()->addMinutes(10)->format('H:i');
+        $futureEnd = $now->copy()->addMinutes(30)->format('H:i');
+
+        $classEarly = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Belum Buka Absen Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $now->toDateString(),
+            'start_time' => $futureStart,
+            'end_time' => $futureEnd,
+            'attendance_start_time' => $futureStart,
+            'attendance_end_time' => $futureEnd,
+        ]);
+
+        $resEarly = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.attendance.store', $classEarly->id));
+        $resEarly->assertRedirect();
+        $resEarly->assertSessionHas('error');
+        $this->assertDatabaseMissing('bk_class_attendances', [
+            'bk_class_id' => $classEarly->id,
+            'student_id' => $this->targetStudent->id,
+        ]);
+
+        // Kasus B: Setelah waktu ditutup
+        $pastStart = $now->copy()->subMinutes(40)->format('H:i');
+        $pastEnd = $now->copy()->subMinutes(10)->format('H:i');
+
+        $classLate = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Sudah Tutup Absen Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $now->toDateString(),
+            'start_time' => $pastStart,
+            'end_time' => $pastEnd,
+            'attendance_start_time' => $pastStart,
+            'attendance_end_time' => $pastEnd,
+        ]);
+
+        $resLate = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.attendance.store', $classLate->id));
+        $resLate->assertRedirect();
+        $resLate->assertSessionHas('error');
+        $this->assertDatabaseMissing('bk_class_attendances', [
+            'bk_class_id' => $classLate->id,
+            'student_id' => $this->targetStudent->id,
+        ]);
+    }
+
+    /**
+     * Skenario 7: Siswa tidak dapat melakukan presensi dua kali untuk kelas yang sama
+     */
+    public function test_student_cannot_attend_twice()
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $startTime = $now->copy()->subMinutes(5)->format('H:i');
+        $endTime = $now->copy()->addMinutes(15)->format('H:i');
+
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Cek Absen Ganda Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $now->toDateString(),
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'attendance_start_time' => $startTime,
+            'attendance_end_time' => $endTime,
+        ]);
+
+        // Absensi pertama sukses
+        $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.attendance.store', $class->id));
+
+        // Absensi kedua
+        $resSecond = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.attendance.store', $class->id));
+        $resSecond->assertRedirect();
+        $resSecond->assertSessionHas('info');
+
+        $this->assertEquals(1, BkClassAttendance::where('bk_class_id', $class->id)->where('student_id', $this->targetStudent->id)->count());
+    }
+
+    /**
+     * Skenario 8: Siswa yang terlambat absen tetap dapat mengakses materi dan mengumpulkan tugas
+     */
+    public function test_student_with_missed_attendance_can_still_submit_tasks()
+    {
+        $now = Carbon::now('Asia/Jakarta');
+        $pastStart = $now->copy()->subHours(2)->format('H:i');
+        $pastEnd = $now->copy()->subHour()->format('H:i');
+
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Absen Ditutup Tapi Tugas Buka Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => $now->toDateString(),
+            'start_time' => $pastStart,
+            'end_time' => $pastEnd,
+            'attendance_start_time' => $pastStart,
+            'attendance_end_time' => $pastEnd,
+        ]);
+
+        // Tugas dibuka sampai besok
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Tugas Refleksi Diri Test',
+            'instructions' => 'Jawab pertanyaan refleksi.',
+            'start_time' => $now->copy()->subHours(2),
+            'due_time' => $now->copy()->addDay(),
+        ]);
+
+        // Siswa tidak memiliki presensi (alpa/terlambat), tetapi mengirim tugas
+        $resTask = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.tugas.submit', [
+            'id' => $class->id,
+            'taskId' => $task->id,
+        ]), [
+            'submission_text' => 'Ini jawaban refleksi saya meskipun terlambat absen.',
+        ]);
+
+        $resTask->assertRedirect();
+        $resTask->assertSessionHas('success');
+
+        $this->assertDatabaseHas('bk_class_task_submissions', [
+            'bk_class_task_id' => $task->id,
+            'student_id' => $this->targetStudent->id,
+            'status' => 'diserahkan',
+        ]);
+    }
+
+    /**
+     * Skenario 9: Guru BK dapat melihat rekap presensi dan menilai pengumpulan tugas
+     */
+    public function test_guru_bk_can_view_recap_and_grade_task()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Penilaian Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Tugas Pemahaman Test',
+            'instructions' => 'Kerjakan tugas.',
+            'start_time' => Carbon::now('Asia/Jakarta')->subHours(1),
+            'due_time' => Carbon::now('Asia/Jakarta')->addDays(2),
+        ]);
+
+        $submission = BkClassTaskSubmission::create([
+            'bk_class_task_id' => $task->id,
+            'student_id' => $this->targetStudent->id,
+            'submission_text' => 'Jawaban pemahaman',
+            'submitted_at' => Carbon::now('Asia/Jakarta'),
+            'status' => 'diserahkan',
+        ]);
+
+        // Guru BK menilai tugas
+        $resGrade = $this->actingAs($this->counselor)->post(route('guru.kelas.tugas.grade', [
+            'id' => $class->id,
+            'submissionId' => $submission->id,
+        ]), [
+            'score' => 95,
+            'status' => 'dinilai',
+            'counselor_feedback' => 'Sangat baik dan terstruktur.',
+        ]);
+
+        $resGrade->assertRedirect();
+        $this->assertDatabaseHas('bk_class_task_submissions', [
+            'id' => $submission->id,
+            'score' => 95,
+            'status' => 'dinilai',
+        ]);
+    }
+
+    /**
+     * Skenario 10: Manipulasi URL atau Guru BK lain tidak dapat mengelola kelas yang bukan miliknya
+     */
+    public function test_counselor_isolation_enforced()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Guru A Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => '2026-10-21',
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        // Guru lain mencoba mengakses detail kelas Guru A: 403 Forbidden
+        $res = $this->actingAs($this->otherCounselor)->get(route('guru.kelas.show', $class->id));
+        $res->assertStatus(403);
+    }
+
+    /**
+     * Skenario 11: Koreksi presensi manual oleh Guru BK berhasil dengan pencatatan alasan resmi
+     */
+    public function test_guru_bk_can_correct_attendance_manually_with_reason()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Koreksi Manual Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        // Guru BK mengoreksi status presensi siswa menjadi 'izin'
+        $resCorrect = $this->actingAs($this->counselor)->post(route('guru.kelas.presensi.correct', $class->id), [
+            'student_id' => $this->targetStudent->id,
+            'status' => 'izin',
+            'correction_reason' => 'Siswa mengikuti lomba mewakili sekolah tingkat kabupaten.',
+        ]);
+
+        $resCorrect->assertRedirect();
+        $this->assertDatabaseHas('bk_class_attendances', [
+            'bk_class_id' => $class->id,
+            'student_id' => $this->targetStudent->id,
+            'status' => 'izin',
+            'is_manual_correction' => true,
+            'correction_reason' => 'Siswa mengikuti lomba mewakili sekolah tingkat kabupaten.',
+        ]);
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'UPDATE',
+            'entity_type' => 'BkClassAttendance',
+        ]);
+    }
+}

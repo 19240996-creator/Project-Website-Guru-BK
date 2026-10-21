@@ -54,6 +54,11 @@ class User extends Authenticatable
         return $this->hasMany(CounselorAssignment::class, 'counselor_id');
     }
 
+    public function bkClasses()
+    {
+        return $this->hasMany(BkClass::class, 'counselor_id');
+    }
+
     public function classAssignments()
     {
         return $this->hasMany(CounselorClassAssignment::class, 'counselor_id');

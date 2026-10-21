@@ -34,15 +34,18 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Users
-        $guru = User::create([
-            'name' => 'Dra. Endang Sri Rahayu, M.Pd.',
-            'username' => 'gurubk',
-            'email' => 'guru@sekolah.sch.id',
-            'password' => Hash::make('password123'),
-            'role' => 'guru_bk',
-            'phone' => '081234567890',
-            'is_active' => true,
-        ]);
+        $guru = User::where('username', 'gurubk')->first();
+        if (!$guru) {
+            $guru = User::create([
+                'name' => 'Dra. Endang Sri Rahayu, M.Pd.',
+                'username' => 'gurubk',
+                'email' => 'guru@sekolah.sch.id',
+                'password' => Hash::make('password123'),
+                'role' => 'guru_bk',
+                'phone' => '081234567890',
+                'is_active' => true,
+            ]);
+        }
 
         // Academic Years
         $academicYear = AcademicYear::create([
@@ -250,6 +253,48 @@ class DatabaseSeeder extends Seeder
             'primary_goal' => 'belum_menentukan',
             'notes' => 'Membutuhkan bimbingan penjajakan beasiswa KIP Kuliah atau program magang berbayar.',
             'version' => 1,
+        ]);
+
+        // Student 5 (Active)
+        $userSiswa5 = User::create([
+            'name' => 'Rizka Amanda Putri',
+            'username' => '0071234565',
+            'email' => 'rizka.amanda@siswa.sch.id',
+            'password' => Hash::make('password123'),
+            'role' => 'siswa',
+            'phone' => '081255667788',
+            'is_active' => true,
+        ]);
+        $siswa5 = Student::create([
+            'user_id' => $userSiswa5->id,
+            'student_class_id' => $classXII_TKJ->id,
+            'nis' => '23241005',
+            'nisn' => '0071234565',
+            'name' => 'Rizka Amanda Putri',
+            'gender' => 'P',
+            'status' => 'aktif',
+            'phone' => '081255667788',
+        ]);
+
+        // Student 6 (Active)
+        $userSiswa6 = User::create([
+            'name' => 'Dimas Arya Pratama',
+            'username' => '0071234566',
+            'email' => 'dimas.arya@siswa.sch.id',
+            'password' => Hash::make('password123'),
+            'role' => 'siswa',
+            'phone' => '081299881122',
+            'is_active' => true,
+        ]);
+        $siswa6 = Student::create([
+            'user_id' => $userSiswa6->id,
+            'student_class_id' => $classXII_TKJ->id,
+            'nis' => '23241006',
+            'nisn' => '0071234566',
+            'name' => 'Dimas Arya Pratama',
+            'gender' => 'L',
+            'status' => 'aktif',
+            'phone' => '081299881122',
         ]);
 
         // Student 5 (Alumni Lulusan 2024)

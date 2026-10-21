@@ -127,8 +127,12 @@ class ProfilePhotoManagementTest extends TestCase
 
     public function test_guru_bk_can_manage_student_photo()
     {
-        $guru = User::where('role', 'guru_bk')->first();
+        $guru = User::where('username', 'gurubk')->first() ?? User::where('role', 'guru_bk')->first();
         $student = Student::first();
+        \App\Models\CounselorAssignment::updateOrCreate(
+            ['student_id' => $student->id],
+            ['counselor_id' => $guru->id, 'student_class_id' => $student->student_class_id]
+        );
 
         $dummyBase64 = 'data:image/webp;base64,' . base64_encode(UploadedFile::fake()->image('siswa.webp', 100, 100)->getContent());
 

@@ -14,6 +14,7 @@ use App\Http\Controllers\Guru\AlumniController as GuruAlumniController;
 use App\Http\Controllers\Guru\ReportController as GuruReportController;
 use App\Http\Controllers\Guru\AuditLogController as GuruAuditLogController;
 use App\Http\Controllers\Guru\ProfileController as GuruProfileController;
+use App\Http\Controllers\Guru\BkClassController as GuruBkClassController;
 use App\Http\Controllers\Guru\Koordinator\AssignmentController as KoordinatorAssignmentController;
 use App\Http\Controllers\Guru\Koordinator\GuruBkController as KoordinatorGuruBkController;
 use App\Http\Controllers\Guru\Koordinator\SettingController as KoordinatorSettingController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\Siswa\AssessmentController as SiswaAssessmentController
 use App\Http\Controllers\Siswa\FuturePlanController as SiswaFuturePlanController;
 use App\Http\Controllers\Siswa\OpportunityController as SiswaOpportunityController;
 use App\Http\Controllers\Siswa\AlumniController as SiswaAlumniController;
+use App\Http\Controllers\Siswa\BkClassController as SiswaBkClassController;
 
 /*
 |--------------------------------------------------------------------------
@@ -103,6 +105,30 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
     Route::post('/asesmen/{id}/pertanyaan', [GuruAssessmentController::class, 'storeQuestion'])->name('asesmen.pertanyaan.store');
     Route::put('/asesmen/{id}/pertanyaan/{questionId}', [GuruAssessmentController::class, 'updateQuestion'])->name('asesmen.pertanyaan.update');
     Route::delete('/asesmen/{id}/pertanyaan/{questionId}', [GuruAssessmentController::class, 'destroyQuestion'])->name('asesmen.pertanyaan.destroy');
+
+    // Kelas BK Online (Pembelajaran, Materi, Tugas, Presensi)
+    Route::get('/kelas', [GuruBkClassController::class, 'index'])->name('kelas.index');
+    Route::get('/kelas/buat', [GuruBkClassController::class, 'create'])->name('kelas.create');
+    Route::post('/kelas', [GuruBkClassController::class, 'store'])->name('kelas.store');
+    Route::get('/kelas/{id}', [GuruBkClassController::class, 'show'])->name('kelas.show');
+    Route::get('/kelas/{id}/edit', [GuruBkClassController::class, 'edit'])->name('kelas.edit');
+    Route::put('/kelas/{id}', [GuruBkClassController::class, 'update'])->name('kelas.update');
+    Route::delete('/kelas/{id}', [GuruBkClassController::class, 'destroy'])->name('kelas.destroy');
+
+    // Materi Pembelajaran
+    Route::post('/kelas/{id}/materi', [GuruBkClassController::class, 'storeMaterial'])->name('kelas.materi.store');
+    Route::delete('/kelas/{id}/materi/{materialId}', [GuruBkClassController::class, 'destroyMaterial'])->name('kelas.materi.destroy');
+    Route::get('/kelas/{id}/materi/{materialId}/unduh', [GuruBkClassController::class, 'downloadMaterial'])->name('kelas.materi.download');
+
+    // Tugas Pembelajaran
+    Route::post('/kelas/{id}/tugas', [GuruBkClassController::class, 'storeTask'])->name('kelas.tugas.store');
+    Route::delete('/kelas/{id}/tugas/{taskId}', [GuruBkClassController::class, 'destroyTask'])->name('kelas.tugas.destroy');
+    Route::get('/kelas/{id}/tugas/{taskId}/lampiran', [GuruBkClassController::class, 'downloadTaskAttachment'])->name('kelas.tugas.download_attachment');
+    Route::post('/kelas/{id}/tugas/submission/{submissionId}/nilai', [GuruBkClassController::class, 'gradeSubmission'])->name('kelas.tugas.grade');
+    Route::get('/kelas/{id}/tugas/submission/{submissionId}/unduh', [GuruBkClassController::class, 'downloadSubmissionFile'])->name('kelas.tugas.download_submission');
+
+    // Koreksi Presensi
+    Route::post('/kelas/{id}/presensi/koreksi', [GuruBkClassController::class, 'correctAttendance'])->name('kelas.presensi.correct');
 
     // 14 - 15. Peminatan & Rencana Masa Depan
     Route::get('/peminatan', [GuruFuturePlanController::class, 'index'])->name('peminatan.index');
@@ -211,6 +237,15 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     // 25. Jejak Alumni & Pembaruan Tracer Lulusan
     Route::get('/alumni', [SiswaAlumniController::class, 'index'])->name('alumni.index');
     Route::post('/alumni/tracer', [SiswaAlumniController::class, 'updateTracer'])->name('alumni.tracer.update');
+
+    // Kelas BK Online (Siswa)
+    Route::get('/kelas', [SiswaBkClassController::class, 'index'])->name('kelas.index');
+    Route::get('/kelas/{id}', [SiswaBkClassController::class, 'show'])->name('kelas.show');
+    Route::post('/kelas/{id}/presensi', [SiswaBkClassController::class, 'storeAttendance'])->name('kelas.attendance.store');
+    Route::post('/kelas/{id}/tugas/{taskId}/kirim', [SiswaBkClassController::class, 'submitTask'])->name('kelas.tugas.submit');
+    Route::get('/kelas/{id}/materi/{materialId}/unduh', [SiswaBkClassController::class, 'downloadMaterial'])->name('kelas.materi.download');
+    Route::get('/kelas/{id}/tugas/{taskId}/lampiran', [SiswaBkClassController::class, 'downloadTaskAttachment'])->name('kelas.tugas.download_attachment');
+    Route::get('/kelas/{id}/tugas/{taskId}/jawaban-saya', [SiswaBkClassController::class, 'downloadMySubmission'])->name('kelas.tugas.download_my_submission');
 });
 
 // ==========================================

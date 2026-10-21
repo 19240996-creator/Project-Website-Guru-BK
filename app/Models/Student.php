@@ -57,6 +57,16 @@ class Student extends Model
         );
     }
 
+    public function bkClassAttendances()
+    {
+        return $this->hasMany(BkClassAttendance::class, 'student_id');
+    }
+
+    public function bkClassSubmissions()
+    {
+        return $this->hasMany(BkClassTaskSubmission::class, 'student_id');
+    }
+
     /**
      * Scope query untuk membatasi akses data siswa:
      * - koordinator_bk: dapat mengakses seluruh data siswa sekolah
