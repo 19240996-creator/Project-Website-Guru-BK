@@ -928,6 +928,9 @@ class BkOnlineClassTest extends TestCase
         $resGuru->assertSee('filterTaskStudents(' . $task->id);
         $resGuru->assertSee('student-task-row-' . $task->id);
         $resGuru->assertSee('Cari nama atau NISN siswa...');
+        $resGuru->assertSee('taskPaginationContainer_' . $task->id);
+        $resGuru->assertSee('taskPageSize_' . $task->id);
+        $resGuru->assertSee('initTaskPagination');
 
         $resAbsensi = $this->actingAs($this->counselor)->get(route('guru.kelas.show', [
             'id' => $class->id,
@@ -937,5 +940,8 @@ class BkOnlineClassTest extends TestCase
         $resAbsensi->assertSee('searchAttendanceStudent');
         $resAbsensi->assertSee('filterAttendanceStudents');
         $resAbsensi->assertSee('attendance-student-row');
+        $resAbsensi->assertSee('attendancePaginationContainer');
+        $resAbsensi->assertSee('attPageSize');
+        $resAbsensi->assertSee('initAttendancePagination');
     }
 }

@@ -364,7 +364,7 @@
                             </div>
                         </div>
 
-                        <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                        <div class="table-responsive" style="overflow-x: auto; border: 1px solid var(--color-border); border-radius: 8px 8px 0 0; border-bottom: none;">
                             <table class="table" style="font-size: 12px; margin: 0;">
                                 <thead>
                                     <tr style="background: #f8fafc; border-bottom: 2px solid var(--color-border);">
@@ -525,6 +525,26 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        <!-- Pagination Bar Tugas & Pengumpulan Siswa -->
+                        <div id="taskPaginationContainer_{{ $task->id }}" class="pagination-container" style="padding: 12px 18px; border: 1px solid var(--color-border); border-top: none; border-radius: 0 0 8px 8px; background: var(--color-surface, #fff);">
+                            <div class="pagination-info" style="font-size: 12px;">
+                                Menampilkan <strong id="taskPageStart_{{ $task->id }}">1</strong> sampai <strong id="taskPageEnd_{{ $task->id }}">10</strong> dari <strong id="taskTotalCount_{{ $task->id }}">{{ count($targetStudents) }}</strong> siswa
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-muted);">
+                                    <span>Tampilkan:</span>
+                                    <select id="taskPageSize_{{ $task->id }}" onchange="changeTaskPageSize({{ $task->id }}, this.value)" class="form-select" style="font-size: 11.5px; padding: 2px 24px 2px 8px; height: 30px; width: auto; min-width: 70px; border-radius: 6px;">
+                                        <option value="5">5</option>
+                                        <option value="10" selected>10</option>
+                                        <option value="20">20</option>
+                                        <option value="50">50</option>
+                                        <option value="all">Semua</option>
+                                    </select>
+                                </div>
+                                <ul id="taskPaginationList_{{ $task->id }}" class="pagination-list"></ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endforeach
@@ -595,7 +615,7 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
+            <div class="table-responsive" style="overflow-x: auto;">
                 <table class="table" style="font-size: 12.5px; margin: 0;">
                     <thead>
                         <tr style="background: #f8fafc; border-bottom: 2px solid var(--color-border);">
@@ -698,6 +718,26 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination Bar Rekapitulasi Presensi Siswa -->
+            <div id="attendancePaginationContainer" class="pagination-container" style="padding: 12px 18px; border-top: 1px solid var(--color-border); background: var(--color-surface, #fff); border-radius: 0 0 10px 10px;">
+                <div class="pagination-info" style="font-size: 12px;">
+                    Menampilkan <strong id="attPageStart">1</strong> sampai <strong id="attPageEnd">10</strong> dari <strong id="attTotalCount">{{ count($targetStudents) }}</strong> siswa
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-muted);">
+                        <span>Tampilkan:</span>
+                        <select id="attPageSize" onchange="changeAttendancePageSize(this.value)" class="form-select" style="font-size: 11.5px; padding: 2px 24px 2px 8px; height: 30px; width: auto; min-width: 70px; border-radius: 6px;">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="all">Semua</option>
+                        </select>
+                    </div>
+                    <ul id="attPaginationList" class="pagination-list"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -1434,32 +1474,182 @@ function handleGenericModalBackdropClick(e, modalId, closeFunc) {
     }
 }
 
-// Filter pencarian siswa pada tabel pengumpulan tugas
+// ========================================================
+// SISTEM PAGINASI & FILTER PENCARIAN TABEL SISWA
+// ========================================================
+
+var taskPaginationState = {};
+
+function initTaskPagination(taskId) {
+    var rows = Array.from(document.querySelectorAll('.student-task-row-' + taskId));
+    var sizeSelect = document.getElementById('taskPageSize_' + taskId);
+    var pageSizeVal = sizeSelect ? sizeSelect.value : '10';
+    var pageSize = (pageSizeVal === 'all') ? 999999 : (parseInt(pageSizeVal, 10) || 10);
+
+    taskPaginationState[taskId] = {
+        currentPage: 1,
+        pageSize: pageSize,
+        allRows: rows,
+        matchingRows: rows
+    };
+
+    renderTaskPage(taskId);
+}
+
+function changeTaskPageSize(taskId, newSize) {
+    if (!taskPaginationState[taskId]) {
+        initTaskPagination(taskId);
+    }
+    taskPaginationState[taskId].pageSize = (newSize === 'all') ? 999999 : (parseInt(newSize, 10) || 10);
+    taskPaginationState[taskId].currentPage = 1;
+    renderTaskPage(taskId);
+}
+
+function goToTaskPage(taskId, page) {
+    if (!taskPaginationState[taskId]) return;
+    var state = taskPaginationState[taskId];
+    var totalPages = Math.ceil(state.matchingRows.length / state.pageSize) || 1;
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    state.currentPage = page;
+    renderTaskPage(taskId);
+}
+
+function renderTaskPage(taskId) {
+    var state = taskPaginationState[taskId];
+    if (!state) return;
+
+    var container = document.getElementById('taskPaginationContainer_' + taskId);
+    var listEl = document.getElementById('taskPaginationList_' + taskId);
+    var startEl = document.getElementById('taskPageStart_' + taskId);
+    var endEl = document.getElementById('taskPageEnd_' + taskId);
+    var totalEl = document.getElementById('taskTotalCount_' + taskId);
+    var emptyRow = document.getElementById('emptySearchTask_' + taskId);
+
+    var matching = state.matchingRows;
+    var totalCount = matching.length;
+    var pageSize = state.pageSize;
+    var totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+    if (state.currentPage > totalPages) {
+        state.currentPage = totalPages;
+    }
+    var currentPage = state.currentPage;
+
+    state.allRows.forEach(function(row) {
+        row.style.display = 'none';
+    });
+
+    if (totalCount === 0) {
+        if (container) container.style.display = 'none';
+        if (emptyRow) emptyRow.style.display = (state.allRows.length > 0) ? '' : 'none';
+        return;
+    }
+
+    if (emptyRow) emptyRow.style.display = 'none';
+    if (container) container.style.display = 'flex';
+
+    var startIndex = (currentPage - 1) * pageSize;
+    var endIndex = Math.min(startIndex + pageSize, totalCount);
+
+    for (var i = startIndex; i < endIndex; i++) {
+        if (matching[i]) {
+            matching[i].style.display = '';
+        }
+    }
+
+    if (startEl) startEl.textContent = totalCount > 0 ? (startIndex + 1) : 0;
+    if (endEl) endEl.textContent = endIndex;
+    if (totalEl) {
+        if (state.allRows.length !== totalCount) {
+            totalEl.innerHTML = totalCount + ' <span style="font-weight: 400; color: var(--color-text-muted);">(difilter dari ' + state.allRows.length + ')</span>';
+        } else {
+            totalEl.textContent = totalCount;
+        }
+    }
+
+    if (listEl) {
+        var html = '';
+        var prevDisabled = currentPage <= 1 ? ' disabled' : '';
+        html += '<li class="pagination-item">' +
+            '<button type="button" class="pagination-link' + prevDisabled + '" ' +
+            (currentPage > 1 ? 'onclick="goToTaskPage(' + taskId + ', ' + (currentPage - 1) + ')"' : 'disabled') +
+            ' style="cursor: ' + (currentPage > 1 ? 'pointer' : 'not-allowed') + '; min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; font-family: inherit;" ' +
+            'aria-label="Sebelumnya" title="Halaman Sebelumnya">' +
+            '<svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>' +
+            '</button></li>';
+
+        var pages = [];
+        if (totalPages <= 7) {
+            for (var p = 1; p <= totalPages; p++) pages.push(p);
+        } else {
+            pages.push(1);
+            if (currentPage > 4) pages.push('...');
+            var startP = Math.max(2, currentPage - 1);
+            var endP = Math.min(totalPages - 1, currentPage + 1);
+            if (currentPage <= 4) {
+                startP = 2;
+                endP = 4;
+            } else if (currentPage >= totalPages - 3) {
+                startP = totalPages - 3;
+                endP = totalPages - 1;
+            }
+            for (var k = startP; k <= endP; k++) pages.push(k);
+            if (currentPage < totalPages - 3) pages.push('...');
+            pages.push(totalPages);
+        }
+
+        pages.forEach(function(item) {
+            if (item === '...') {
+                html += '<li class="pagination-item"><span class="pagination-ellipsis" style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 32px; color: var(--color-text-muted);">&hellip;</span></li>';
+            } else {
+                var isActive = item === currentPage;
+                html += '<li class="pagination-item">' +
+                    '<button type="button" class="pagination-link' + (isActive ? ' active' : '') + '" ' +
+                    (!isActive ? 'onclick="goToTaskPage(' + taskId + ', ' + item + ')"' : '') +
+                    ' style="cursor: ' + (isActive ? 'default' : 'pointer') + '; min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; font-family: inherit;" ' +
+                    'aria-label="Halaman ' + item + '">' + item + '</button></li>';
+            }
+        });
+
+        var nextDisabled = currentPage >= totalPages ? ' disabled' : '';
+        html += '<li class="pagination-item">' +
+            '<button type="button" class="pagination-link' + nextDisabled + '" ' +
+            (currentPage < totalPages ? 'onclick="goToTaskPage(' + taskId + ', ' + (currentPage + 1) + ')"' : 'disabled') +
+            ' style="cursor: ' + (currentPage < totalPages ? 'pointer' : 'not-allowed') + '; min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; font-family: inherit;" ' +
+            'aria-label="Berikutnya" title="Halaman Berikutnya">' +
+            '<svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>' +
+            '</button></li>';
+
+        listEl.innerHTML = html;
+    }
+}
+
 function filterTaskStudents(taskId, query) {
     var q = (query || '').toLowerCase().trim();
-    var rows = document.querySelectorAll('.student-task-row-' + taskId);
     var clearBtn = document.getElementById('clearSearchTask_' + taskId);
-    var emptyRow = document.getElementById('emptySearchTask_' + taskId);
-    var visibleCount = 0;
-
     if (clearBtn) {
         clearBtn.style.display = q ? 'block' : 'none';
     }
 
-    rows.forEach(function(row) {
+    if (!taskPaginationState[taskId]) {
+        initTaskPagination(taskId);
+    }
+
+    var state = taskPaginationState[taskId];
+    var matched = [];
+
+    state.allRows.forEach(function(row) {
         var name = (row.getAttribute('data-student-name') || '').toLowerCase();
         var nisn = (row.getAttribute('data-student-nisn') || '').toLowerCase();
         if (!q || name.indexOf(q) !== -1 || nisn.indexOf(q) !== -1) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
+            matched.push(row);
         }
     });
 
-    if (emptyRow) {
-        emptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
-    }
+    state.matchingRows = matched;
+    state.currentPage = 1;
+    renderTaskPage(taskId);
 }
 
 function clearTaskStudentSearch(taskId) {
@@ -1471,32 +1661,181 @@ function clearTaskStudentSearch(taskId) {
     }
 }
 
-// Filter pencarian siswa pada tabel presensi kelas
+// --------------------------------------------------------
+// PAGINASI & FILTER TABEL PRESENSI SISWA
+// --------------------------------------------------------
+
+var attendancePaginationState = null;
+
+function initAttendancePagination() {
+    var rows = Array.from(document.querySelectorAll('.attendance-student-row'));
+    if (!rows.length) return;
+    var sizeSelect = document.getElementById('attPageSize');
+    var pageSizeVal = sizeSelect ? sizeSelect.value : '10';
+    var pageSize = (pageSizeVal === 'all') ? 999999 : (parseInt(pageSizeVal, 10) || 10);
+
+    attendancePaginationState = {
+        currentPage: 1,
+        pageSize: pageSize,
+        allRows: rows,
+        matchingRows: rows
+    };
+
+    renderAttendancePage();
+}
+
+function changeAttendancePageSize(newSize) {
+    if (!attendancePaginationState) initAttendancePagination();
+    attendancePaginationState.pageSize = (newSize === 'all') ? 999999 : (parseInt(newSize, 10) || 10);
+    attendancePaginationState.currentPage = 1;
+    renderAttendancePage();
+}
+
+function goToAttendancePage(page) {
+    if (!attendancePaginationState) return;
+    var state = attendancePaginationState;
+    var totalPages = Math.ceil(state.matchingRows.length / state.pageSize) || 1;
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    state.currentPage = page;
+    renderAttendancePage();
+}
+
+function renderAttendancePage() {
+    var state = attendancePaginationState;
+    if (!state) return;
+
+    var container = document.getElementById('attendancePaginationContainer');
+    var listEl = document.getElementById('attPaginationList');
+    var startEl = document.getElementById('attPageStart');
+    var endEl = document.getElementById('attPageEnd');
+    var totalEl = document.getElementById('attTotalCount');
+    var emptyRow = document.getElementById('emptySearchAttendance');
+
+    var matching = state.matchingRows;
+    var totalCount = matching.length;
+    var pageSize = state.pageSize;
+    var totalPages = Math.ceil(totalCount / pageSize) || 1;
+
+    if (state.currentPage > totalPages) {
+        state.currentPage = totalPages;
+    }
+    var currentPage = state.currentPage;
+
+    state.allRows.forEach(function(row) {
+        row.style.display = 'none';
+    });
+
+    if (totalCount === 0) {
+        if (container) container.style.display = 'none';
+        if (emptyRow) emptyRow.style.display = (state.allRows.length > 0) ? '' : 'none';
+        return;
+    }
+
+    if (emptyRow) emptyRow.style.display = 'none';
+    if (container) container.style.display = 'flex';
+
+    var startIndex = (currentPage - 1) * pageSize;
+    var endIndex = Math.min(startIndex + pageSize, totalCount);
+
+    for (var i = startIndex; i < endIndex; i++) {
+        if (matching[i]) {
+            matching[i].style.display = '';
+        }
+    }
+
+    if (startEl) startEl.textContent = totalCount > 0 ? (startIndex + 1) : 0;
+    if (endEl) endEl.textContent = endIndex;
+    if (totalEl) {
+        if (state.allRows.length !== totalCount) {
+            totalEl.innerHTML = totalCount + ' <span style="font-weight: 400; color: var(--color-text-muted);">(difilter dari ' + state.allRows.length + ')</span>';
+        } else {
+            totalEl.textContent = totalCount;
+        }
+    }
+
+    if (listEl) {
+        var html = '';
+        var prevDisabled = currentPage <= 1 ? ' disabled' : '';
+        html += '<li class="pagination-item">' +
+            '<button type="button" class="pagination-link' + prevDisabled + '" ' +
+            (currentPage > 1 ? 'onclick="goToAttendancePage(' + (currentPage - 1) + ')"' : 'disabled') +
+            ' style="cursor: ' + (currentPage > 1 ? 'pointer' : 'not-allowed') + '; min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; font-family: inherit;" ' +
+            'aria-label="Sebelumnya" title="Halaman Sebelumnya">' +
+            '<svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>' +
+            '</button></li>';
+
+        var pages = [];
+        if (totalPages <= 7) {
+            for (var p = 1; p <= totalPages; p++) pages.push(p);
+        } else {
+            pages.push(1);
+            if (currentPage > 4) pages.push('...');
+            var startP = Math.max(2, currentPage - 1);
+            var endP = Math.min(totalPages - 1, currentPage + 1);
+            if (currentPage <= 4) {
+                startP = 2;
+                endP = 4;
+            } else if (currentPage >= totalPages - 3) {
+                startP = totalPages - 3;
+                endP = totalPages - 1;
+            }
+            for (var k = startP; k <= endP; k++) pages.push(k);
+            if (currentPage < totalPages - 3) pages.push('...');
+            pages.push(totalPages);
+        }
+
+        pages.forEach(function(item) {
+            if (item === '...') {
+                html += '<li class="pagination-item"><span class="pagination-ellipsis" style="display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 32px; color: var(--color-text-muted);">&hellip;</span></li>';
+            } else {
+                var isActive = item === currentPage;
+                html += '<li class="pagination-item">' +
+                    '<button type="button" class="pagination-link' + (isActive ? ' active' : '') + '" ' +
+                    (!isActive ? 'onclick="goToAttendancePage(' + item + ')"' : '') +
+                    ' style="cursor: ' + (isActive ? 'default' : 'pointer') + '; min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; font-family: inherit;" ' +
+                    'aria-label="Halaman ' + item + '">' + item + '</button></li>';
+            }
+        });
+
+        var nextDisabled = currentPage >= totalPages ? ' disabled' : '';
+        html += '<li class="pagination-item">' +
+            '<button type="button" class="pagination-link' + nextDisabled + '" ' +
+            (currentPage < totalPages ? 'onclick="goToAttendancePage(' + (currentPage + 1) + ')"' : 'disabled') +
+            ' style="cursor: ' + (currentPage < totalPages ? 'pointer' : 'not-allowed') + '; min-width: 32px; height: 32px; font-size: 12px; padding: 0 8px; font-family: inherit;" ' +
+            'aria-label="Berikutnya" title="Halaman Berikutnya">' +
+            '<svg width="13" height="13" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>' +
+            '</button></li>';
+
+        listEl.innerHTML = html;
+    }
+}
+
 function filterAttendanceStudents(query) {
     var q = (query || '').toLowerCase().trim();
-    var rows = document.querySelectorAll('.attendance-student-row');
     var clearBtn = document.getElementById('clearSearchAttendance');
-    var emptyRow = document.getElementById('emptySearchAttendance');
-    var visibleCount = 0;
-
     if (clearBtn) {
         clearBtn.style.display = q ? 'block' : 'none';
     }
 
-    rows.forEach(function(row) {
+    if (!attendancePaginationState) {
+        initAttendancePagination();
+    }
+
+    var state = attendancePaginationState;
+    var matched = [];
+
+    state.allRows.forEach(function(row) {
         var name = (row.getAttribute('data-student-name') || '').toLowerCase();
         var nisn = (row.getAttribute('data-student-nisn') || '').toLowerCase();
         if (!q || name.indexOf(q) !== -1 || nisn.indexOf(q) !== -1) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
+            matched.push(row);
         }
     });
 
-    if (emptyRow) {
-        emptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
-    }
+    state.matchingRows = matched;
+    state.currentPage = 1;
+    renderAttendancePage();
 }
 
 function clearAttendanceStudentSearch() {
@@ -1506,6 +1845,24 @@ function clearAttendanceStudentSearch() {
         filterAttendanceStudents('');
         input.focus();
     }
+}
+
+// Inisialisasi otomatis seluruh paginasi saat halaman dimuat
+function initAllClassPaginations() {
+    var taskInputs = document.querySelectorAll('[id^="searchStudentTask_"]');
+    taskInputs.forEach(function(el) {
+        var id = el.id.replace('searchStudentTask_', '');
+        if (id) {
+            initTaskPagination(id);
+        }
+    });
+    initAttendancePagination();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAllClassPaginations);
+} else {
+    initAllClassPaginations();
 }
 
 // Deteksi dan sinkronisasi otomatis saat guru kembali fokus ke tab tugas
