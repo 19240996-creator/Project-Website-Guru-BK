@@ -125,4 +125,5 @@ jobs:
           $PHP artisan config:clear
           $PHP artisan route:clear
           $PHP artisan migrate --force
+          $PHP artisan db:seed --class=KoordinatorSeeder --force || true
           $PHP artisan optimize
