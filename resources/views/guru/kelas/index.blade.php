@@ -204,13 +204,9 @@
                     <a href="{{ route('guru.kelas.edit', $item->id) }}" class="btn btn-secondary" style="padding: 7px 11px; font-size: 12.5px;" title="Edit Kelas">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </a>
-                    <form action="{{ route('guru.kelas.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kelas BK ini beserta seluruh materi, tugas, dan rekaman presensi?');" style="display: inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-secondary" style="padding: 7px 11px; font-size: 12.5px; color: #dc2626; border-color: #fecaca;" title="Hapus Kelas">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-secondary" style="padding: 7px 11px; font-size: 12.5px; color: #dc2626; border-color: #fecaca;" title="Hapus Kelas" onclick="openDeleteClassModal('{{ $item->id }}', '{{ addslashes($item->title) }}')">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -222,4 +218,72 @@
     </div>
 </div>
 @endif
+
+<!-- Modal Konfirmasi Hapus Kelas BK (Konsisten Desain Ruang BK) -->
+<div id="deleteClassModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteClassModalTitle" onclick="handleDeleteClassBackdrop(event)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteClassModalTitle" class="modal-title">Konfirmasi Hapus Kelas BK</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus kelas BK <strong id="deleteClassTitleText" style="color: var(--color-text-main);"></strong>?
+            </p>
+            <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; line-height: 1.45;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Perhatian: Seluruh materi slide pembelajaran, video, data penugasan, berkas jawaban siswa, serta rekaman presensi kelas ini akan dihapus secara permanen.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteClassModal()">
+                Batal
+            </button>
+            <form id="deleteClassForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Kelas
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteClassModal(classId, classTitle) {
+    var modal = document.getElementById('deleteClassModal');
+    var form = document.getElementById('deleteClassForm');
+    var titleText = document.getElementById('deleteClassTitleText');
+    if (form) form.action = "{{ url('guru/kelas') }}/" + classId;
+    if (titleText) titleText.textContent = classTitle;
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteClassModal() {
+    var modal = document.getElementById('deleteClassModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function handleDeleteClassBackdrop(e) {
+    if (e.target === document.getElementById('deleteClassModal')) {
+        closeDeleteClassModal();
+    }
+}
+</script>
 @endsection

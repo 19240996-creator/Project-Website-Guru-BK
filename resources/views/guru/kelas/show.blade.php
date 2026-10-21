@@ -35,13 +35,9 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 <span>Edit Jadwal</span>
             </a>
-            <form action="{{ route('guru.kelas.destroy', $class->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kelas ini? Seluruh data materi, tugas, dan presensi akan dihapus permanen.');" style="display: inline;">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-secondary" style="font-size: 12.5px; padding: 8px 12px; color: #dc2626; border-color: #fecaca;" title="Hapus Kelas">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                </button>
-            </form>
+            <button type="button" class="btn btn-secondary" style="font-size: 12.5px; padding: 8px 12px; color: #dc2626; border-color: #fecaca;" title="Hapus Kelas" onclick="openDeleteClassDetailModal('{{ $class->id }}', '{{ addslashes($class->title) }}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
         </div>
     </div>
 
@@ -221,13 +217,9 @@
                             </button>
 
                             <!-- Hapus Materi -->
-                            <form action="{{ route('guru.kelas.materi.destroy', ['id' => $class->id, 'materialId' => $mat->id]) }}" method="POST" onsubmit="return confirm('Hapus materi pembelajaran ini?');" style="margin: 0;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 5px 8px; font-size: 11px; line-height: 1;" title="Hapus Materi">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 5px 8px; font-size: 11px; line-height: 1;" title="Hapus Materi" onclick="openDeleteMaterialModal('{{ $mat->id }}', '{{ addslashes($mat->title) }}')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -340,13 +332,9 @@
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 <span>Edit</span>
                             </button>
-                            <form action="{{ route('guru.kelas.tugas.destroy', ['id' => $class->id, 'taskId' => $task->id]) }}" method="POST" onsubmit="return confirm('Hapus penugasan ini beserta seluruh berkas jawaban siswa?');" style="margin: 0;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 6px 10px; font-size: 12px;" title="Hapus Tugas">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                </button>
-                            </form>
+                            <button type="button" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 6px 10px; font-size: 12px;" title="Hapus Tugas" onclick="openDeleteTaskModal('{{ $task->id }}', '{{ addslashes($task->title) }}')">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
                         </div>
                     </div>
 
@@ -904,5 +892,193 @@ function closeEditTaskModal() {
     document.getElementById('modalEditTask').style.display = 'none';
 }
 
+// Modal Konfirmasi Hapus Kelas (Detail)
+function openDeleteClassDetailModal(classId, classTitle) {
+    var modal = document.getElementById('deleteClassDetailModal');
+    var form = document.getElementById('deleteClassDetailForm');
+    var titleText = document.getElementById('deleteClassDetailTitleText');
+    if (form) form.action = "{{ url('guru/kelas') }}/" + classId;
+    if (titleText) titleText.textContent = classTitle;
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteClassDetailModal() {
+    var modal = document.getElementById('deleteClassDetailModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Modal Konfirmasi Hapus Materi
+function openDeleteMaterialModal(materialId, materialTitle) {
+    var modal = document.getElementById('deleteMaterialModal');
+    var form = document.getElementById('deleteMaterialForm');
+    var titleText = document.getElementById('deleteMaterialTitleText');
+    if (form) form.action = "{{ url('guru/kelas/' . $class->id . '/materi') }}/" + materialId;
+    if (titleText) titleText.textContent = materialTitle;
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteMaterialModal() {
+    var modal = document.getElementById('deleteMaterialModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Modal Konfirmasi Hapus Tugas
+function openDeleteTaskModal(taskId, taskTitle) {
+    var modal = document.getElementById('deleteTaskModal');
+    var form = document.getElementById('deleteTaskForm');
+    var titleText = document.getElementById('deleteTaskTitleText');
+    if (form) form.action = "{{ url('guru/kelas/' . $class->id . '/tugas') }}/" + taskId;
+    if (titleText) titleText.textContent = taskTitle;
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDeleteTaskModal() {
+    var modal = document.getElementById('deleteTaskModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+function handleGenericModalBackdropClick(e, modalId, closeFunc) {
+    if (e.target === document.getElementById(modalId)) {
+        closeFunc();
+    }
+}
 </script>
+
+<!-- Modal Konfirmasi Hapus Kelas BK (Konsisten Desain Ruang BK) -->
+<div id="deleteClassDetailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteClassDetailModalTitle" onclick="handleGenericModalBackdropClick(event, 'deleteClassDetailModal', closeDeleteClassDetailModal)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteClassDetailModalTitle" class="modal-title">Konfirmasi Hapus Kelas BK</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus kelas BK <strong id="deleteClassDetailTitleText" style="color: var(--color-text-main);"></strong>?
+            </p>
+            <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; line-height: 1.45;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Perhatian: Seluruh materi slide pembelajaran, video, data penugasan, berkas jawaban siswa, serta rekaman presensi kelas ini akan dihapus secara permanen.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteClassDetailModal()">
+                Batal
+            </button>
+            <form id="deleteClassDetailForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Kelas
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Materi Pembelajaran -->
+<div id="deleteMaterialModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteMaterialModalTitle" onclick="handleGenericModalBackdropClick(event, 'deleteMaterialModal', closeDeleteMaterialModal)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteMaterialModalTitle" class="modal-title">Konfirmasi Hapus Materi</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus materi pembelajaran <strong id="deleteMaterialTitleText" style="color: var(--color-text-main);"></strong>?
+            </p>
+            <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; line-height: 1.45;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Berkas materi atau tautan video ini akan dihapus dari kelas dan siswa tidak lagi dapat mengaksesnya.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteMaterialModal()">
+                Batal
+            </button>
+            <form id="deleteMaterialForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Materi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus Tugas Pembelajaran -->
+<div id="deleteTaskModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="deleteTaskModalTitle" onclick="handleGenericModalBackdropClick(event, 'deleteTaskModal', closeDeleteTaskModal)">
+    <div class="modal-dialog">
+        <div class="modal-body">
+            <div class="modal-icon-badge danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+            </div>
+            <h3 id="deleteTaskModalTitle" class="modal-title">Konfirmasi Hapus Penugasan</h3>
+            <p class="modal-desc">
+                Apakah Anda yakin ingin menghapus penugasan <strong id="deleteTaskTitleText" style="color: var(--color-text-main);"></strong>?
+            </p>
+            <div style="background-color: var(--color-danger-bg); border: 1px solid var(--color-danger-border); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 14px; font-size: 12px; color: var(--color-danger); display: flex; align-items: flex-start; gap: 8px; line-height: 1.45;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <span>Perhatian: Seluruh berkas jawaban yang telah dikumpulkan siswa beserta catatan penilaian akan dihapus secara permanen.</span>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteTaskModal()">
+                Batal
+            </button>
+            <form id="deleteTaskForm" method="POST" action="" style="display: inline; margin: 0;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">
+                    Ya, Hapus Penugasan
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
