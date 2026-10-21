@@ -17,14 +17,23 @@ class AssessmentController extends Controller
     public function index(Request $request)
     {
         $assessments = Assessment::withCount(['questions', 'studentResults'])->get();
-        $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
-        $majors = StudentClass::whereNotNull('major')
-            ->where('major', '!=', '')
-            ->distinct()
-            ->orderBy('major')
-            ->pluck('major');
+        $user = auth()->user();
+        if ($user->isKoordinatorBk()) {
+            $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+            $majors = StudentClass::whereNotNull('major')
+                ->where('major', '!=', '')
+                ->distinct()
+                ->orderBy('major')
+                ->pluck('major');
+        } else {
+            $assignedClassIds = $user->studentAssignments()->pluck('student_class_id')->unique();
+            $classes = StudentClass::whereIn('id', $assignedClassIds)->orderBy('grade')->orderBy('name')->get();
+            $majors = $classes->pluck('major')->filter()->unique()->values();
+        }
 
-        $query = StudentAssessmentResult::with(['student.studentClass', 'assessment'])->latest();
+        $query = StudentAssessmentResult::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->with(['student.studentClass', 'assessment'])->latest();
 
         if ($request->filled('q')) {
             $q = trim($request->q);
@@ -134,13 +143,28 @@ class AssessmentController extends Controller
 
     public function showResult($id)
     {
-        $result = StudentAssessmentResult::with(['student.studentClass', 'student.futurePlan', 'assessment.questions.options'])->findOrFail($id);
+        $user = auth()->user();
+        $result = StudentAssessmentResult::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->with(['student.studentClass', 'student.futurePlan', 'assessment.questions.options'])->find($id);
+
+        if (!$result) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk melihat hasil asesmen siswa ini.');
+        }
+
         return view('guru.asesmen.result', compact('result'));
     }
 
     public function updateResult(Request $request, $id)
     {
-        $result = StudentAssessmentResult::findOrFail($id);
+        $user = auth()->user();
+        $result = StudentAssessmentResult::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->find($id);
+
+        if (!$result) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk memperbarui hasil asesmen siswa ini.');
+        }
 
         $validated = $request->validate([
             'recommendations' => 'nullable|string',

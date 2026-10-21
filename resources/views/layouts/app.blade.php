@@ -49,6 +49,23 @@
                     <span>Beranda & Prioritas</span>
                 </a>
 
+                @if(auth()->user()->isKoordinatorBk())
+                <div class="nav-group-label">
+                    <span class="nav-group-label-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </span>
+                    <span>Koordinasi BK</span>
+                </div>
+                <a href="{{ route('guru.penugasan.index') }}" class="nav-item {{ request()->routeIs('guru.penugasan.*') ? 'active' : '' }}" title="Pembagian Tugas Guru BK">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M9 14l2 2 4-4"></path></svg>
+                    <span>Pembagian Tugas</span>
+                </a>
+                <a href="{{ route('guru.koordinator.guru_bk.index') }}" class="nav-item {{ request()->routeIs('guru.koordinator.guru_bk.*') ? 'active' : '' }}" title="Kelola Akun Guru BK">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+                    <span>Kelola Guru BK</span>
+                </a>
+                @endif
+
                 <div class="nav-group-label">
                     <span class="nav-group-label-icon">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -130,7 +147,7 @@
                         </div>
                         <div class="user-meta">
                             <div class="user-name">{{ auth()->user()->name }}</div>
-                            <div class="user-role-text">Guru Bimbingan Konseling</div>
+                            <div class="user-role-text">{{ auth()->user()->role_label }}</div>
                         </div>
                     </div>
                 </a>
@@ -171,7 +188,7 @@
                         <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}" class="topbar-user-avatar" />
                         <div class="topbar-user-details">
                             <span class="topbar-user-name">{{ auth()->user()->name }}</span>
-                            <span class="topbar-user-role">Guru BK</span>
+                            <span class="topbar-user-role">{{ auth()->user()->role_label }}</span>
                         </div>
                     </a>
 

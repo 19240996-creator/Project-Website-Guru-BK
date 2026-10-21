@@ -12,9 +12,17 @@ class FuturePlanController extends Controller
 {
     public function index(Request $request)
     {
-        $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+        $user = auth()->user();
 
-        $query = Student::with(['studentClass', 'futurePlan'])
+        if ($user->isKoordinatorBk()) {
+            $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+        } else {
+            $assignedClassIds = $user->studentAssignments()->pluck('student_class_id')->unique();
+            $classes = StudentClass::whereIn('id', $assignedClassIds)->orderBy('grade')->orderBy('name')->get();
+        }
+
+        $query = Student::accessibleBy($user)
+            ->with(['studentClass', 'futurePlan'])
             ->where('status', 'aktif')
             ->latest();
 
@@ -46,7 +54,7 @@ class FuturePlanController extends Controller
         $students = $query->paginate(20)->withQueryString();
 
         // Calculate distribution stats
-        $allActive = Student::where('status', 'aktif')->with('futurePlan')->get();
+        $allActive = Student::accessibleBy($user)->where('status', 'aktif')->with('futurePlan')->get();
         $totalActive = $allActive->count();
         $countKuliah = $allActive->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'kuliah')->count();
         $countKerja = $allActive->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'bekerja')->count();

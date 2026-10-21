@@ -14,6 +14,8 @@ use App\Http\Controllers\Guru\AlumniController as GuruAlumniController;
 use App\Http\Controllers\Guru\ReportController as GuruReportController;
 use App\Http\Controllers\Guru\AuditLogController as GuruAuditLogController;
 use App\Http\Controllers\Guru\ProfileController as GuruProfileController;
+use App\Http\Controllers\Guru\Koordinator\AssignmentController as KoordinatorAssignmentController;
+use App\Http\Controllers\Guru\Koordinator\GuruBkController as KoordinatorGuruBkController;
 
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\ProfileController as SiswaProfileController;
@@ -31,7 +33,7 @@ use App\Http\Controllers\Siswa\AlumniController as SiswaAlumniController;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        return auth()->user()->role === 'guru_bk'
+        return auth()->user()->isGuruOrKoordinator()
             ? redirect()->route('guru.dashboard')
             : redirect()->route('siswa.dashboard');
     }
@@ -52,9 +54,9 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // ==========================================
-// ROLE 1: GURU BK
+// ROLE 1: GURU BK & GURU KOORDINATOR BK
 // ==========================================
-Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->group(function () {
+Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name('guru.')->group(function () {
     // 4. Beranda & "Yang Perlu Saya Kerjakan"
     Route::get('/dashboard', [GuruDashboardController::class, 'index'])->name('dashboard');
 
@@ -143,6 +145,26 @@ Route::middleware(['auth', 'role:guru_bk'])->prefix('guru')->name('guru.')->grou
     Route::delete('/audit/bulk', [GuruAuditLogController::class, 'bulkDestroy'])->name('audit.bulk-destroy');
     Route::post('/audit/clear', [GuruAuditLogController::class, 'clear'])->name('audit.clear');
     Route::delete('/audit/{id}', [GuruAuditLogController::class, 'destroy'])->name('audit.destroy');
+
+    // ==========================================
+    // KHUSUS GURU KOORDINATOR BK
+    // ==========================================
+    Route::middleware(['role:koordinator_bk'])->group(function () {
+        // Pembagian Tugas Guru BK (Berdasarkan Kelas & Jurusan)
+        Route::get('/penugasan', [KoordinatorAssignmentController::class, 'index'])->name('penugasan.index');
+        Route::post('/penugasan/assign', [KoordinatorAssignmentController::class, 'assign'])->name('penugasan.assign');
+        Route::post('/penugasan/unassign', [KoordinatorAssignmentController::class, 'unassign'])->name('penugasan.unassign');
+        Route::post('/penugasan/reassign-massal', [KoordinatorAssignmentController::class, 'reassignMassal'])->name('penugasan.reassign_massal');
+
+        // Manajemen Akun Guru BK
+        Route::get('/koordinator/guru-bk', [KoordinatorGuruBkController::class, 'index'])->name('koordinator.guru_bk.index');
+        Route::get('/koordinator/guru-bk/tambah', [KoordinatorGuruBkController::class, 'create'])->name('koordinator.guru_bk.create');
+        Route::post('/koordinator/guru-bk', [KoordinatorGuruBkController::class, 'store'])->name('koordinator.guru_bk.store');
+        Route::get('/koordinator/guru-bk/{id}', [KoordinatorGuruBkController::class, 'show'])->name('koordinator.guru_bk.show');
+        Route::get('/koordinator/guru-bk/{id}/edit', [KoordinatorGuruBkController::class, 'edit'])->name('koordinator.guru_bk.edit');
+        Route::put('/koordinator/guru-bk/{id}', [KoordinatorGuruBkController::class, 'update'])->name('koordinator.guru_bk.update');
+        Route::delete('/koordinator/guru-bk/{id}', [KoordinatorGuruBkController::class, 'destroy'])->name('koordinator.guru_bk.destroy');
+    });
 });
 
 // ==========================================

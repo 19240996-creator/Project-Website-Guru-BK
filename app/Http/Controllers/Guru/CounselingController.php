@@ -16,7 +16,10 @@ class CounselingController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Counseling::with(['student.studentClass', 'category', 'counselor'])->latest();
+        $user = auth()->user();
+        $query = Counseling::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->with(['student.studentClass', 'category', 'counselor'])->latest();
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -49,7 +52,10 @@ class CounselingController extends Controller
 
     public function show($id)
     {
-        $counseling = Counseling::with([
+        $user = auth()->user();
+        $counseling = Counseling::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->with([
             'student.studentClass',
             'student.achievements',
             'student.futurePlan',
@@ -58,7 +64,11 @@ class CounselingController extends Controller
             'followUps' => function ($q) {
                 $q->latest();
             }
-        ])->findOrFail($id);
+        ])->find($id);
+
+        if (!$counseling) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk mengakses riwayat konseling siswa ini.');
+        }
 
         $categories = CounselingCategory::all();
 
@@ -67,7 +77,14 @@ class CounselingController extends Controller
 
     public function schedule(Request $request, $id)
     {
-        $counseling = Counseling::findOrFail($id);
+        $user = auth()->user();
+        $counseling = Counseling::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->find($id);
+
+        if (!$counseling) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk menjadwalkan konseling siswa ini.');
+        }
 
         $validated = $request->validate([
             'scheduled_date' => 'required|date',
@@ -104,7 +121,14 @@ class CounselingController extends Controller
 
     public function updateNotes(Request $request, $id)
     {
-        $counseling = Counseling::findOrFail($id);
+        $user = auth()->user();
+        $counseling = Counseling::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->find($id);
+
+        if (!$counseling) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk mengubah catatan konseling siswa ini.');
+        }
 
         if (!$counseling->scheduled_date) {
             return redirect()->route('guru.konseling.show', $counseling->id)
@@ -138,7 +162,14 @@ class CounselingController extends Controller
 
     public function storeFollowUp(Request $request, $id)
     {
-        $counseling = Counseling::findOrFail($id);
+        $user = auth()->user();
+        $counseling = Counseling::whereHas('student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->find($id);
+
+        if (!$counseling) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk menambahkan tindak lanjut siswa ini.');
+        }
 
         $validated = $request->validate([
             'action_description' => 'required|string',
@@ -166,7 +197,14 @@ class CounselingController extends Controller
 
     public function updateFollowUp(Request $request, $followUpId)
     {
-        $followUp = CounselingFollowUp::findOrFail($followUpId);
+        $user = auth()->user();
+        $followUp = CounselingFollowUp::whereHas('counseling.student', function ($sq) use ($user) {
+            $sq->accessibleBy($user);
+        })->find($followUpId);
+
+        if (!$followUp) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk memperbarui tindak lanjut ini.');
+        }
 
         $validated = $request->validate([
             'status' => 'required|in:belum_dilakukan,sedang_dilakukan,selesai,ditunda',

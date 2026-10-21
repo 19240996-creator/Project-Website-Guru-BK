@@ -11,7 +11,7 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return Auth::user()->role === 'guru_bk'
+            return in_array(Auth::user()->role, ['guru_bk', 'koordinator_bk'])
                 ? redirect()->route('guru.dashboard')
                 : redirect()->route('siswa.dashboard');
         }
@@ -25,7 +25,7 @@ class AuthController extends Controller
             'login' => 'required|string',
             'password' => 'required|string',
         ], [
-            'login.required' => 'NISN (untuk Siswa) atau Username / Email (untuk Guru BK) wajib diisi.',
+            'login.required' => 'NISN (untuk Siswa) atau Username / Email (untuk Guru BK / Koordinator) wajib diisi.',
             'password.required' => 'Kata sandi / Nomor HP wajib diisi.',
         ]);
 
@@ -33,22 +33,22 @@ class AuthController extends Controller
         $password = trim($credentials['password']);
         $cleanPassword = preg_replace('/[^0-9]/', '', $password);
 
-        // 1. Cek login Guru BK terlebih dahulu (username atau email dengan role guru_bk)
-        $guruUser = User::where('role', 'guru_bk')
+        // 1. Cek login Guru BK atau Guru Koordinator BK (username atau email)
+        $educatorUser = User::whereIn('role', ['guru_bk', 'koordinator_bk'])
             ->where(function ($q) use ($loginInput) {
                 $q->where('username', $loginInput)
                   ->orWhere('email', $loginInput);
             })->first();
 
-        if ($guruUser) {
-            if (\Illuminate\Support\Facades\Hash::check($password, $guruUser->password)) {
-                Auth::login($guruUser);
+        if ($educatorUser) {
+            if (\Illuminate\Support\Facades\Hash::check($password, $educatorUser->password)) {
+                Auth::login($educatorUser);
                 $request->session()->regenerate();
-                return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $guruUser->name);
+                return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $educatorUser->name);
             }
 
             return back()->withErrors([
-                'login' => 'Username atau kata sandi Guru BK yang Anda masukkan salah.',
+                'login' => 'Username atau kata sandi yang Anda masukkan salah.',
             ])->onlyInput('login');
         }
 
@@ -113,7 +113,7 @@ class AuthController extends Controller
         if ($generalUser && \Illuminate\Support\Facades\Hash::check($password, $generalUser->password)) {
             Auth::login($generalUser);
             $request->session()->regenerate();
-            return $generalUser->role === 'guru_bk'
+            return in_array($generalUser->role, ['guru_bk', 'koordinator_bk'])
                 ? redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $generalUser->name)
                 : redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang, ' . $generalUser->name);
         }

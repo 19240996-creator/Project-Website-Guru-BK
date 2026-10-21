@@ -22,10 +22,12 @@ class ReportController extends Controller
         $selectedMajor = $request->input('major') ?: $request->input('jurusan');
         $selectedPeriod = $request->input('period') ?: $request->input('periode');
 
-        // 1. Base Queries with Filtering
-        $studentsQuery = Student::where('status', 'aktif')->with(['studentClass', 'futurePlan']);
-        $counselingsQuery = Counseling::with(['student.studentClass', 'category']);
-        $alumniQuery = AlumniTracking::with('student.studentClass');
+        $user = auth()->user();
+
+        // 1. Base Queries with Filtering & Hak Akses
+        $studentsQuery = Student::accessibleBy($user)->where('status', 'aktif')->with(['studentClass', 'futurePlan']);
+        $counselingsQuery = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->with(['student.studentClass', 'category']);
+        $alumniQuery = AlumniTracking::whereHas('student', fn($sq) => $sq->accessibleBy($user))->with('student.studentClass');
 
         if ($selectedGrade) {
             $studentsQuery->whereHas('studentClass', fn($q) => $q->where('grade', $selectedGrade));
@@ -165,28 +167,30 @@ class ReportController extends Controller
     {
         $package = $request->query('package', 'paket_a');
         $today = Carbon::today();
+        $user = auth()->user();
 
         if ($package === 'paket_a') {
             // Paket A: Laporan Wakasek Kesiswaan (Kondisi & Pembinaan Siswa)
-            $totalActive = Student::where('status', 'aktif')->count();
+            $totalActive = Student::accessibleBy($user)->where('status', 'aktif')->count();
             $studentsByGrade = [
-                'X' => Student::where('status', 'aktif')->whereHas('studentClass', fn($q) => $q->where('grade', 'X'))->count(),
-                'XI' => Student::where('status', 'aktif')->whereHas('studentClass', fn($q) => $q->where('grade', 'XI'))->count(),
-                'XII' => Student::where('status', 'aktif')->whereHas('studentClass', fn($q) => $q->where('grade', 'XII'))->count(),
+                'X' => Student::accessibleBy($user)->where('status', 'aktif')->whereHas('studentClass', fn($q) => $q->where('grade', 'X'))->count(),
+                'XI' => Student::accessibleBy($user)->where('status', 'aktif')->whereHas('studentClass', fn($q) => $q->where('grade', 'XI'))->count(),
+                'XII' => Student::accessibleBy($user)->where('status', 'aktif')->whereHas('studentClass', fn($q) => $q->where('grade', 'XII'))->count(),
             ];
 
-            $attentionList = Student::with('studentClass')
+            $attentionList = Student::accessibleBy($user)->with('studentClass')
                 ->where('status', 'aktif')
                 ->whereIn('attention_level', ['perlu_perhatian', 'prioritas', 'segera_ditindaklanjuti'])
                 ->get();
 
             $counselingStats = [
-                'total' => Counseling::count(),
-                'selesai' => Counseling::where('status', 'selesai')->count(),
-                'proses' => Counseling::whereIn('status', ['diajukan', 'ditinjau', 'dijadwalkan', 'dilaksanakan', 'tindak_lanjut'])->count(),
+                'total' => Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->count(),
+                'selesai' => Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->where('status', 'selesai')->count(),
+                'proses' => Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->whereIn('status', ['diajukan', 'ditinjau', 'dijadwalkan', 'dilaksanakan', 'tindak_lanjut'])->count(),
             ];
 
-            $counselingList = Counseling::with(['student.studentClass', 'category'])
+            $counselingList = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+                ->with(['student.studentClass', 'category'])
                 ->latest()
                 ->take(20)
                 ->get();
@@ -211,10 +215,10 @@ class ReportController extends Controller
             return view('guru.laporan.paket_b', compact('activities', 'activePartners', 'today'));
         } else {
             // Paket C: Laporan Eksekutif Kepala Sekolah
-            $totalStudents = Student::where('status', 'aktif')->count();
-            $totalCounselings = Counseling::count();
+            $totalStudents = Student::accessibleBy($user)->where('status', 'aktif')->count();
+            $totalCounselings = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->count();
             
-            $gradeXII = Student::where('status', 'aktif')
+            $gradeXII = Student::accessibleBy($user)->where('status', 'aktif')
                 ->whereHas('studentClass', fn($q) => $q->where('grade', 'XII'))
                 ->with('futurePlan')
                 ->get();

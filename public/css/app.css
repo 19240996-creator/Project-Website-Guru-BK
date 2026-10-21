@@ -495,11 +495,13 @@ body.sidebar-locked {
   color: #FFFFFF;
 }
 
-.card-header-navy .card-title {
-  color: #FFFFFF;
+.card-header-navy .card-title,
+.card-header-navy .card-title-clean {
+  color: #FFFFFF !important;
 }
 
 .card-header-navy p,
+.card-header-navy .card-subtitle-clean,
 .card-header-navy .text-muted {
   color: rgba(255, 255, 255, 0.72) !important;
 }
@@ -810,6 +812,40 @@ body.sidebar-locked {
   background-color: var(--color-surface-hover);
 }
 
+.table-clean {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table-clean th {
+  padding: 13px 18px;
+  background-color: var(--color-surface-subtle);
+  color: var(--color-navy);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.table-clean td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-main);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+.table-clean tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+.table-clean tbody tr:hover {
+  background-color: var(--color-surface-hover);
+}
+
 /* ==========================================================================
    FORMS & INPUTS
    ========================================================================== */
@@ -948,6 +984,7 @@ textarea.form-control {
   z-index: 1050;
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: opacity var(--transition-base), visibility var(--transition-base);
   padding: 16px;
 }
@@ -955,6 +992,7 @@ textarea.form-control {
 .modal-backdrop.active {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .modal-dialog {
@@ -1451,6 +1489,162 @@ nav[role="navigation"] svg {
 .topbar-search-input::placeholder {
   color: #94A3B8;
   font-size: 13px;
+}
+
+/* ==========================================================================
+   SEARCH PILL CONTROLS (Harmonious with Executive Topbar Search)
+   ========================================================================== */
+.search-pill-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-pill-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.search-pill-input {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding: 8px 36px 8px 40px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface-subtle);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-navy);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.search-pill-input:focus {
+  outline: none;
+  background-color: #FFFFFF;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(36, 71, 168, 0.12);
+}
+
+.search-pill-input::placeholder {
+  color: #94A3B8;
+  font-size: 12.5px;
+}
+
+.search-pill-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #94A3B8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+  z-index: 2;
+  text-decoration: none;
+}
+
+.search-pill-clear:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-danger);
+}
+
+/* ==========================================================================
+   FORM SEARCH CONTROLS (Consistent with .form-control / .form-select)
+   ========================================================================== */
+.form-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.form-search-icon {
+  position: absolute;
+  left: 14px;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+  transition: color var(--transition-fast);
+}
+
+.form-search-box:focus-within .form-search-icon {
+  color: var(--color-primary);
+}
+
+.form-search-input {
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding: 10px 36px 10px 38px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background-color: var(--color-surface);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-text-main);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-search-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(36, 71, 168, 0.15);
+  outline: none;
+}
+
+.form-search-input::placeholder {
+  color: #94A3B8;
+  font-size: 13.5px;
+}
+
+.form-search-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #94A3B8;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  z-index: 2;
+  text-decoration: none;
+}
+
+.form-search-clear:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-danger);
+}
+
+/* Modifier for compact header search boxes */
+.form-search-box-sm .form-search-input {
+  height: 38px;
+  min-height: 38px;
+  padding: 8px 32px 8px 34px;
+  font-size: 13px;
+}
+
+.form-search-box-sm .form-search-icon {
+  left: 11px;
+}
+
+.form-search-box-sm .form-search-clear {
+  right: 8px;
 }
 
 .topbar-icon-btn {

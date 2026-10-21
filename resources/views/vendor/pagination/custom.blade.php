@@ -1,12 +1,14 @@
 @php
-    $entityLabel = request()->is('*siswa*') ? 'data siswa' : 
+    $entityLabel = request()->is('*penugasan*') ? 'siswa' : 
+                   (request()->is('*guru-bk*') ? 'akun Guru BK' : 
+                   (request()->is('*siswa*') ? 'data siswa' : 
                    (request()->is('*audit*') ? 'log aktivitas' : 
                    (request()->is('*konseling*') ? 'sesi konseling' : 
                    (request()->is('*mitra*') ? 'data mitra' : 
                    (request()->is('*peluang*') ? 'data peluang' : 
                    (request()->is('*asesmen*') ? 'data asesmen' : 
                    (request()->is('*alumni*') ? 'data alumni' : 
-                   (request()->is('*peminatan*') ? 'data peminatan' : 'data')))))));
+                   (request()->is('*peminatan*') ? 'data peminatan' : 'data')))))))));
 @endphp
 
 @if ($paginator->hasPages())

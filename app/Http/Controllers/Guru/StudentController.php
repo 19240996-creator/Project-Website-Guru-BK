@@ -18,7 +18,8 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Student::with(['studentClass', 'user'])->latest();
+        $user = auth()->user();
+        $query = Student::accessibleBy($user)->with(['studentClass', 'user', 'counselorAssignment.counselor'])->latest();
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -61,22 +62,41 @@ class StudentController extends Controller
         }
 
         $students = $query->paginate($perPage)->withQueryString();
-        $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
-        $majors = StudentClass::whereNotNull('major')
-            ->where('major', '!=', '')
-            ->distinct()
-            ->orderBy('major')
-            ->pluck('major');
-        $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+
+        // Otorisasi filter kelas & jurusan:
+        // Koordinator BK melihat seluruh kelas & jurusan sekolah.
+        // Guru BK hanya melihat kelas & jurusan yang siswa binaannya ditugaskan kepadanya.
+        if ($user->isKoordinatorBk()) {
+            $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
+            $majors = StudentClass::whereNotNull('major')
+                ->where('major', '!=', '')
+                ->distinct()
+                ->orderBy('major')
+                ->pluck('major');
+            $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+        } else {
+            $assignedClassIds = $user->studentAssignments()->pluck('student_class_id')->unique();
+            $classes = StudentClass::whereIn('id', $assignedClassIds)
+                ->withCount(['students' => function ($q) use ($user) {
+                    $q->accessibleBy($user);
+                }])
+                ->orderBy('grade')
+                ->orderBy('name')
+                ->get();
+            $majors = $classes->pluck('major')->filter()->unique()->values();
+            $allStudents = Student::accessibleBy($user)->with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+        }
 
         return view('guru.siswa.index', compact('students', 'classes', 'majors', 'allStudents'));
     }
 
     public function show($id)
     {
-        $student = Student::with([
+        $user = auth()->user();
+        $student = Student::accessibleBy($user)->with([
             'studentClass.academicYear',
             'user',
+            'counselorAssignment.counselor',
             'achievements',
             'counselings.category',
             'counselings.followUps',
@@ -86,9 +106,15 @@ class StudentController extends Controller
             },
             'opportunityRegistrations.opportunity',
             'alumniTracking'
-        ])->findOrFail($id);
+        ])->find($id);
 
-        $classes = StudentClass::orderBy('grade')->orderBy('name')->get();
+        if (!$student) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan resmi untuk mengakses data atau profil siswa ini.');
+        }
+
+        $classes = $user->isKoordinatorBk()
+            ? StudentClass::orderBy('grade')->orderBy('name')->get()
+            : StudentClass::whereIn('id', $user->studentAssignments()->pluck('student_class_id')->unique())->orderBy('grade')->orderBy('name')->get();
 
         return view('guru.siswa.show', compact('student', 'classes'));
     }
@@ -152,6 +178,29 @@ class StudentController extends Controller
             $studentData['avatar'] = $photoPath;
             $student = Student::create($studentData);
 
+            // Integrasi Penugasan Otomatis:
+            $currentUser = auth()->user();
+            if ($currentUser && $currentUser->isGuruBk()) {
+                // Guru BK yang menambahkan siswa baru langsung ditugaskan membimbing siswa tersebut
+                \App\Models\CounselorAssignment::create([
+                    'counselor_id' => $currentUser->id,
+                    'student_id' => $student->id,
+                    'student_class_id' => $student->student_class_id,
+                    'assigned_by' => $currentUser->id,
+                ]);
+            } elseif ($currentUser && $currentUser->isKoordinatorBk()) {
+                // Jika kelas siswa sudah memiliki penugasan Guru BK, tautkan otomatis
+                $classAssignment = \App\Models\CounselorClassAssignment::where('student_class_id', $student->student_class_id)->first();
+                if ($classAssignment) {
+                    \App\Models\CounselorAssignment::create([
+                        'counselor_id' => $classAssignment->counselor_id,
+                        'student_id' => $student->id,
+                        'student_class_id' => $student->student_class_id,
+                        'assigned_by' => $currentUser->id,
+                    ]);
+                }
+            }
+
             $detailMsg = $photoPath ? "dengan foto profil khusus" : "dengan avatar default";
             AuditLog::log('SIMPAN', 'Student', $student->id, "Menambahkan data siswa baru: {$student->name} ({$student->nisn}) {$detailMsg}.");
         });
@@ -161,14 +210,33 @@ class StudentController extends Controller
 
     public function edit($id)
     {
-        $student = Student::findOrFail($id);
-        $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
-        $majors = StudentClass::whereNotNull('major')
-            ->where('major', '!=', '')
-            ->distinct()
-            ->orderBy('major')
-            ->pluck('major');
-        $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+        $user = auth()->user();
+        $student = Student::accessibleBy($user)->find($id);
+        if (!$student) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk mengubah data siswa ini.');
+        }
+
+        if ($user->isKoordinatorBk()) {
+            $classes = StudentClass::withCount('students')->orderBy('grade')->orderBy('name')->get();
+            $majors = StudentClass::whereNotNull('major')
+                ->where('major', '!=', '')
+                ->distinct()
+                ->orderBy('major')
+                ->pluck('major');
+            $allStudents = Student::with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+        } else {
+            $assignedClassIds = $user->studentAssignments()->pluck('student_class_id')->unique();
+            $classes = StudentClass::whereIn('id', $assignedClassIds)
+                ->withCount(['students' => function ($q) use ($user) {
+                    $q->accessibleBy($user);
+                }])
+                ->orderBy('grade')
+                ->orderBy('name')
+                ->get();
+            $majors = $classes->pluck('major')->filter()->unique()->values();
+            $allStudents = Student::accessibleBy($user)->with('studentClass')->where('status', 'aktif')->orderBy('name')->get();
+        }
+
         return view('guru.siswa.edit', compact('student', 'classes', 'majors', 'allStudents'));
     }
 
@@ -315,7 +383,11 @@ class StudentController extends Controller
 
     public function update(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
+        $user = auth()->user();
+        $student = Student::accessibleBy($user)->find($id);
+        if (!$student) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk memperbarui data siswa ini.');
+        }
 
         $validated = $request->validate([
             'nis' => 'required|string',
@@ -438,7 +510,11 @@ class StudentController extends Controller
 
     public function updatePhoto(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
+        $user = auth()->user();
+        $student = Student::accessibleBy($user)->find($id);
+        if (!$student) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk mengubah foto profil siswa ini.');
+        }
 
         $request->validate([
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
@@ -493,7 +569,11 @@ class StudentController extends Controller
 
     public function destroyPhoto(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
+        $user = auth()->user();
+        $student = Student::accessibleBy($user)->find($id);
+        if (!$student) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk menghapus foto siswa ini.');
+        }
 
         if ($student->avatar) {
             \App\Services\AvatarService::deleteOldAvatar($student->avatar);
@@ -786,7 +866,12 @@ class StudentController extends Controller
 
     public function destroy($id)
     {
-        $student = Student::findOrFail($id);
+        $user = auth()->user();
+        $student = Student::accessibleBy($user)->find($id);
+        if (!$student) {
+            abort(403, 'Akses ditolak: Anda tidak memiliki penugasan untuk menghapus data siswa ini.');
+        }
+
         $studentName = $student->name;
         $studentNisn = $student->nisn;
 

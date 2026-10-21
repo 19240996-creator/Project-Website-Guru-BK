@@ -40,6 +40,53 @@ class Student extends Model
         return $this->belongsTo(StudentClass::class);
     }
 
+    public function counselorAssignment()
+    {
+        return $this->hasOne(CounselorAssignment::class, 'student_id');
+    }
+
+    public function counselor()
+    {
+        return $this->hasOneThrough(
+            User::class,
+            CounselorAssignment::class,
+            'student_id',
+            'id',
+            'id',
+            'counselor_id'
+        );
+    }
+
+    /**
+     * Scope query untuk membatasi akses data siswa:
+     * - koordinator_bk: dapat mengakses seluruh data siswa sekolah
+     * - guru_bk: HANYA dapat mengakses siswa yang telah ditugaskan secara resmi
+     * - siswa: hanya dapat mengakses data dirinya sendiri
+     */
+    public function scopeAccessibleBy($query, $user = null)
+    {
+        $user = $user ?? auth()->user();
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if ($user->role === 'koordinator_bk') {
+            return $query;
+        }
+
+        if ($user->role === 'guru_bk') {
+            return $query->whereHas('counselorAssignment', function ($q) use ($user) {
+                $q->where('counselor_id', $user->id);
+            });
+        }
+
+        if ($user->role === 'siswa') {
+            return $query->where('user_id', $user->id);
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
     public function achievements()
     {
         return $this->hasMany(StudentAchievement::class);

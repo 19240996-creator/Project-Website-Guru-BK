@@ -17,4 +17,21 @@ class StudentClass extends Model
     {
         return $this->hasMany(Student::class);
     }
+
+    public function classAssignment()
+    {
+        return $this->hasOne(CounselorClassAssignment::class, 'student_class_id');
+    }
+
+    public function counselor()
+    {
+        return $this->hasOneThrough(
+            User::class,
+            CounselorClassAssignment::class,
+            'student_class_id',
+            'id',
+            'id',
+            'counselor_id'
+        );
+    }
 }

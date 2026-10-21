@@ -13,18 +13,30 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
         if (!auth()->check()) {
             return redirect()->route('login')->with('error', 'Silakan masuk terlebih dahulu untuk mengakses halaman ini.');
         }
 
-        if (auth()->user()->role !== $role) {
-            if (auth()->user()->role === 'guru_bk') {
-                return redirect()->route('guru.dashboard')->with('error', 'Akses ditolak: Akun Anda memiliki hak akses Guru BK.');
-            } else {
+        $allowedRoles = [];
+        foreach ($roles as $r) {
+            foreach (explode(',', $r) as $sub) {
+                $sub = trim($sub);
+                if (!empty($sub)) {
+                    $allowedRoles[] = $sub;
+                }
+            }
+        }
+
+        $userRole = auth()->user()->role;
+
+        if (!in_array($userRole, $allowedRoles)) {
+            if ($userRole === 'siswa') {
                 return redirect()->route('siswa.dashboard')->with('error', 'Akses ditolak: Akun Anda memiliki hak akses Siswa.');
             }
+
+            abort(403, 'Akses ditolak: Anda tidak memiliki izin untuk mengakses halaman ini.');
         }
 
         return $next($request);

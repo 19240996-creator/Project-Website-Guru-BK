@@ -5,16 +5,18 @@ namespace App\Http\Controllers\Guru;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
+use App\Models\StudentClass;
 use App\Models\Counseling;
+use App\Models\CounselingCategory;
 use App\Models\CounselingFollowUp;
-use App\Models\StudentFuturePlan;
 use App\Models\Partner;
 use App\Models\PartnerActivity;
 use App\Models\Opportunity;
-use App\Models\AlumniTracking;
 use App\Models\AcademicYear;
-use App\Models\CounselingCategory;
 use App\Models\AuditLog;
+use App\Models\User;
+use App\Models\CounselorAssignment;
+use App\Models\CounselorClassAssignment;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -22,29 +24,89 @@ class DashboardController extends Controller
     public function index()
     {
         $today = Carbon::today()->toDateString();
+        $user = auth()->user();
+        $isKoordinator = $user->isKoordinatorBk();
 
-        // Core aggregate statistics
-        $totalStudents = Student::where('status', 'aktif')->count();
-        $attentionStudentsCount = Student::where('status', 'aktif')
+        // 1. Data Khusus Koordinator BK
+        $totalGuruBk = 0;
+        $activeGuruBk = 0;
+        $totalSchoolStudents = 0;
+        $totalAssignedSchoolStudents = 0;
+        $totalUnassignedSchoolStudents = 0;
+        $schoolAssignmentPercentage = 0;
+        $counselorWorkloads = collect();
+
+        if ($isKoordinator) {
+            $totalSchoolStudents = Student::where('status', 'aktif')->count();
+            $totalGuruBk = User::where('role', 'guru_bk')->count();
+            $activeGuruBk = User::where('role', 'guru_bk')->where('is_active', true)->count();
+            $totalAssignedSchoolStudents = CounselorAssignment::whereHas('student', fn($q) => $q->where('status', 'aktif'))->count();
+            $totalUnassignedSchoolStudents = max(0, $totalSchoolStudents - $totalAssignedSchoolStudents);
+            $schoolAssignmentPercentage = $totalSchoolStudents > 0
+                ? round(($totalAssignedSchoolStudents / $totalSchoolStudents) * 100, 1)
+                : 0;
+
+            $counselorWorkloads = User::where('role', 'guru_bk')
+                ->with(['studentAssignments.studentClass', 'classAssignments.studentClass'])
+                ->get()
+                ->map(function ($guru) {
+                    $studentCount = $guru->studentAssignments()->count();
+                    $assignedClasses = $guru->studentAssignments()
+                        ->with('studentClass')
+                        ->get()
+                        ->pluck('studentClass')
+                        ->filter()
+                        ->unique('id');
+
+                    return [
+                        'guru' => $guru,
+                        'student_count' => $studentCount,
+                        'classes' => $assignedClasses,
+                    ];
+                });
+        }
+
+        // 2. Statistik Dasar (Sesuai Hak Akses / AccessibleBy)
+        // - Koordinator: melihat data seluruh siswa sekolah
+        // - Guru BK: HANYA melihat siswa yang ditugaskan kepadanya
+        $totalStudents = Student::accessibleBy($user)->where('status', 'aktif')->count();
+
+        $assignedClasses = $user->isGuruBk()
+            ? $user->studentAssignments()
+                ->with('studentClass')
+                ->get()
+                ->pluck('studentClass')
+                ->filter()
+                ->unique('id')
+            : collect();
+
+        $attentionStudentsCount = Student::accessibleBy($user)
+            ->where('status', 'aktif')
             ->whereIn('attention_level', ['perlu_perhatian', 'prioritas', 'segera_ditindaklanjuti'])
             ->count();
-        
-        $newCounselingCount = Counseling::where('status', 'diajukan')->count();
-        $todayCounselingCount = Counseling::where('status', 'dijadwalkan')
+
+        $newCounselingCount = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+            ->where('status', 'diajukan')
+            ->count();
+
+        $todayCounselingCount = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+            ->where('status', 'dijadwalkan')
             ->where('scheduled_date', $today)
             ->count();
-        
-        $overdueFollowUpsCount = CounselingFollowUp::where('status', 'belum_dilakukan')
+
+        $overdueFollowUpsCount = CounselingFollowUp::whereHas('counseling.student', fn($sq) => $sq->accessibleBy($user))
+            ->where('status', 'belum_dilakukan')
             ->where('target_date', '<=', $today)
             ->count();
 
-        // Future Plan distributions for active students (harmonized with Peminatan & Masa Depan)
-        $allActiveStudents = Student::where('status', 'aktif')
+        // Distribusi Peminatan & Masa Depan
+        $allActiveStudents = Student::accessibleBy($user)
+            ->where('status', 'aktif')
             ->with(['studentClass', 'futurePlan'])
             ->get();
 
         $totalPlanStudents = $allActiveStudents->count();
-        $totalGradeXII = $totalPlanStudents;
+        $totalGradeXII = $allActiveStudents->filter(fn($s) => $s->studentClass && $s->studentClass->grade === 'XII')->count();
 
         $collegeCount = $allActiveStudents->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'kuliah')->count();
         $workCount = $allActiveStudents->filter(fn($s) => $s->futurePlan && $s->futurePlan->primary_goal === 'bekerja')->count();
@@ -58,11 +120,12 @@ class DashboardController extends Controller
             ->whereNotIn('status', ['dibatalkan'])
             ->count();
 
-        // Section 36: PRIORITIZED TASK ENGINE ("Yang Perlu Saya Kerjakan")
+        // 3. PRIORITIZED TASK ENGINE ("Yang Perlu Saya Kerjakan")
         $priorityTasks = [];
 
-        // 1. Pengajuan konseling belum diproses
-        $pendingCounselings = Counseling::with(['student.studentClass', 'category'])
+        // 1. Pengajuan konseling belum diproses (hanya untuk siswa yang berhak diakses)
+        $pendingCounselings = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+            ->with(['student.studentClass', 'category'])
             ->where('status', 'diajukan')
             ->orderBy('created_at', 'asc')
             ->get();
@@ -81,7 +144,8 @@ class DashboardController extends Controller
         }
 
         // 2. Tindak lanjut yang jatuh tempo
-        $dueFollowUps = CounselingFollowUp::with(['counseling.student.studentClass'])
+        $dueFollowUps = CounselingFollowUp::whereHas('counseling.student', fn($sq) => $sq->accessibleBy($user))
+            ->with(['counseling.student.studentClass'])
             ->where('status', 'belum_dilakukan')
             ->where('target_date', '<=', $today)
             ->get();
@@ -100,7 +164,8 @@ class DashboardController extends Controller
         }
 
         // 3. Konseling hari ini
-        $todayCounselings = Counseling::with(['student.studentClass', 'category'])
+        $todayCounselings = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+            ->with(['student.studentClass', 'category'])
             ->where('status', 'dijadwalkan')
             ->where('scheduled_date', $today)
             ->orderBy('scheduled_time', 'asc')
@@ -120,7 +185,8 @@ class DashboardController extends Controller
         }
 
         // 4. Siswa kelas XII tanpa rencana masa depan
-        $undecidedStudents = Student::with('studentClass')
+        $undecidedStudents = Student::accessibleBy($user)
+            ->with('studentClass')
             ->where('status', 'aktif')
             ->whereHas('studentClass', function ($q) {
                 $q->where('grade', 'XII');
@@ -156,14 +222,14 @@ class DashboardController extends Controller
             ->orderBy('start_time', 'asc')
             ->get();
 
-        $counselor = auth()->user();
-        $counselorCounselingsCount = $counselor ? Counseling::where('counselor_id', $counselor->id)->count() : 0;
+        $counselor = $user;
+        $counselorCounselingsCount = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->count();
         $activeAcademicYear = AcademicYear::where('is_active', true)->first();
 
         // Chart 1: Kategori Kasus Bimbingan & Konseling (Column Chart)
-        $counselingCategories = CounselingCategory::withCount('counselings')
-            ->orderBy('id', 'asc')
-            ->get();
+        $counselingCategories = CounselingCategory::withCount(['counselings' => function ($q) use ($user) {
+            $q->whereHas('student', fn($sq) => $sq->accessibleBy($user));
+        }])->orderBy('id', 'asc')->get();
 
         $categoryShortNameMap = [
             'Masalah Belajar & Akademik' => 'Belajar',
@@ -184,7 +250,7 @@ class DashboardController extends Controller
             $categoryChartData[] = (int) $cat->counselings_count;
         }
 
-        // Chart 2: Peta Rencana Masa Depan Siswa (Pie / Donut Chart)
+        // Chart 2: Peta Rencana Masa Depan Siswa
         $futurePlanChartLabels = [
             'Target Kuliah',
             'Target Bekerja',
@@ -202,13 +268,15 @@ class DashboardController extends Controller
             array_splice($futurePlanChartData, 3, 0, $workAndStudyCount);
         }
 
-        // Section 3: Recent Priority Feeds matching reference UI
-        $recentCounselings = Counseling::with(['student.studentClass', 'category'])
+        // Recent Priority Feeds
+        $recentCounselings = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+            ->with(['student.studentClass', 'category'])
             ->orderBy('created_at', 'desc')
             ->take(3)
             ->get();
 
-        $upcomingCounselings = Counseling::with(['student.studentClass', 'category'])
+        $upcomingCounselings = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))
+            ->with(['student.studentClass', 'category'])
             ->whereIn('status', ['dijadwalkan', 'diajukan'])
             ->orderBy('scheduled_date', 'asc')
             ->orderBy('scheduled_time', 'asc')
@@ -221,7 +289,16 @@ class DashboardController extends Controller
             ->get();
 
         return view('guru.dashboard', compact(
+            'isKoordinator',
             'totalStudents',
+            'assignedClasses',
+            'totalGuruBk',
+            'activeGuruBk',
+            'totalSchoolStudents',
+            'totalAssignedSchoolStudents',
+            'totalUnassignedSchoolStudents',
+            'schoolAssignmentPercentage',
+            'counselorWorkloads',
             'attentionStudentsCount',
             'newCounselingCount',
             'todayCounselingCount',
