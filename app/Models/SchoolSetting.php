@@ -23,6 +23,10 @@ class SchoolSetting extends Model
         'postal_code',
         'headmaster_name',
         'headmaster_nip',
+        'vice_headmaster_kesiswaan_name',
+        'vice_headmaster_kesiswaan_nip',
+        'vice_headmaster_kurikulum_name',
+        'vice_headmaster_kurikulum_nip',
     ];
 
     /**
@@ -44,6 +48,10 @@ class SchoolSetting extends Model
                 'postal_code' => '45322',
                 'headmaster_name' => 'Dra. Hj. Elis Herawati, M.Pd.',
                 'headmaster_nip' => '196804151994032008',
+                'vice_headmaster_kesiswaan_name' => 'Drs. H. Ahmad Sudrajat, M.M.Pd.',
+                'vice_headmaster_kesiswaan_nip' => '197203101998021003',
+                'vice_headmaster_kurikulum_name' => 'Cecep Suhendar, S.T., M.Kom.',
+                'vice_headmaster_kurikulum_nip' => '197805202006041011',
             ]
         );
     }

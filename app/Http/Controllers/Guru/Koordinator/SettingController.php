@@ -29,6 +29,10 @@ class SettingController extends Controller
             'postal_code' => 'nullable|string|max:20',
             'headmaster_name' => 'nullable|string|max:255',
             'headmaster_nip' => 'nullable|string|max:50',
+            'vice_headmaster_kesiswaan_name' => 'nullable|string|max:255',
+            'vice_headmaster_kesiswaan_nip' => 'nullable|string|max:50',
+            'vice_headmaster_kurikulum_name' => 'nullable|string|max:255',
+            'vice_headmaster_kurikulum_nip' => 'nullable|string|max:50',
         ], [
             'school_name.required' => 'Nama sekolah wajib diisi.',
             'provincial_agency.required' => 'Dinas Pendidikan / Pemda wajib diisi.',

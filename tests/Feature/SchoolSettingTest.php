@@ -65,6 +65,10 @@ class SchoolSettingTest extends TestCase
                 'postal_code' => '45322',
                 'headmaster_name' => 'Dra. Hj. Elis Herawati, M.Pd.',
                 'headmaster_nip' => '196804151994032008',
+                'vice_headmaster_kesiswaan_name' => 'Drs. H. Ahmad Sudrajat, M.M.Pd.',
+                'vice_headmaster_kesiswaan_nip' => '197203101998021003',
+                'vice_headmaster_kurikulum_name' => 'Cecep Suhendar, S.T., M.Kom.',
+                'vice_headmaster_kurikulum_nip' => '197805202006041011',
             ]
         );
     }
@@ -77,6 +81,8 @@ class SchoolSettingTest extends TestCase
         $response->assertSee('Pengaturan Identitas Sekolah &amp; Kop Surat Resmi', false);
         $response->assertSee('Formulir Identitas Sekolah &amp; Cabang Pendidikan', false);
         $response->assertSee('Pratinjau Nyata Kop Surat Resmi');
+        $response->assertSee('Pejabat Wakasek Kesiswaan');
+        $response->assertSee('Pejabat Wakasek Kurikulum / Hubin');
     }
 
     public function test_regular_guru_bk_cannot_access_school_settings_page(): void
@@ -107,6 +113,10 @@ class SchoolSettingTest extends TestCase
             'postal_code' => '45353',
             'headmaster_name' => 'Dr. H. Rahmat Hidayat, M.Si.',
             'headmaster_nip' => '197005101997021003',
+            'vice_headmaster_kesiswaan_name' => 'Bambang Irawan, S.Pd., M.M.',
+            'vice_headmaster_kesiswaan_nip' => '197608122001011002',
+            'vice_headmaster_kurikulum_name' => 'Siti Nurhaliza, M.Pd.',
+            'vice_headmaster_kurikulum_nip' => '198104192005022001',
         ];
 
         $response = $this->actingAs($this->koordinator)->put(route('guru.koordinator.pengaturan.update'), $payload);
@@ -120,6 +130,8 @@ class SchoolSettingTest extends TestCase
             'education_branch' => 'CABANG DINAS PENDIDIKAN WILAYAH IX',
             'address' => 'Jl. Pendidikan No. 45, Kecamatan Cimalaka, Kabupaten Sumedang',
             'headmaster_name' => 'Dr. H. Rahmat Hidayat, M.Si.',
+            'vice_headmaster_kesiswaan_name' => 'Bambang Irawan, S.Pd., M.M.',
+            'vice_headmaster_kurikulum_name' => 'Siti Nurhaliza, M.Pd.',
         ]);
 
         $this->assertDatabaseHas('audit_logs', [
@@ -178,12 +190,19 @@ class SchoolSettingTest extends TestCase
         $setting->update([
             'school_name' => 'SMK INOVASI DIGITAL',
             'education_branch' => 'CABANG DINAS WILAYAH XII',
+            'vice_headmaster_kesiswaan_name' => 'Drs. H. Mulyadi Kesiswaan, M.Pd.',
+            'vice_headmaster_kurikulum_name' => 'Dra. Endang Kurikulum, M.Si.',
         ]);
 
         $responseA = $this->actingAs($this->koordinator)->get(route('guru.laporan.generate', ['package' => 'paket_a']));
         $responseA->assertStatus(200);
         $responseA->assertSee('SMK INOVASI DIGITAL');
         $responseA->assertSee('CABANG DINAS WILAYAH XII');
+        $responseA->assertSee('Drs. H. Mulyadi Kesiswaan, M.Pd.');
+
+        $responseB = $this->actingAs($this->koordinator)->get(route('guru.laporan.generate', ['package' => 'paket_b']));
+        $responseB->assertStatus(200);
+        $responseB->assertSee('Dra. Endang Kurikulum, M.Si.');
 
         $responseC = $this->actingAs($this->koordinator)->get(route('guru.laporan.generate', ['package' => 'paket_c']));
         $responseC->assertStatus(200);

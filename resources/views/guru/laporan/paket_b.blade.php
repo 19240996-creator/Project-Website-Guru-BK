@@ -120,15 +120,15 @@
                 Mengetahui,<br>
                 <strong>Wakil Kepala Sekolah Bidang Kurikulum</strong>
                 <br><br><br><br>
-                ( .................................................... )<br>
-                NIP. ...............................................
+                <strong>( {{ $schoolSetting->vice_headmaster_kurikulum_name ?: '....................................................' }} )</strong><br>
+                NIP. {{ $schoolSetting->vice_headmaster_kurikulum_nip ?: '...............................................' }}
             </div>
             <div>
                 Dibuat oleh,<br>
                 <strong>Koordinator Guru Bimbingan Konseling</strong>
                 <br><br><br><br>
                 <strong>{{ auth()->user()->name }}</strong><br>
-                NIP/NUPTK. ........................................
+                NIP/NUPTK. {{ auth()->user()->nip ?: '........................................' }}
             </div>
         </div>
     </div>

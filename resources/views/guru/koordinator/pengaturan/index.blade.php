@@ -220,7 +220,7 @@
                 </div>
 
                 <!-- 5. Profil Pimpinan Sekolah -->
-                <div style="padding: 14px; background: var(--color-surface-subtle, #F8FAFD); border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 24px;">
+                <div style="padding: 14px; background: var(--color-surface-subtle, #F8FAFD); border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 16px;">
                     <div style="font-size: 13px; font-weight: 700; color: var(--color-navy); margin-bottom: 4px;">
                         Pejabat Kepala Sekolah (Penanda Tangan Laporan)
                     </div>
@@ -250,6 +250,72 @@
                                    placeholder="Contoh: 196804151994032008"
                                    style="min-height: 36px; font-size: 12.5px;"
                                    oninput="updateLiveKop()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Pejabat Wakasek Kesiswaan -->
+                <div style="padding: 14px; background: var(--color-surface-subtle, #F8FAFD); border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 16px;">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--color-navy); margin-bottom: 4px;">
+                        Pejabat Wakasek Kesiswaan (Penanda Tangan Paket Laporan Kesiswaan)
+                    </div>
+                    <p style="font-size: 11.5px; color: var(--color-text-muted); margin: 0 0 12px 0;">
+                        Nama dan NIP Wakil Kepala Sekolah Bidang Kesiswaan pada lembar pengesahan Paket Laporan Kesiswaan (Paket A).
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px;">
+                        <div>
+                            <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">Nama Lengkap &amp; Gelar</label>
+                            <input type="text" 
+                                   name="vice_headmaster_kesiswaan_name" 
+                                   id="inputViceKesiswaanName"
+                                   value="{{ old('vice_headmaster_kesiswaan_name', $setting->vice_headmaster_kesiswaan_name) }}" 
+                                   class="form-control" 
+                                   placeholder="Contoh: Drs. H. Ahmad Sudrajat, M.M.Pd."
+                                   style="min-height: 36px; font-size: 12.5px;">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">NIP Wakasek Kesiswaan</label>
+                            <input type="text" 
+                                   name="vice_headmaster_kesiswaan_nip" 
+                                   id="inputViceKesiswaanNip"
+                                   value="{{ old('vice_headmaster_kesiswaan_nip', $setting->vice_headmaster_kesiswaan_nip) }}" 
+                                   class="form-control" 
+                                   placeholder="Contoh: 197203101998021003"
+                                   style="min-height: 36px; font-size: 12.5px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Pejabat Wakasek Kurikulum / Hubin -->
+                <div style="padding: 14px; background: var(--color-surface-subtle, #F8FAFD); border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 24px;">
+                    <div style="font-size: 13px; font-weight: 700; color: var(--color-navy); margin-bottom: 4px;">
+                        Pejabat Wakasek Kurikulum / Hubin (Penanda Tangan Paket Laporan Kurikulum &amp; Mitra)
+                    </div>
+                    <p style="font-size: 11.5px; color: var(--color-text-muted); margin: 0 0 12px 0;">
+                        Nama dan NIP Wakil Kepala Sekolah Bidang Kurikulum / Hubin pada lembar pengesahan Paket Laporan Agenda &amp; Mitra (Paket B).
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 12px;">
+                        <div>
+                            <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">Nama Lengkap &amp; Gelar</label>
+                            <input type="text" 
+                                   name="vice_headmaster_kurikulum_name" 
+                                   id="inputViceKurikulumName"
+                                   value="{{ old('vice_headmaster_kurikulum_name', $setting->vice_headmaster_kurikulum_name) }}" 
+                                   class="form-control" 
+                                   placeholder="Contoh: Cecep Suhendar, S.T., M.Kom."
+                                   style="min-height: 36px; font-size: 12.5px;">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 11.5px; font-weight: 600; margin-bottom: 4px;">NIP Wakasek Kurikulum</label>
+                            <input type="text" 
+                                   name="vice_headmaster_kurikulum_nip" 
+                                   id="inputViceKurikulumNip"
+                                   value="{{ old('vice_headmaster_kurikulum_nip', $setting->vice_headmaster_kurikulum_nip) }}" 
+                                   class="form-control" 
+                                   placeholder="Contoh: 197805202006041011"
+                                   style="min-height: 36px; font-size: 12.5px;">
                         </div>
                     </div>
                 </div>
