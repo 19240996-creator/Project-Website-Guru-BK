@@ -1189,19 +1189,21 @@
 
     <!-- Pemantauan Siswa Perlu Perhatian Khusus -->
     @if($attentionStudents->count() > 0)
-        <div class="card" style="margin-bottom: 24px; border-left: 4px solid #D97706;">
-            <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px;">
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header card-header-navy" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px;">
                 <div>
-                    <h3 class="card-title" style="margin: 0; font-size: 15px; color: var(--color-navy);">
-                        Siswa Memerlukan Perhatian Khusus & Tindak Lanjut Cepat
+                    <h3 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">
+                        Siswa Memerlukan Perhatian Khusus &amp; Tindak Lanjut Cepat
                     </h3>
-                    <p style="font-size: 12px; color: var(--color-text-muted); margin: 2px 0 0 0;">
+                    <p style="font-size: 12px; color: #CCD8FD; margin: 2px 0 0 0;">
                         Deteksi siswa binaan dengan tingkat atensi prioritas dalam lingkup pelaporan.
                     </p>
                 </div>
-                <span class="badge badge-warning" style="font-size: 11px;">
-                    {{ $attentionStudents->count() }} Siswa Prioritas
-                </span>
+                <div>
+                    <span class="badge" style="background: rgba(245, 158, 11, 0.25); color: #FDE68A; border: 1px solid rgba(245, 158, 11, 0.4); font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 9999px;">
+                        {{ $attentionStudents->count() }} Siswa Prioritas
+                    </span>
+                </div>
             </div>
             <div class="card-body" style="padding: 0;">
                 <div style="overflow-x: auto;">
@@ -1240,7 +1242,7 @@
                                     </td>
                                     <td style="text-align: center;">
                                         <a href="{{ route('guru.siswa.show', $att->id) }}" class="btn btn-secondary btn-sm" style="font-size: 11px; padding: 3px 8px;">
-                                            Profil 360°
+                                            Profil
                                         </a>
                                     </td>
                                 </tr>
