@@ -20,65 +20,43 @@ class ReportController extends Controller
 {
     public function index(Request $request)
     {
-        $selectedGrade = $request->input('grade') ?: $request->input('tingkat');
-        $selectedMajor = $request->input('major') ?: $request->input('jurusan');
-        $selectedPeriod = $request->input('period') ?: $request->input('periode');
-        $selectedStartDate = $request->input('start_date');
-        $selectedEndDate = $request->input('end_date');
-
         $user = auth()->user();
+        $periodicData = $this->getPeriodicReportData($request, $user);
+
+        $selectedGrade = $periodicData['selectedGrade'];
+        $selectedMajor = $periodicData['selectedMajor'];
+        $selectedPeriod = $periodicData['periodType'];
+        $selectedStartDate = $periodicData['customStartDate'];
+        $selectedEndDate = $periodicData['customEndDate'];
+        $targetCounselor = $periodicData['targetCounselor'];
 
         // 1. Base Queries with Filtering & Hak Akses
-        $studentsQuery = Student::accessibleBy($user)->where('status', 'aktif')->with(['studentClass', 'futurePlan']);
-        $counselingsQuery = Counseling::whereHas('student', fn($sq) => $sq->accessibleBy($user))->with(['student.studentClass', 'category']);
-        $alumniQuery = AlumniTracking::whereHas('student', fn($sq) => $sq->accessibleBy($user))->with('student.studentClass');
+        $studentsQuery = Student::where('status', 'aktif')->with(['studentClass', 'futurePlan']);
+        if ($targetCounselor) {
+            $studentsQuery->accessibleBy($targetCounselor);
+        } else {
+            $studentsQuery->accessibleBy($user);
+        }
 
         if ($selectedGrade) {
             $studentsQuery->whereHas('studentClass', fn($q) => $q->where('grade', $selectedGrade));
-            $counselingsQuery->whereHas('student.studentClass', fn($q) => $q->where('grade', $selectedGrade));
         }
 
         if ($selectedMajor) {
             $studentsQuery->whereHas('studentClass', fn($q) => $q->where('major', $selectedMajor));
-            $counselingsQuery->whereHas('student.studentClass', fn($q) => $q->where('major', $selectedMajor));
-            $alumniQuery->whereHas('student.studentClass', fn($q) => $q->where('major', $selectedMajor));
-        }
-
-        if ($selectedPeriod) {
-            if ($selectedPeriod === 'mingguan') {
-                $counselingsQuery->where('created_at', '>=', Carbon::now()->subDays(7)->startOfDay());
-            } elseif ($selectedPeriod === 'bulanan' || $selectedPeriod === '1_bulan') {
-                $counselingsQuery->where('created_at', '>=', Carbon::now()->subDays(30)->startOfDay());
-            } elseif ($selectedPeriod === 'tahunan' || $selectedPeriod === '1_tahun') {
-                $counselingsQuery->where('created_at', '>=', Carbon::now()->subYear()->startOfDay());
-            } elseif ($selectedPeriod === '3_bulan') {
-                $counselingsQuery->where('created_at', '>=', Carbon::now()->subMonths(3)->startOfDay());
-            } elseif ($selectedPeriod === '6_bulan') {
-                $counselingsQuery->where('created_at', '>=', Carbon::now()->subMonths(6)->startOfDay());
-            } elseif ($selectedPeriod === 'custom') {
-                if ($selectedStartDate && $selectedEndDate) {
-                    $counselingsQuery->whereBetween('created_at', [
-                        Carbon::parse($selectedStartDate)->startOfDay(),
-                        Carbon::parse($selectedEndDate)->endOfDay(),
-                    ]);
-                } elseif ($selectedStartDate) {
-                    $counselingsQuery->where('created_at', '>=', Carbon::parse($selectedStartDate)->startOfDay());
-                } elseif ($selectedEndDate) {
-                    $counselingsQuery->where('created_at', '<=', Carbon::parse($selectedEndDate)->endOfDay());
-                }
-            }
         }
 
         $filteredStudents = $studentsQuery->get();
         $totalFilteredStudents = $filteredStudents->count();
 
-        $filteredCounselings = $counselingsQuery->get();
-        $totalFilteredCounselings = $filteredCounselings->count();
+        // Harmonized counselings directly from periodicData
+        $filteredCounselings = $periodicData['counselings'];
+        $totalFilteredCounselings = $periodicData['totalCases'];
 
         // 2. Metrics for KPI Cards
-        $attentionStudentsCount = $filteredStudents->filter(fn($s) => in_array($s->attention_level, ['perlu_perhatian', 'prioritas', 'segera_ditindaklanjuti']))->count();
+        $attentionStudentsCount = $periodicData['attentionStudents']->count();
         $activePartnersCount = Partner::where('partnership_status', 'aktif')->count();
-        $totalActivitiesCount = PartnerActivity::whereNotIn('status', ['dibatalkan'])->count();
+        $totalActivitiesCount = count($periodicData['activitiesInPeriod']);
 
         // 3. Diagram 1: Kategori Kasus Bimbingan (Column Chart - dari Beranda)
         $counselingCategories = CounselingCategory::orderBy('id', 'asc')->get();
@@ -140,6 +118,10 @@ class ReportController extends Controller
         ];
 
         // 8. Diagram 6: Peta Penyerapan Alumni (Tracer Study Donut)
+        $alumniQuery = AlumniTracking::whereHas('student', fn($sq) => $targetCounselor ? $sq->accessibleBy($targetCounselor) : $sq->accessibleBy($user))->with('student.studentClass');
+        if ($selectedMajor) {
+            $alumniQuery->whereHas('student.studentClass', fn($q) => $q->where('major', $selectedMajor));
+        }
         $alumniList = $alumniQuery->get();
         $totalAlumni = $alumniList->count();
         $alumniStatusCounts = [
@@ -154,8 +136,7 @@ class ReportController extends Controller
         $availableGrades = ['X', 'XI', 'XII'];
         $availableMajors = StudentClass::distinct()->whereNotNull('major')->where('major', '!=', '')->orderBy('major')->pluck('major');
 
-        $periodicData = $this->getPeriodicReportData($request, $user);
-        $activeTab = $request->input('tab', ($request->has('period_type') || $request->has('week_date') || $request->has('month') || $request->has('year') || $request->has('counselor_id')) ? 'berkala' : 'grafik');
+        $activeTab = $request->input('tab', 'grafik');
 
         return view('guru.laporan.index', array_merge(
             compact(
@@ -311,23 +292,21 @@ class ReportController extends Controller
 
     private function getPeriodicReportData(Request $request, $user): array
     {
-        $periodType = $request->input('period_type', 'bulanan');
-        if (!in_array($periodType, ['mingguan', 'bulanan', 'tahunan', 'custom'])) {
-            $periodType = 'bulanan';
-        }
+        $rawPeriod = $request->input('period_type') ?: $request->input('period') ?: $request->input('periode', 'bulanan');
 
         $now = Carbon::now();
         $weekDate = $request->input('week_date', $now->format('Y-m-d'));
         $selectedMonth = (int) $request->input('month', $now->month);
         $selectedYear = (int) $request->input('year', $now->year);
-        $customStartDate = $request->input('custom_start_date', $request->input('start_date', $now->copy()->subDays(2)->format('Y-m-d')));
-        $customEndDate = $request->input('custom_end_date', $request->input('end_date', $now->format('Y-m-d')));
-        $selectedGrade = $request->input('berkala_grade', '');
-        $selectedMajor = $request->input('berkala_major', '');
+        $customStartDate = $request->input('custom_start_date') ?: $request->input('start_date', $now->copy()->subDays(2)->format('Y-m-d'));
+        $customEndDate = $request->input('custom_end_date') ?: $request->input('end_date', $now->format('Y-m-d'));
+        $selectedGrade = $request->input('grade') ?: $request->input('tingkat') ?: $request->input('berkala_grade', '');
+        $selectedMajor = $request->input('major') ?: $request->input('jurusan') ?: $request->input('berkala_major', '');
         $selectedCounselorId = $request->input('counselor_id', 'semua');
 
         // Rentang Waktu berdasarkan Jenis Periode
-        if ($periodType === 'custom') {
+        if ($rawPeriod === 'custom') {
+            $periodType = 'custom';
             try {
                 $startDate = Carbon::parse($customStartDate)->startOfDay();
             } catch (\Exception $e) {
@@ -340,7 +319,8 @@ class ReportController extends Controller
             }
             $periodLabel = 'Periode ' . $startDate->translatedFormat('d F Y') . ' s.d. ' . $endDate->translatedFormat('d F Y');
             $reportTitle = 'Laporan Kustom Layanan Bimbingan & Konseling';
-        } elseif ($periodType === 'mingguan') {
+        } elseif ($rawPeriod === 'mingguan') {
+            $periodType = 'mingguan';
             try {
                 $base = Carbon::parse($weekDate);
             } catch (\Exception $e) {
@@ -350,15 +330,40 @@ class ReportController extends Controller
             $endDate = $base->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
             $periodLabel = 'Minggu ' . $startDate->translatedFormat('d F Y') . ' s.d. ' . $endDate->translatedFormat('d F Y');
             $reportTitle = 'Laporan Mingguan Layanan Bimbingan & Konseling';
-        } elseif ($periodType === 'tahunan') {
+        } elseif (in_array($rawPeriod, ['tahunan', '1_tahun'])) {
+            $periodType = 'tahunan';
             $startDate = Carbon::create($selectedYear, 1, 1, 0, 0, 0)->startOfYear();
             $endDate = Carbon::create($selectedYear, 12, 31, 23, 59, 59)->endOfYear();
             $periodLabel = 'Tahun Kalender / Ajaran ' . $selectedYear;
             $reportTitle = 'Laporan Tahunan Layanan Bimbingan & Konseling';
+        } elseif ($rawPeriod === '3_bulan') {
+            $periodType = '3_bulan';
+            $startDate = $now->copy()->subMonths(3)->startOfDay();
+            $endDate = $now->copy()->endOfDay();
+            $periodLabel = '3 Bulan Terakhir';
+            $reportTitle = 'Laporan Layanan Bimbingan & Konseling (3 Bulan)';
+        } elseif ($rawPeriod === '6_bulan') {
+            $periodType = '6_bulan';
+            $startDate = $now->copy()->subMonths(6)->startOfDay();
+            $endDate = $now->copy()->endOfDay();
+            $periodLabel = '6 Bulan Terakhir';
+            $reportTitle = 'Laporan Layanan Bimbingan & Konseling (6 Bulan)';
+        } elseif ($rawPeriod === 'semua') {
+            $periodType = 'semua';
+            $startDate = null;
+            $endDate = null;
+            $periodLabel = 'Semua Periode Waktu';
+            $reportTitle = 'Laporan Lengkap Layanan Bimbingan & Konseling';
         } else { // Bulanan (default)
-            $startDate = Carbon::create($selectedYear, $selectedMonth, 1, 0, 0, 0)->startOfMonth();
-            $endDate = Carbon::create($selectedYear, $selectedMonth, 1, 23, 59, 59)->endOfMonth();
-            $periodLabel = 'Bulan ' . $startDate->translatedFormat('F Y');
+            $periodType = 'bulanan';
+            if ($rawPeriod === '1_bulan' && !$request->has('month')) {
+                $startDate = $now->copy()->subDays(30)->startOfDay();
+                $endDate = $now->copy()->endOfDay();
+            } else {
+                $startDate = Carbon::create($selectedYear, $selectedMonth, 1, 0, 0, 0)->startOfMonth();
+                $endDate = Carbon::create($selectedYear, $selectedMonth, 1, 23, 59, 59)->endOfMonth();
+            }
+            $periodLabel = 'Bulan ' . ($startDate ? $startDate->translatedFormat('F Y') : $now->translatedFormat('F Y'));
             $reportTitle = 'Laporan Bulanan Layanan Bimbingan & Konseling';
         }
 
@@ -379,14 +384,17 @@ class ReportController extends Controller
         }
 
         // Query Konseling dalam Periode
-        $counselingQuery = Counseling::with(['student.studentClass', 'counselor', 'category', 'followUps'])
-            ->where(function ($q) use ($startDate, $endDate) {
+        $counselingQuery = Counseling::with(['student.studentClass', 'counselor', 'category', 'followUps']);
+
+        if ($startDate && $endDate) {
+            $counselingQuery->where(function ($q) use ($startDate, $endDate) {
                 $q->whereBetween('created_at', [$startDate, $endDate])
                   ->orWhere(function ($sq) use ($startDate, $endDate) {
                       $sq->whereNotNull('scheduled_date')
                          ->whereBetween('scheduled_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
                   });
             });
+        }
 
         if ($targetCounselor) {
             $counselingQuery->where(function ($q) use ($targetCounselor) {
@@ -452,25 +460,32 @@ class ReportController extends Controller
         $attentionStudents = $attentionStudentsQuery->get();
 
         // Agenda / Kegiatan Mitra & Karier dalam Periode
-        $activitiesInPeriod = PartnerActivity::with(['partner', 'targetClass'])
-            ->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-            ->get();
+        $activitiesInPeriodQuery = PartnerActivity::with(['partner', 'targetClass']);
+        if ($startDate && $endDate) {
+            $activitiesInPeriodQuery->whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+        }
+        $activitiesInPeriod = $activitiesInPeriodQuery->get();
 
         // Rekapitulasi Beban & Kinerja Guru BK (Khusus Koordinator melihat seluruh sekolah)
         $counselorWorkload = [];
         if ($isKoordinator && (!$targetCounselor || $selectedCounselorId === 'semua')) {
             foreach ($allCounselors as $counselor) {
                 $assignedCount = Student::accessibleBy($counselor)->where('status', 'aktif')->count();
-                $handledCounselings = Counseling::where(function ($q) use ($counselor) {
+                $handledCounselingsQuery = Counseling::where(function ($q) use ($counselor) {
                     $q->where('counselor_id', $counselor->id)
                       ->orWhereHas('student', fn($sq) => $sq->accessibleBy($counselor));
-                })->where(function ($q) use ($startDate, $endDate) {
-                    $q->whereBetween('created_at', [$startDate, $endDate])
-                      ->orWhere(function ($sq) use ($startDate, $endDate) {
-                          $sq->whereNotNull('scheduled_date')
-                             ->whereBetween('scheduled_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
-                      });
-                })->get();
+                });
+
+                if ($startDate && $endDate) {
+                    $handledCounselingsQuery->where(function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween('created_at', [$startDate, $endDate])
+                          ->orWhere(function ($sq) use ($startDate, $endDate) {
+                              $sq->whereNotNull('scheduled_date')
+                                 ->whereBetween('scheduled_date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')]);
+                          });
+                    });
+                }
+                $handledCounselings = $handledCounselingsQuery->get();
 
                 $handledTotal = $handledCounselings->count();
                 $handledDone = $handledCounselings->where('status', 'selesai')->count();
