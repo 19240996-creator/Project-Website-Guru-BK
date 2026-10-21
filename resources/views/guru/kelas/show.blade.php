@@ -198,12 +198,34 @@
                             @endif
                         </div>
 
-                        <div>
-                            <form action="{{ route('guru.kelas.materi.destroy', ['id' => $class->id, 'materialId' => $mat->id]) }}" method="POST" onsubmit="return confirm('Hapus materi pembelajaran ini?');">
+                        <div style="display: flex; align-items: center; gap: 5px; flex-shrink: 0;">
+                            <!-- Geser Urutan Materi -->
+                            <form action="{{ route('guru.kelas.materi.reorder', ['id' => $class->id, 'materialId' => $mat->id]) }}" method="POST" style="margin: 0;">
+                                @csrf
+                                <input type="hidden" name="direction" value="up">
+                                <button type="submit" class="btn btn-secondary" style="padding: 5px 8px; font-size: 11px; line-height: 1;" title="Geser Urutan Naik" {{ $loop->first ? 'disabled style=opacity:0.35;cursor:not-allowed;' : '' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                                </button>
+                            </form>
+                            <form action="{{ route('guru.kelas.materi.reorder', ['id' => $class->id, 'materialId' => $mat->id]) }}" method="POST" style="margin: 0;">
+                                @csrf
+                                <input type="hidden" name="direction" value="down">
+                                <button type="submit" class="btn btn-secondary" style="padding: 5px 8px; font-size: 11px; line-height: 1;" title="Geser Urutan Turun" {{ $loop->last ? 'disabled style=opacity:0.35;cursor:not-allowed;' : '' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                </button>
+                            </form>
+
+                            <!-- Edit Materi -->
+                            <button type="button" class="btn btn-secondary" onclick="openEditMaterialModal({{ $mat->id }}, {{ json_encode($mat->title) }}, {{ json_encode($mat->description ?? '') }}, '{{ $mat->material_type }}', {{ json_encode($mat->video_url ?? '') }})" style="padding: 5px 8px; font-size: 11px; line-height: 1;" title="Edit Informasi Materi">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+
+                            <!-- Hapus Materi -->
+                            <form action="{{ route('guru.kelas.materi.destroy', ['id' => $class->id, 'materialId' => $mat->id]) }}" method="POST" onsubmit="return confirm('Hapus materi pembelajaran ini?');" style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 6px 10px; font-size: 12px;" title="Hapus Materi">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <button type="submit" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 5px 8px; font-size: 11px; line-height: 1;" title="Hapus Materi">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
                             </form>
                         </div>
@@ -310,11 +332,15 @@
                             @endif
                         </div>
 
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 12px; font-weight: 700; color: var(--color-navy); background: #f8fafc; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--color-border);">
                                 {{ $subsCount }} Siswa Mengumpulkan ({{ $gradedCount }} Dinilai)
                             </span>
-                            <form action="{{ route('guru.kelas.tugas.destroy', ['id' => $class->id, 'taskId' => $task->id]) }}" method="POST" onsubmit="return confirm('Hapus penugasan ini beserta seluruh berkas jawaban siswa?');">
+                            <button type="button" class="btn btn-secondary" onclick="openEditTaskModal({{ $task->id }}, {{ json_encode($task->title) }}, {{ json_encode($task->instructions) }}, '{{ $task->start_time ? $task->start_time->format('Y-m-d\TH:i') : '' }}', '{{ $task->due_time ? $task->due_time->format('Y-m-d\TH:i') : '' }}', {{ json_encode($task->allowed_file_types ?? '') }})" style="padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;" title="Edit Penugasan">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                <span>Edit</span>
+                            </button>
+                            <form action="{{ route('guru.kelas.tugas.destroy', ['id' => $class->id, 'taskId' => $task->id]) }}" method="POST" onsubmit="return confirm('Hapus penugasan ini beserta seluruh berkas jawaban siswa?');" style="margin: 0;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-secondary" style="color: #dc2626; border-color: #fecaca; padding: 6px 10px; font-size: 12px;" title="Hapus Tugas">
@@ -748,5 +774,135 @@ function openGradeModal(submissionId, studentName, score, feedback, status) {
 function closeGradeModal() {
     document.getElementById('gradingModal').style.display = 'none';
 }
+</script>
+
+<!-- Modal Edit Materi Pembelajaran -->
+<div id="modalEditMaterial" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 520px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+        <div style="padding: 16px 20px; background: var(--color-surface-subtle, #f8fafc); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-navy);">Edit Materi Pembelajaran</h4>
+            <button type="button" onclick="closeEditMaterialModal()" style="border: 0; background: transparent; font-size: 20px; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <form id="formEditMaterial" method="POST" enctype="multipart/form-data" style="padding: 20px;">
+            @csrf
+            @method('PUT')
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Jenis Materi</label>
+                <select name="material_type" id="editMaterialType" class="form-select" style="font-size: 12.5px;" onchange="toggleEditMaterialInput(this.value)">
+                    <option value="slide">Slide Presentasi (PPT / PPTX / PDF)</option>
+                    <option value="video">Video Pembelajaran (Upload / Link YouTube)</option>
+                    <option value="document">Dokumen / Modul Tambahan</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Judul Materi <span style="color: #dc2626;">*</span></label>
+                <input type="text" name="title" id="editMaterialTitle" required class="form-control" style="font-size: 12.5px;">
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Deskripsi Singkat</label>
+                <textarea name="description" id="editMaterialDescription" rows="2" class="form-control" style="font-size: 12px;"></textarea>
+            </div>
+            <div id="editVideoUrlContainer" style="margin-bottom: 14px; display: none;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Tautan Video (YouTube / Google Drive)</label>
+                <input type="url" name="video_url" id="editMaterialVideoUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." style="font-size: 12px;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Ganti Berkas File (Opsional)</label>
+                <input type="file" name="file" class="form-control" style="font-size: 12px;">
+                <small style="color: var(--color-text-muted); font-size: 11px; display: block; margin-top: 3px;">Biarkan kosong jika tidak ingin mengubah berkas yang sudah diunggah.</small>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditMaterialModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
+                <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 700;">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Edit Penugasan -->
+<div id="modalEditTask" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 12px; width: 100%; max-width: 580px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); overflow: hidden;">
+        <div style="padding: 16px 20px; background: var(--color-surface-subtle, #f8fafc); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+            <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-navy);">Edit Penugasan Pembelajaran</h4>
+            <button type="button" onclick="closeEditTaskModal()" style="border: 0; background: transparent; font-size: 20px; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <form id="formEditTask" method="POST" enctype="multipart/form-data" style="padding: 20px;">
+            @csrf
+            @method('PUT')
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Judul Tugas <span style="color: #dc2626;">*</span></label>
+                <input type="text" name="title" id="editTaskTitle" required class="form-control" style="font-size: 12.5px;">
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Instruksi Pengerjaan <span style="color: #dc2626;">*</span></label>
+                <textarea name="instructions" id="editTaskInstructions" rows="3" required class="form-control" style="font-size: 12px;"></textarea>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;">
+                <div>
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Waktu Mulai <span style="color: #dc2626;">*</span></label>
+                    <input type="datetime-local" name="start_time" id="editTaskStartTime" required class="form-control" style="font-size: 12px;">
+                </div>
+                <div>
+                    <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Batas Akhir (Tenggat) <span style="color: #dc2626;">*</span></label>
+                    <input type="datetime-local" name="due_time" id="editTaskDueTime" required class="form-control" style="font-size: 12px;">
+                </div>
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Format Berkas yang Diizinkan</label>
+                <input type="text" name="allowed_file_types" id="editTaskAllowedTypes" class="form-control" placeholder="pdf,docx,doc,ppt,pptx,zip,jpg,png" style="font-size: 12px;">
+            </div>
+            <div style="margin-bottom: 16px;">
+                <label class="form-label" style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">Ganti Berkas Soal / Lampiran (Opsional)</label>
+                <input type="file" name="attachment" class="form-control" style="font-size: 12px;">
+                <small style="color: var(--color-text-muted); font-size: 11px; display: block; margin-top: 3px;">Biarkan kosong bila tidak ingin mengganti lampiran berkas tugas.</small>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="btn btn-secondary" onclick="closeEditTaskModal()" style="font-size: 12.5px; padding: 7px 14px;">Batal</button>
+                <button type="submit" class="btn btn-primary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 700;">Simpan Perubahan Tugas</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openEditMaterialModal(materialId, title, description, type, videoUrl) {
+    var form = document.getElementById('formEditMaterial');
+    form.action = "{{ url('guru/kelas/' . $class->id . '/materi') }}/" + materialId;
+    document.getElementById('editMaterialTitle').value = title || '';
+    document.getElementById('editMaterialDescription').value = description || '';
+    document.getElementById('editMaterialType').value = type || 'slide';
+    document.getElementById('editMaterialVideoUrl').value = videoUrl || '';
+    toggleEditMaterialInput(type);
+    document.getElementById('modalEditMaterial').style.display = 'flex';
+}
+
+function closeEditMaterialModal() {
+    document.getElementById('modalEditMaterial').style.display = 'none';
+}
+
+function toggleEditMaterialInput(type) {
+    var videoContainer = document.getElementById('editVideoUrlContainer');
+    if (type === 'video') {
+        videoContainer.style.display = 'block';
+    } else {
+        videoContainer.style.display = 'none';
+    }
+}
+
+function openEditTaskModal(taskId, title, instructions, startTime, dueTime, allowedTypes) {
+    var form = document.getElementById('formEditTask');
+    form.action = "{{ url('guru/kelas/' . $class->id . '/tugas') }}/" + taskId;
+    document.getElementById('editTaskTitle').value = title || '';
+    document.getElementById('editTaskInstructions').value = instructions || '';
+    document.getElementById('editTaskStartTime').value = startTime || '';
+    document.getElementById('editTaskDueTime').value = dueTime || '';
+    document.getElementById('editTaskAllowedTypes').value = allowedTypes || '';
+    document.getElementById('modalEditTask').style.display = 'flex';
+}
+
+function closeEditTaskModal() {
+    document.getElementById('modalEditTask').style.display = 'none';
+}
+
 </script>
 @endsection

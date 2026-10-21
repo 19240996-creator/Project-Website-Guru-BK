@@ -117,11 +117,14 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
 
     // Materi Pembelajaran
     Route::post('/kelas/{id}/materi', [GuruBkClassController::class, 'storeMaterial'])->name('kelas.materi.store');
+    Route::put('/kelas/{id}/materi/{materialId}', [GuruBkClassController::class, 'updateMaterial'])->name('kelas.materi.update');
+    Route::post('/kelas/{id}/materi/{materialId}/urutan', [GuruBkClassController::class, 'reorderMaterial'])->name('kelas.materi.reorder');
     Route::delete('/kelas/{id}/materi/{materialId}', [GuruBkClassController::class, 'destroyMaterial'])->name('kelas.materi.destroy');
     Route::get('/kelas/{id}/materi/{materialId}/unduh', [GuruBkClassController::class, 'downloadMaterial'])->name('kelas.materi.download');
 
     // Tugas Pembelajaran
     Route::post('/kelas/{id}/tugas', [GuruBkClassController::class, 'storeTask'])->name('kelas.tugas.store');
+    Route::put('/kelas/{id}/tugas/{taskId}', [GuruBkClassController::class, 'updateTask'])->name('kelas.tugas.update');
     Route::delete('/kelas/{id}/tugas/{taskId}', [GuruBkClassController::class, 'destroyTask'])->name('kelas.tugas.destroy');
     Route::get('/kelas/{id}/tugas/{taskId}/lampiran', [GuruBkClassController::class, 'downloadTaskAttachment'])->name('kelas.tugas.download_attachment');
     Route::post('/kelas/{id}/tugas/submission/{submissionId}/nilai', [GuruBkClassController::class, 'gradeSubmission'])->name('kelas.tugas.grade');

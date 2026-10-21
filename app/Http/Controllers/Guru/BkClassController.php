@@ -379,6 +379,97 @@ class BkClassController extends Controller
                          ->with('success', "Materi pembelajaran '{$material->title}' berhasil ditambahkan.");
     }
 
+    public function updateMaterial(Request $request, $id, $materialId)
+    {
+        $class = BkClass::findOrFail($id);
+        $user = auth()->user();
+        if ($user->role === 'guru_bk' && $class->counselor_id !== $user->id) {
+            abort(403);
+        }
+
+        $material = BkClassMaterial::where('bk_class_id', $class->id)->findOrFail($materialId);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'material_type' => 'required|in:slide,video,document',
+            'file' => 'nullable|file|max:51200',
+            'video_url' => 'nullable|url|max:500',
+        ]);
+
+        $updateData = [
+            'title' => $request->title,
+            'description' => $request->description,
+            'material_type' => $request->material_type,
+            'video_url' => $request->video_url,
+        ];
+
+        if ($request->hasFile('file')) {
+            if ($material->file_path && Storage::disk('public')->exists($material->file_path)) {
+                Storage::disk('public')->delete($material->file_path);
+            }
+            $file = $request->file('file');
+            $updateData['file_name'] = $file->getClientOriginalName();
+            $updateData['file_size'] = $file->getSize();
+            $updateData['file_path'] = $file->store('kelas_bk/materi', 'public');
+        }
+
+        $material->update($updateData);
+
+        AuditLog::log('UPDATE', 'BkClassMaterial', $material->id, "Memperbarui materi '{$material->title}' pada kelas BK '{$class->title}'");
+
+        return redirect()->route('guru.kelas.show', ['id' => $class->id, 'tab' => 'materi'])
+                         ->with('success', "Materi pembelajaran '{$material->title}' berhasil diperbarui.");
+    }
+
+    public function reorderMaterial(Request $request, $id, $materialId)
+    {
+        $class = BkClass::findOrFail($id);
+        $user = auth()->user();
+        if ($user->role === 'guru_bk' && $class->counselor_id !== $user->id) {
+            abort(403);
+        }
+
+        $material = BkClassMaterial::where('bk_class_id', $class->id)->findOrFail($materialId);
+        $direction = $request->input('direction', 'up');
+
+        $allMaterials = $class->materials()->orderBy('order_num')->orderBy('id')->get();
+        $index = $allMaterials->search(fn($m) => $m->id === $material->id);
+
+        if ($index !== false) {
+            if ($direction === 'up' && $index > 0) {
+                $prev = $allMaterials[$index - 1];
+                $tempOrder = $material->order_num ?: ($index + 1);
+                $prevOrder = $prev->order_num ?: $index;
+                if ($tempOrder === $prevOrder) {
+                    $material->order_num = $index;
+                    $prev->order_num = $index + 1;
+                } else {
+                    $material->order_num = $prevOrder;
+                    $prev->order_num = $tempOrder;
+                }
+                $material->save();
+                $prev->save();
+            } elseif ($direction === 'down' && $index < $allMaterials->count() - 1) {
+                $next = $allMaterials[$index + 1];
+                $tempOrder = $material->order_num ?: ($index + 1);
+                $nextOrder = $next->order_num ?: ($index + 2);
+                if ($tempOrder === $nextOrder) {
+                    $material->order_num = $index + 2;
+                    $next->order_num = $index + 1;
+                } else {
+                    $material->order_num = $nextOrder;
+                    $next->order_num = $tempOrder;
+                }
+                $material->save();
+                $next->save();
+            }
+        }
+
+        return redirect()->route('guru.kelas.show', ['id' => $class->id, 'tab' => 'materi'])
+                         ->with('success', 'Urutan materi pembelajaran berhasil disesuaikan.');
+    }
+
     public function destroyMaterial($id, $materialId)
     {
         $class = BkClass::findOrFail($id);
@@ -448,6 +539,50 @@ class BkClassController extends Controller
 
         return redirect()->route('guru.kelas.show', ['id' => $class->id, 'tab' => 'tugas'])
                          ->with('success', "Tugas '{$task->title}' berhasil dibuat.");
+    }
+
+    public function updateTask(Request $request, $id, $taskId)
+    {
+        $class = BkClass::findOrFail($id);
+        $user = auth()->user();
+        if ($user->role === 'guru_bk' && $class->counselor_id !== $user->id) {
+            abort(403);
+        }
+
+        $task = BkClassTask::where('bk_class_id', $class->id)->findOrFail($taskId);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'instructions' => 'required|string',
+            'start_time' => 'required|date',
+            'due_time' => 'required|date|after:start_time',
+            'attachment' => 'nullable|file|max:20480',
+            'allowed_file_types' => 'nullable|string|max:255',
+        ]);
+
+        $updateData = [
+            'title' => $request->title,
+            'instructions' => $request->instructions,
+            'start_time' => $request->start_time,
+            'due_time' => $request->due_time,
+            'allowed_file_types' => $request->allowed_file_types ?: 'pdf,docx,doc,ppt,pptx,zip,jpg,jpeg,png',
+        ];
+
+        if ($request->hasFile('attachment')) {
+            if ($task->attachment_path && Storage::disk('public')->exists($task->attachment_path)) {
+                Storage::disk('public')->delete($task->attachment_path);
+            }
+            $file = $request->file('attachment');
+            $updateData['attachment_name'] = $file->getClientOriginalName();
+            $updateData['attachment_path'] = $file->store('kelas_bk/tugas', 'public');
+        }
+
+        $task->update($updateData);
+
+        AuditLog::log('UPDATE', 'BkClassTask', $task->id, "Memperbarui tugas '{$task->title}' pada kelas BK '{$class->title}'");
+
+        return redirect()->route('guru.kelas.show', ['id' => $class->id, 'tab' => 'tugas'])
+                         ->with('success', "Tugas '{$task->title}' berhasil diperbarui.");
     }
 
     public function destroyTask($id, $taskId)

@@ -568,4 +568,107 @@ class BkOnlineClassTest extends TestCase
             'entity_type' => 'BkClassAttendance',
         ]);
     }
+
+    /**
+     * Skenario 12: Guru BK dapat mengubah dan mengurutkan materi pembelajaran
+     */
+    public function test_guru_bk_can_update_and_reorder_materials()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Reorder Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $mat1 = BkClassMaterial::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Materi Pertama',
+            'material_type' => 'slide',
+            'order_num' => 1,
+        ]);
+
+        $mat2 = BkClassMaterial::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Materi Kedua',
+            'material_type' => 'video',
+            'video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            'order_num' => 2,
+        ]);
+
+        // 1. Edit materi 1
+        $resUpdate = $this->actingAs($this->counselor)->put(route('guru.kelas.materi.update', [
+            'id' => $class->id,
+            'materialId' => $mat1->id,
+        ]), [
+            'title' => 'Materi Pertama Diperbarui',
+            'description' => 'Deskripsi baru materi 1',
+            'material_type' => 'slide',
+        ]);
+        $resUpdate->assertRedirect();
+        $this->assertDatabaseHas('bk_class_materials', [
+            'id' => $mat1->id,
+            'title' => 'Materi Pertama Diperbarui',
+        ]);
+
+        // 2. Reorder materi 2 ke atas (direction = up)
+        $resReorder = $this->actingAs($this->counselor)->post(route('guru.kelas.materi.reorder', [
+            'id' => $class->id,
+            'materialId' => $mat2->id,
+        ]), [
+            'direction' => 'up',
+        ]);
+        $resReorder->assertRedirect();
+
+        $mat1->refresh();
+        $mat2->refresh();
+        $this->assertTrue($mat2->order_num < $mat1->order_num);
+    }
+
+    /**
+     * Skenario 13: Guru BK dapat mengubah penugasan pembelajaran
+     */
+    public function test_guru_bk_can_update_task()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Kelas Tugas Update Test',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '08:00',
+            'end_time' => '09:30',
+            'attendance_start_time' => '07:55',
+            'attendance_end_time' => '08:15',
+        ]);
+
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'Tugas Awal',
+            'instructions' => 'Instruksi awal',
+            'start_time' => Carbon::now('Asia/Jakarta'),
+            'due_time' => Carbon::now('Asia/Jakarta')->addDays(2),
+        ]);
+
+        $resUpdate = $this->actingAs($this->counselor)->put(route('guru.kelas.tugas.update', [
+            'id' => $class->id,
+            'taskId' => $task->id,
+        ]), [
+            'title' => 'Tugas Revisi Perpanjangan Waktu',
+            'instructions' => 'Instruksi yang sudah diperbarui dengan format PDF',
+            'start_time' => Carbon::now('Asia/Jakarta')->format('Y-m-d H:i:s'),
+            'due_time' => Carbon::now('Asia/Jakarta')->addDays(5)->format('Y-m-d H:i:s'),
+            'allowed_file_types' => 'pdf',
+        ]);
+
+        $resUpdate->assertRedirect();
+        $this->assertDatabaseHas('bk_class_tasks', [
+            'id' => $task->id,
+            'title' => 'Tugas Revisi Perpanjangan Waktu',
+            'allowed_file_types' => 'pdf',
+        ]);
+    }
 }
