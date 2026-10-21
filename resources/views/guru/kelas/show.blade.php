@@ -297,8 +297,11 @@
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 @foreach($class->tasks as $task)
                 @php
-                    $subsCount = $task->submissions->count();
-                    $gradedCount = $task->submissions->where('status', 'dinilai')->count();
+                    $submissions = ($task->relationLoaded('submissions') && $task->submissions->isNotEmpty())
+                        ? $task->submissions
+                        : $task->submissions()->with('student')->get();
+                    $subsCount = $submissions->count();
+                    $gradedCount = $submissions->where('status', 'dinilai')->count();
                 @endphp
                 <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm);">
                     <div style="padding: 16px 20px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap;">
@@ -334,6 +337,10 @@
                             <span style="font-size: 12px; font-weight: 700; color: var(--color-navy); background: #f8fafc; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--color-border);">
                                 {{ $subsCount }} Siswa Mengumpulkan ({{ $gradedCount }} Dinilai)
                             </span>
+                            <a href="{{ request()->fullUrlWithQuery(['tab' => 'tugas', '_t' => time()]) }}" class="btn btn-secondary" style="padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;" title="Segarkan data pengumpulan tugas">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M1 20v-6h6"></path><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                                <span>Segarkan</span>
+                            </a>
                             <button type="button" class="btn btn-secondary" onclick="openEditTaskModal({{ $task->id }}, {{ json_encode($task->title) }}, {{ json_encode($task->instructions) }}, '{{ $task->start_time ? $task->start_time->format('Y-m-d\TH:i') : '' }}', '{{ $task->due_time ? $task->due_time->format('Y-m-d\TH:i') : '' }}', {{ json_encode($task->allowed_file_types ?? '') }})" style="padding: 6px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;" title="Edit Penugasan">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 <span>Edit</span>
@@ -364,11 +371,14 @@
                                 </thead>
                                 <tbody>
                                     @php
-                                        $subMap = $task->submissions->keyBy('student_id');
+                                        $subMap = $submissions->keyBy('student_id');
                                     @endphp
                                     @forelse($targetStudents as $st)
                                     @php
-                                        $submission = $subMap->get($st->id);
+                                        $submission = $subMap->get($st->id) ?? $task->submissionFor($st);
+                                        if ($submission && !$subMap->has($st->id)) {
+                                            $subMap->put($st->id, $submission);
+                                        }
                                         $ext = $submission && $submission->file_path ? strtolower(pathinfo($submission->file_path, PATHINFO_EXTENSION)) : '';
                                         $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'gif']);
                                         $isPdf = $ext === 'pdf';
@@ -1282,6 +1292,32 @@ function handleGenericModalBackdropClick(e, modalId, closeFunc) {
         closeFunc();
     }
 }
+
+// Deteksi dan sinkronisasi otomatis saat guru kembali fokus ke tab tugas
+(function() {
+    var lastHiddenTime = 0;
+    var activeTab = "{{ $activeTab }}";
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            lastHiddenTime = Date.now();
+        } else {
+            // Jika guru kembali fokus ke tab tugas setelah berpindah tab lebih dari 4 detik
+            if (activeTab === 'tugas' && lastHiddenTime > 0 && (Date.now() - lastHiddenTime) > 4000) {
+                var isModalOpen = document.querySelector('.modal-backdrop.active, [id^="modal"][style*="flex"], [id^="delete"][style*="flex"]');
+                var isEditingForm = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+                // Jika tidak sedang membuka modal atau mengetik form, lakukan pembaruan data
+                if (!isModalOpen && !isEditingForm) {
+                    var currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('tab', 'tugas');
+                    currentUrl.searchParams.set('_sync', Date.now());
+                    window.location.replace(currentUrl.toString());
+                }
+            }
+        }
+    });
+})();
 </script>
 
 <!-- Modal Konfirmasi Hapus Kelas BK (Konsisten Desain Ruang BK) -->

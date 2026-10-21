@@ -872,4 +872,43 @@ class BkOnlineClassTest extends TestCase
         $resSubmit->assertRedirect();
         $resSubmit->assertSessionHas('error');
     }
+
+    public function test_teacher_sees_student_submission_status_and_time()
+    {
+        $class = BkClass::create([
+            'counselor_id' => $this->counselor->id,
+            'title' => 'Masa Depan',
+            'target_class_ids' => [$this->studentClassA->id],
+            'class_date' => Carbon::now('Asia/Jakarta')->toDateString(),
+            'start_time' => '16:50',
+            'end_time' => '18:00',
+            'attendance_start_time' => '16:50',
+            'attendance_end_time' => '18:00',
+        ]);
+
+        $task = BkClassTask::create([
+            'bk_class_id' => $class->id,
+            'title' => 'masa depan',
+            'instructions' => 'kerjakan di kertas selembar',
+            'start_time' => Carbon::now('Asia/Jakarta')->subHours(2),
+            'due_time' => Carbon::now('Asia/Jakarta')->subMinute(),
+        ]);
+
+        $resSubmit = $this->actingAs($this->targetStudent->user)->post(route('siswa.kelas.tugas.submit', [
+            'id' => $class->id,
+            'taskId' => $task->id,
+        ]), [
+            'submission_text' => 'Sudah saya kerjakan',
+        ]);
+        $resSubmit->assertSessionHas('success');
+
+        // Teacher visits
+        $resGuru = $this->actingAs($this->counselor)->get(route('guru.kelas.show', [
+            'id' => $class->id,
+            'tab' => 'tugas',
+        ]));
+        $resGuru->assertStatus(200);
+        $resGuru->assertSee('1 Siswa Mengumpulkan');
+        $resGuru->assertDontSee('Belum kumpul');
+    }
 }
