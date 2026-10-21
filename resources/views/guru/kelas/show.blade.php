@@ -353,9 +353,26 @@
 
                     <!-- Tabel Daftar Pengumpulan Siswa -->
                     <div style="padding: 16px 20px;">
-                        <h5 style="font-size: 12.5px; font-weight: 700; color: var(--color-navy); margin: 0 0 10px 0;">
-                            Daftar Pengumpulan &amp; Penilaian Siswa
-                        </h5>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <h5 style="font-size: 12.5px; font-weight: 700; color: var(--color-navy); margin: 0;">
+                                Daftar Pengumpulan &amp; Penilaian Siswa
+                            </h5>
+                            <div style="position: relative; width: 240px; max-width: 100%;">
+                                <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                <input type="text" 
+                                       id="searchStudentTask_{{ $task->id }}" 
+                                       class="form-control" 
+                                       placeholder="Cari nama atau NISN siswa..." 
+                                       oninput="filterTaskStudents({{ $task->id }}, this.value)"
+                                       onkeydown="if(event.key === 'Escape'){ clearTaskStudentSearch({{ $task->id }}); }"
+                                       style="font-size: 11.5px; padding: 5px 26px 5px 28px; border-radius: 6px; border: 1px solid var(--color-border); background: #f8fafc; height: 30px;">
+                                <button type="button" 
+                                        id="clearSearchTask_{{ $task->id }}"
+                                        onclick="clearTaskStudentSearch({{ $task->id }})" 
+                                        style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: var(--color-text-muted); cursor: pointer; font-size: 14px; line-height: 1;" 
+                                        title="Hapus pencarian">&times;</button>
+                            </div>
+                        </div>
 
                         <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
                             <table class="table" style="font-size: 12px; margin: 0;">
@@ -405,7 +422,7 @@
                                             'is_pdf' => $isPdf,
                                         ];
                                     @endphp
-                                    <tr style="border-bottom: 1px solid var(--color-border);">
+                                    <tr class="student-task-row-{{ $task->id }}" data-student-name="{{ strtolower($st->name) }}" data-student-nisn="{{ $st->nisn }}" style="border-bottom: 1px solid var(--color-border);">
                                         <td style="padding: 10px;">
                                             <div style="font-weight: 700; color: var(--color-text-main);">{{ $st->name }}</div>
                                             <div style="font-size: 11px; color: var(--color-text-muted);">
@@ -509,6 +526,12 @@
                                         </td>
                                     </tr>
                                     @endforelse
+                                    <tr id="emptySearchTask_{{ $task->id }}" style="display: none;">
+                                        <td colspan="6" style="text-align: center; padding: 22px 10px; color: var(--color-text-muted); font-size: 12px; background: #f8fafc;">
+                                            <div style="font-weight: 600; margin-bottom: 4px; color: var(--color-text-main);">Tidak ada siswa yang cocok dengan pencarian nama atau NISN.</div>
+                                            <button type="button" onclick="clearTaskStudentSearch({{ $task->id }})" class="btn btn-secondary" style="font-size: 11px; padding: 3px 10px; margin-top: 4px;">Reset Pencarian</button>
+                                        </td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -604,10 +627,27 @@
 
         <!-- Tabel Rekap Presensi -->
         <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm);">
-            <div style="padding: 14px 20px; background: var(--color-surface-subtle, #f8fafd); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <h4 style="font-size: 14px; font-weight: 700; color: var(--color-navy); margin: 0;">
-                    Tabel Presensi Kehadiran Siswa
-                </h4>
+            <div style="padding: 14px 20px; background: var(--color-surface-subtle, #f8fafd); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+                    <h4 style="font-size: 14px; font-weight: 700; color: var(--color-navy); margin: 0;">
+                        Tabel Presensi Kehadiran Siswa
+                    </h4>
+                    <div style="position: relative; width: 230px; max-width: 100%;">
+                        <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" 
+                               id="searchAttendanceStudent" 
+                               class="form-control" 
+                               placeholder="Cari nama atau NISN..." 
+                               oninput="filterAttendanceStudents(this.value)"
+                               onkeydown="if(event.key === 'Escape'){ clearAttendanceStudentSearch(); }"
+                               style="font-size: 11.5px; padding: 5px 26px 5px 28px; border-radius: 6px; border: 1px solid var(--color-border); background: #fff; height: 30px;">
+                        <button type="button" 
+                                id="clearSearchAttendance"
+                                onclick="clearAttendanceStudentSearch()" 
+                                style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: var(--color-text-muted); cursor: pointer; font-size: 14px; line-height: 1;" 
+                                title="Hapus pencarian">&times;</button>
+                    </div>
+                </div>
                 <div style="font-size: 12px; color: var(--color-text-muted);">
                     Rentang Waktu: <strong>{{ substr($class->attendance_start_time, 0, 5) }} - {{ substr($class->attendance_end_time, 0, 5) }} WIB</strong>
                 </div>
@@ -630,7 +670,7 @@
                         @php
                             $att = $attendanceMap->get($st->id);
                         @endphp
-                        <tr style="border-bottom: 1px solid var(--color-border);">
+                        <tr class="attendance-student-row" data-student-name="{{ strtolower($st->name) }}" data-student-nisn="{{ $st->nisn }}" style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 10px 14px; font-weight: 700; color: var(--color-text-main);">
                                 {{ $st->name }}
                             </td>
@@ -708,6 +748,12 @@
                             </td>
                         </tr>
                         @endforelse
+                        <tr id="emptySearchAttendance" style="display: none;">
+                            <td colspan="6" style="text-align: center; padding: 22px 10px; color: var(--color-text-muted); font-size: 12px; background: #f8fafc;">
+                                <div style="font-weight: 600; margin-bottom: 4px; color: var(--color-text-main);">Tidak ada siswa yang cocok dengan pencarian nama atau NISN.</div>
+                                <button type="button" onclick="clearAttendanceStudentSearch()" class="btn btn-secondary" style="font-size: 11px; padding: 3px 10px; margin-top: 4px;">Reset Pencarian</button>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -1290,6 +1336,80 @@ function closeDeleteTaskModal() {
 function handleGenericModalBackdropClick(e, modalId, closeFunc) {
     if (e.target === document.getElementById(modalId)) {
         closeFunc();
+    }
+}
+
+// Filter pencarian siswa pada tabel pengumpulan tugas
+function filterTaskStudents(taskId, query) {
+    var q = (query || '').toLowerCase().trim();
+    var rows = document.querySelectorAll('.student-task-row-' + taskId);
+    var clearBtn = document.getElementById('clearSearchTask_' + taskId);
+    var emptyRow = document.getElementById('emptySearchTask_' + taskId);
+    var visibleCount = 0;
+
+    if (clearBtn) {
+        clearBtn.style.display = q ? 'block' : 'none';
+    }
+
+    rows.forEach(function(row) {
+        var name = (row.getAttribute('data-student-name') || '').toLowerCase();
+        var nisn = (row.getAttribute('data-student-nisn') || '').toLowerCase();
+        if (!q || name.indexOf(q) !== -1 || nisn.indexOf(q) !== -1) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    if (emptyRow) {
+        emptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+    }
+}
+
+function clearTaskStudentSearch(taskId) {
+    var input = document.getElementById('searchStudentTask_' + taskId);
+    if (input) {
+        input.value = '';
+        filterTaskStudents(taskId, '');
+        input.focus();
+    }
+}
+
+// Filter pencarian siswa pada tabel presensi kelas
+function filterAttendanceStudents(query) {
+    var q = (query || '').toLowerCase().trim();
+    var rows = document.querySelectorAll('.attendance-student-row');
+    var clearBtn = document.getElementById('clearSearchAttendance');
+    var emptyRow = document.getElementById('emptySearchAttendance');
+    var visibleCount = 0;
+
+    if (clearBtn) {
+        clearBtn.style.display = q ? 'block' : 'none';
+    }
+
+    rows.forEach(function(row) {
+        var name = (row.getAttribute('data-student-name') || '').toLowerCase();
+        var nisn = (row.getAttribute('data-student-nisn') || '').toLowerCase();
+        if (!q || name.indexOf(q) !== -1 || nisn.indexOf(q) !== -1) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    if (emptyRow) {
+        emptyRow.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+    }
+}
+
+function clearAttendanceStudentSearch() {
+    var input = document.getElementById('searchAttendanceStudent');
+    if (input) {
+        input.value = '';
+        filterAttendanceStudents('');
+        input.focus();
     }
 }
 

@@ -910,5 +910,18 @@ class BkOnlineClassTest extends TestCase
         $resGuru->assertStatus(200);
         $resGuru->assertSee('1 Siswa Mengumpulkan');
         $resGuru->assertDontSee('Belum kumpul');
+        $resGuru->assertSee('searchStudentTask_' . $task->id);
+        $resGuru->assertSee('filterTaskStudents(' . $task->id);
+        $resGuru->assertSee('student-task-row-' . $task->id);
+        $resGuru->assertSee('Cari nama atau NISN siswa...');
+
+        $resAbsensi = $this->actingAs($this->counselor)->get(route('guru.kelas.show', [
+            'id' => $class->id,
+            'tab' => 'absensi',
+        ]));
+        $resAbsensi->assertStatus(200);
+        $resAbsensi->assertSee('searchAttendanceStudent');
+        $resAbsensi->assertSee('filterAttendanceStudents');
+        $resAbsensi->assertSee('attendance-student-row');
     }
 }
