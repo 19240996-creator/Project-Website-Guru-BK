@@ -13,6 +13,7 @@ use App\Models\StudentFuturePlan;
 use App\Models\AlumniTracking;
 use App\Models\CounselingCategory;
 use App\Models\User;
+use App\Models\SchoolSetting;
 use Carbon\Carbon;
 
 class ReportController extends Controller
@@ -193,6 +194,7 @@ class ReportController extends Controller
         $package = $request->query('package', 'paket_a');
         $today = Carbon::today();
         $user = auth()->user();
+        $schoolSetting = SchoolSetting::get();
 
         if ($package === 'paket_a') {
             // Paket A: Laporan Wakasek Kesiswaan (Kondisi & Pembinaan Siswa)
@@ -226,7 +228,8 @@ class ReportController extends Controller
                 'attentionList',
                 'counselingStats',
                 'counselingList',
-                'today'
+                'today',
+                'schoolSetting'
             ));
         } elseif ($package === 'paket_b') {
             // Paket B: Laporan Wakasek Kurikulum (Jadwal & Kemitraan Akademik/Industri)
@@ -237,7 +240,7 @@ class ReportController extends Controller
 
             $activePartners = Partner::where('partnership_status', 'aktif')->withCount('activities')->get();
 
-            return view('guru.laporan.paket_b', compact('activities', 'activePartners', 'today'));
+            return view('guru.laporan.paket_b', compact('activities', 'activePartners', 'today', 'schoolSetting'));
         } else {
             // Paket C: Laporan Eksekutif Kepala Sekolah
             $totalStudents = Student::accessibleBy($user)->where('status', 'aktif')->count();
@@ -284,7 +287,8 @@ class ReportController extends Controller
                 'planPercentages',
                 'partnerStats',
                 'alumniStats',
-                'today'
+                'today',
+                'schoolSetting'
             ));
         }
     }
@@ -295,11 +299,13 @@ class ReportController extends Controller
         $periodicData = $this->getPeriodicReportData($request, $user);
         $today = Carbon::today();
         $koordinator = User::where('role', 'koordinator_bk')->first();
+        $schoolSetting = SchoolSetting::get();
 
         return view('guru.laporan.berkala_print', array_merge($periodicData, [
             'today' => $today,
             'user' => $user,
             'koordinator' => $koordinator,
+            'schoolSetting' => $schoolSetting,
         ]));
     }
 

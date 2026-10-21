@@ -269,12 +269,12 @@
 
     <!-- Kop Surat Resmi -->
     <div class="kop-surat">
-        <div class="kop-instansi">Pemerintah Daerah Provinsi Jawa Barat — Dinas Pendidikan</div>
-        <div class="kop-instansi">Cabang Dinas Pendidikan Wilayah VIII</div>
-        <div class="kop-sekolah">SMK NEGERI 1 SUMEDANG</div>
-        <div class="kop-unit">Unit Layanan Bimbingan, Konseling & Pengembangan Karier Siswa</div>
+        <div class="kop-instansi">{{ $schoolSetting->provincial_agency ?? 'Pemerintah Daerah Provinsi Jawa Barat — Dinas Pendidikan' }}</div>
+        <div class="kop-instansi">{{ $schoolSetting->education_branch ?? 'Cabang Dinas Pendidikan Wilayah VIII' }}</div>
+        <div class="kop-sekolah">{{ $schoolSetting->school_name ?? 'SMK NEGERI 1 SUMEDANG' }}</div>
+        <div class="kop-unit">{{ $schoolSetting->unit_name ?? 'Unit Layanan Bimbingan, Konseling & Pengembangan Karier Siswa' }}</div>
         <div class="kop-alamat">
-            Jalan Mayor Abdurrachman No. 209, Kotakaler, Kec. Sumedang Utara, Kabupaten Sumedang, Jawa Barat 45322 • Website: dico-ruangbk.my.id
+            {{ $schoolSetting->address ?? 'Jalan Mayor Abdurrachman No. 209, Kotakaler, Kec. Sumedang Utara, Kabupaten Sumedang, Jawa Barat 45322' }}@if(!empty($schoolSetting->website)) • Website: {{ $schoolSetting->website }}@endif
         </div>
     </div>
 
@@ -541,9 +541,9 @@
         <div>
             <div class="sig-place-date">Mengetahui,</div>
             @if($isKoordinator && (!$targetCounselor || $targetCounselor->id === $user->id))
-                <div class="sig-role">Kepala Sekolah SMKN 1 Sumedang</div>
-                <div class="sig-name">Drs. H. Maman Sulaeman, M.M.</div>
-                <div class="sig-nip">NIP. 19680512 199403 1 004</div>
+                <div class="sig-role">Kepala Sekolah {{ $schoolSetting->school_name ?? 'SMKN 1 Sumedang' }}</div>
+                <div class="sig-name">{{ $schoolSetting->headmaster_name ?? 'Dra. Hj. Elis Herawati, M.Pd.' }}</div>
+                <div class="sig-nip">NIP. {{ $schoolSetting->headmaster_nip ?? '196804151994032008' }}</div>
             @else
                 <div class="sig-role">Guru Koordinator Bimbingan Konseling</div>
                 <div class="sig-name">{{ $koordinator->name ?? 'Dra. Hj. Siti Rahmawati, M.Pd.' }}</div>
@@ -553,7 +553,7 @@
 
         <!-- Kolom Kanan -->
         <div>
-            <div class="sig-place-date">Sumedang, {{ $today->translatedFormat('d F Y') }}</div>
+            <div class="sig-place-date">{{ $schoolSetting->city ?: 'Sumedang' }}, {{ $today->translatedFormat('d F Y') }}</div>
             <div class="sig-role">
                 @if($targetCounselor)
                     Guru BK Pembimbing / Konselor

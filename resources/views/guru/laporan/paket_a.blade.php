@@ -44,10 +44,12 @@
         </div>
 
         <div class="report-header">
-            <div style="font-size: 14px; font-weight: 700; text-transform: uppercase;">Pemerintah Daerah Provinsi Jawa Barat - Dinas Pendidikan</div>
-            <div class="report-title">LAPORAN PERKEMBANGAN & KONDISI SISWA</div>
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase;">{{ $schoolSetting->provincial_agency ?? 'PEMERINTAH DAERAH PROVINSI JAWA BARAT — DINAS PENDIDIKAN' }}</div>
+            <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #334155;">{{ $schoolSetting->education_branch ?? 'CABANG DINAS PENDIDIKAN WILAYAH VIII' }}</div>
+            <div style="font-size: 16px; font-weight: 800; text-transform: uppercase; margin: 2px 0;">{{ $schoolSetting->school_name ?? 'SMK NEGERI 1 SUMEDANG' }}</div>
+            <div class="report-title" style="margin-top: 6px;">LAPORAN PERKEMBANGAN &amp; KONDISI SISWA</div>
             <div class="report-sub">Peruntukan: Wakil Kepala Sekolah Bidang Kesiswaan | Periode: Tahun Ajaran Berjalan</div>
-            <div style="font-size: 11px; color: #555; margin-top: 4px;">Tanggal Cetak Dokumen: {{ $today->translatedFormat('d F Y') }}</div>
+            <div style="font-size: 11px; color: #555; margin-top: 4px;">{{ $schoolSetting->city ?: 'Sumedang' }}, Tanggal Cetak: {{ $today->translatedFormat('d F Y') }}</div>
         </div>
 
         <!-- 1. Kondisi Agregat Siswa -->

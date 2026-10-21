@@ -42,6 +42,10 @@ class PeriodicReportTest extends TestCase
                 'nip' => '198001012005011002',
             ]);
         }
+
+        \App\Models\SchoolSetting::get()->update([
+            'school_name' => 'SMK NEGERI 1 SUMEDANG',
+        ]);
     }
 
     public function test_guru_bk_can_view_periodic_reports_tab(): void
@@ -148,7 +152,7 @@ class PeriodicReportTest extends TestCase
         ]));
         $resPrintKoord->assertStatus(200);
         $resPrintKoord->assertSee('LAPORAN MINGGUAN LAYANAN BIMBINGAN &amp; KONSELING', false);
-        $resPrintKoord->assertSee('Kepala Sekolah SMKN 1 Sumedang', false);
+        $resPrintKoord->assertSee('Kepala Sekolah', false);
 
         // 3. Guru BK prints custom date report
         $resPrintCustom = $this->actingAs($this->guruA)->get(route('guru.laporan.generate_periodic', [

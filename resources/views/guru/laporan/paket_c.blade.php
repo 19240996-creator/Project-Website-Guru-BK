@@ -44,10 +44,12 @@
         </div>
 
         <div class="report-header">
-            <div style="font-size: 14px; font-weight: 700; text-transform: uppercase;">Pemerintah Daerah Provinsi Jawa Barat - Dinas Pendidikan</div>
-            <div class="report-title">LAPORAN EKSEKUTIF KEPALA SEKOLAH</div>
+            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase;">{{ $schoolSetting->provincial_agency ?? 'PEMERINTAH DAERAH PROVINSI JAWA BARAT — DINAS PENDIDIKAN' }}</div>
+            <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: #334155;">{{ $schoolSetting->education_branch ?? 'CABANG DINAS PENDIDIKAN WILAYAH VIII' }}</div>
+            <div style="font-size: 16px; font-weight: 800; text-transform: uppercase; margin: 2px 0;">{{ $schoolSetting->school_name ?? 'SMK NEGERI 1 SUMEDANG' }}</div>
+            <div class="report-title" style="margin-top: 6px;">LAPORAN EKSEKUTIF KEPALA SEKOLAH</div>
             <div class="report-sub">Peruntukan: Kepala Sekolah | Pengambilan Keputusan Strategis Berbasis Data</div>
-            <div style="font-size: 11px; color: #555; margin-top: 4px;">Tanggal Cetak Dokumen: {{ $today->translatedFormat('d F Y') }}</div>
+            <div style="font-size: 11px; color: #555; margin-top: 4px;">{{ $schoolSetting->city ?: 'Sumedang' }}, Tanggal Cetak: {{ $today->translatedFormat('d F Y') }}</div>
         </div>
 
         <!-- 1. Ringkasan Eksekutif -->
@@ -142,17 +144,17 @@
         <div class="signature-grid">
             <div>
                 Diterima & Disetujui oleh,<br>
-                <strong>Kepala Sekolah</strong>
+                <strong>Kepala Sekolah {{ $schoolSetting->school_name ?? '' }}</strong>
                 <br><br><br><br>
-                ( .................................................... )<br>
-                NIP. ...............................................
+                <strong>( {{ $schoolSetting->headmaster_name ?? '....................................................' }} )</strong><br>
+                NIP. {{ $schoolSetting->headmaster_nip ?? '...............................................' }}
             </div>
             <div>
                 Dibuat oleh,<br>
                 <strong>Koordinator Guru Bimbingan Konseling</strong>
                 <br><br><br><br>
                 <strong>{{ auth()->user()->name }}</strong><br>
-                NIP/NUPTK. ........................................
+                NIP/NUPTK. {{ auth()->user()->nip ?: '........................................' }}
             </div>
         </div>
     </div>

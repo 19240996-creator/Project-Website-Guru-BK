@@ -16,6 +16,7 @@ use App\Http\Controllers\Guru\AuditLogController as GuruAuditLogController;
 use App\Http\Controllers\Guru\ProfileController as GuruProfileController;
 use App\Http\Controllers\Guru\Koordinator\AssignmentController as KoordinatorAssignmentController;
 use App\Http\Controllers\Guru\Koordinator\GuruBkController as KoordinatorGuruBkController;
+use App\Http\Controllers\Guru\Koordinator\SettingController as KoordinatorSettingController;
 
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\ProfileController as SiswaProfileController;
@@ -165,6 +166,10 @@ Route::middleware(['auth', 'role:guru_bk,koordinator_bk'])->prefix('guru')->name
         Route::delete('/audit/bulk', [GuruAuditLogController::class, 'bulkDestroy'])->name('audit.bulk-destroy');
         Route::post('/audit/clear', [GuruAuditLogController::class, 'clear'])->name('audit.clear');
         Route::delete('/audit/{id}', [GuruAuditLogController::class, 'destroy'])->name('audit.destroy');
+
+        // 42. Pengaturan Identitas Sekolah & Kop Surat (Khusus Koordinator BK)
+        Route::get('/koordinator/pengaturan', [KoordinatorSettingController::class, 'index'])->name('koordinator.pengaturan.index');
+        Route::put('/koordinator/pengaturan', [KoordinatorSettingController::class, 'update'])->name('koordinator.pengaturan.update');
     });
 });
 
