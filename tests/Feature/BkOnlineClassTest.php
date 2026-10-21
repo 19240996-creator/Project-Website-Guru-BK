@@ -931,6 +931,8 @@ class BkOnlineClassTest extends TestCase
         $resGuru->assertSee('taskPaginationContainer_' . $task->id);
         $resGuru->assertSee('taskPageSize_' . $task->id);
         $resGuru->assertSee('initTaskPagination');
+        $resGuru->assertSee('card-header-navy');
+        $resGuru->assertSee('table-thead-navy');
 
         $resAbsensi = $this->actingAs($this->counselor)->get(route('guru.kelas.show', [
             'id' => $class->id,
@@ -943,5 +945,7 @@ class BkOnlineClassTest extends TestCase
         $resAbsensi->assertSee('attendancePaginationContainer');
         $resAbsensi->assertSee('attPageSize');
         $resAbsensi->assertSee('initAttendancePagination');
+        $resAbsensi->assertSee('card-header-navy');
+        $resAbsensi->assertSee('table-thead-navy');
     }
 }

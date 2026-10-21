@@ -343,39 +343,44 @@
 
                     <!-- Tabel Daftar Pengumpulan Siswa -->
                     <div style="padding: 16px 20px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                            <h5 style="font-size: 12.5px; font-weight: 700; color: var(--color-navy); margin: 0;">
-                                Daftar Pengumpulan &amp; Penilaian Siswa
-                            </h5>
-                            <div style="position: relative; width: 240px; max-width: 100%;">
-                                <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                                <input type="text" 
-                                       id="searchStudentTask_{{ $task->id }}" 
-                                       class="form-control" 
-                                       placeholder="Cari nama atau NISN siswa..." 
-                                       oninput="filterTaskStudents({{ $task->id }}, this.value)"
-                                       onkeydown="if(event.key === 'Escape'){ clearTaskStudentSearch({{ $task->id }}); }"
-                                       style="font-size: 11.5px; padding: 5px 26px 5px 28px; border-radius: 6px; border: 1px solid var(--color-border); background: #f8fafc; height: 30px;">
-                                <button type="button" 
-                                        id="clearSearchTask_{{ $task->id }}"
-                                        onclick="clearTaskStudentSearch({{ $task->id }})" 
-                                        style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: var(--color-text-muted); cursor: pointer; font-size: 14px; line-height: 1;" 
-                                        title="Hapus pencarian">&times;</button>
+                        <div style="border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; box-shadow: var(--shadow-sm);">
+                            <!-- Header Blok Navy: Judul & Pencarian Siswa -->
+                            <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                                    <h5 class="card-title" style="font-size: 13.5px; font-weight: 700; color: #FFFFFF; margin: 0;">
+                                        Daftar Pengumpulan &amp; Penilaian Siswa
+                                    </h5>
+                                </div>
+                                <div style="position: relative; width: 250px; max-width: 100%;">
+                                    <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                                    <input type="text" 
+                                           id="searchStudentTask_{{ $task->id }}" 
+                                           class="form-control" 
+                                           placeholder="Cari nama atau NISN siswa..." 
+                                           oninput="filterTaskStudents({{ $task->id }}, this.value)"
+                                           onkeydown="if(event.key === 'Escape'){ clearTaskStudentSearch({{ $task->id }}); }"
+                                           style="font-size: 11.5px; padding: 5px 26px 5px 28px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.35); background: #ffffff; color: var(--color-text-main); height: 32px;">
+                                    <button type="button" 
+                                            id="clearSearchTask_{{ $task->id }}"
+                                            onclick="clearTaskStudentSearch({{ $task->id }})" 
+                                            style="display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; padding: 0; color: var(--color-text-muted); cursor: pointer; font-size: 14px; line-height: 1;" 
+                                            title="Hapus pencarian">&times;</button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="table-responsive" style="overflow-x: auto; border: 1px solid var(--color-border); border-radius: 8px 8px 0 0; border-bottom: none;">
-                            <table class="table" style="font-size: 12px; margin: 0;">
-                                <thead>
-                                    <tr style="background: #f8fafc; border-bottom: 2px solid var(--color-border);">
-                                        <th style="padding: 8px 10px;">Siswa Peserta</th>
-                                        <th style="padding: 8px 10px;">Waktu Kirim</th>
-                                        <th style="padding: 8px 10px;">Berkas / Catatan</th>
-                                        <th style="padding: 8px 10px;">Status</th>
-                                        <th style="padding: 8px 10px;">Nilai &amp; Umpan Balik</th>
-                                        <th style="padding: 8px 10px; text-align: center;">Aksi</th>
-                                    </tr>
-                                </thead>
+                            <div class="table-responsive" style="overflow-x: auto;">
+                                <table class="table" style="font-size: 12px; margin: 0;">
+                                    <thead class="table-thead-navy">
+                                        <tr>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Siswa Peserta</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Waktu Kirim</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Berkas / Catatan</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Status</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Nilai &amp; Umpan Balik</th>
+                                            <th style="padding: 11px 12px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center;">Aksi</th>
+                                        </tr>
+                                    </thead>
                                 <tbody>
                                     @php
                                         $subMap = $submissions->keyBy('student_id');
@@ -527,7 +532,7 @@
                         </div>
 
                         <!-- Pagination Bar Tugas & Pengumpulan Siswa -->
-                        <div id="taskPaginationContainer_{{ $task->id }}" class="pagination-container" style="padding: 12px 18px; border: 1px solid var(--color-border); border-top: none; border-radius: 0 0 8px 8px; background: var(--color-surface, #fff);">
+                        <div id="taskPaginationContainer_{{ $task->id }}" class="pagination-container" style="padding: 12px 18px; border-top: 1px solid var(--color-border); background: var(--color-surface, #fff);">
                             <div class="pagination-info" style="font-size: 12px;">
                                 Menampilkan <strong id="taskPageStart_{{ $task->id }}">1</strong> sampai <strong id="taskPageEnd_{{ $task->id }}">10</strong> dari <strong id="taskTotalCount_{{ $task->id }}">{{ count($targetStudents) }}</strong> siswa
                             </div>
@@ -547,6 +552,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
                 @endforeach
         </div>
         @endif
@@ -589,11 +595,14 @@
 
         <!-- Tabel Rekap Presensi -->
         <div class="card" style="border: 1px solid var(--color-border); border-radius: 10px; background: #fff; overflow: hidden; box-shadow: var(--shadow-sm);">
-            <div style="padding: 14px 20px; background: var(--color-surface-subtle, #f8fafd); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div class="card-header card-header-navy" style="padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                 <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-                    <h4 style="font-size: 14px; font-weight: 700; color: var(--color-navy); margin: 0;">
-                        Tabel Presensi Kehadiran Siswa
-                    </h4>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        <h4 class="card-title" style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin: 0;">
+                            Tabel Presensi Kehadiran Siswa
+                        </h4>
+                    </div>
                     <div style="position: relative; width: 230px; max-width: 100%;">
                         <svg style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <input type="text" 
@@ -602,7 +611,7 @@
                                placeholder="Cari nama atau NISN..." 
                                oninput="filterAttendanceStudents(this.value)"
                                onkeydown="if(event.key === 'Escape'){ clearAttendanceStudentSearch(); }"
-                               style="font-size: 11.5px; padding: 5px 26px 5px 28px; border-radius: 6px; border: 1px solid var(--color-border); background: #fff; height: 30px;">
+                               style="font-size: 11.5px; padding: 5px 26px 5px 28px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.35); background: #ffffff; color: var(--color-text-main); height: 32px;">
                         <button type="button" 
                                 id="clearSearchAttendance"
                                 onclick="clearAttendanceStudentSearch()" 
@@ -610,21 +619,21 @@
                                 title="Hapus pencarian">&times;</button>
                     </div>
                 </div>
-                <div style="font-size: 12px; color: var(--color-text-muted);">
-                    Rentang Waktu: <strong>{{ substr($class->attendance_start_time, 0, 5) }} - {{ substr($class->attendance_end_time, 0, 5) }} WIB</strong>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.85);">
+                    Rentang Waktu: <strong style="color: #FFFFFF;">{{ substr($class->attendance_start_time, 0, 5) }} - {{ substr($class->attendance_end_time, 0, 5) }} WIB</strong>
                 </div>
             </div>
 
             <div class="table-responsive" style="overflow-x: auto;">
                 <table class="table" style="font-size: 12.5px; margin: 0;">
-                    <thead>
-                        <tr style="background: #f8fafc; border-bottom: 2px solid var(--color-border);">
-                            <th style="padding: 10px 14px;">Nama Siswa</th>
-                            <th style="padding: 10px 14px;">NISN / Kelas</th>
-                            <th style="padding: 10px 14px;">Status Kehadiran</th>
-                            <th style="padding: 10px 14px;">Waktu Presensi (WIB)</th>
-                            <th style="padding: 10px 14px;">Keterangan / Audit Log</th>
-                            <th style="padding: 10px 14px; text-align: center;">Koreksi Guru BK</th>
+                    <thead class="table-thead-navy">
+                        <tr>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Nama Siswa</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">NISN / Kelas</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Status Kehadiran</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Waktu Presensi (WIB)</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">Keterangan / Audit Log</th>
+                            <th style="padding: 10px 14px; color: #FFFFFF; background-color: var(--color-navy); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; text-align: center;">Koreksi Guru BK</th>
                         </tr>
                     </thead>
                     <tbody>
