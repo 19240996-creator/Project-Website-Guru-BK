@@ -61,6 +61,20 @@ class PeriodicReportTest extends TestCase
         $response->assertSee('Daftar Rinci Penanganan Konseling Siswa (Data Riil Database)');
     }
 
+    public function test_guru_bk_sees_navy_headers_on_chart_analytics(): void
+    {
+        $response = $this->actingAs($this->guruA)->get(route('guru.laporan.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('card-header card-header-navy');
+        $response->assertSee('Distribusi Kategori Layanan Konseling');
+        $response->assertSee('Peta Rencana Masa Depan Siswa');
+        $response->assertSee('Status Penyelesaian Layanan Konseling');
+        $response->assertSee('Distribusi Tingkat Perhatian &amp; Pembinaan Siswa', false);
+        $response->assertSee('Distribusi Siswa per Jenjang Kelas');
+        $response->assertSee('Peta Penyerapan Alumni (Tracer Study)');
+    }
+
     public function test_guru_bk_can_filter_mingguan_bulanan_and_tahunan(): void
     {
         // 1. Mingguan

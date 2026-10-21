@@ -361,14 +361,14 @@
     <div class="grid-2" style="margin-bottom: 20px;">
         <!-- Diagram 1: Kategori Kasus Bimbingan (Column Chart) -->
         <div class="card" style="margin-bottom: 0;">
-            <div class="card-header-clean">
+            <div class="card-header card-header-navy" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
                 <div>
-                    <h2 class="card-title-clean">Distribusi Kategori Layanan Konseling</h2>
-                    <p class="card-subtitle-clean">
+                    <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Distribusi Kategori Layanan Konseling</h2>
+                    <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
                         Grafik beban masalah bimbingan siswa berdasarkan kategori (Total {{ array_sum($categoryChartData) }} Kasus)
                     </p>
                 </div>
-                <a href="{{ route('guru.konseling.index') }}" class="btn-detail-pill" title="Lihat Detail Konseling">
+                <a href="{{ route('guru.konseling.index') }}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 4px 12px; border-radius: var(--radius-sm);" title="Lihat Detail Konseling">
                     Buka Konseling
                 </a>
             </div>
@@ -413,14 +413,14 @@
 
         <!-- Diagram 2: Peta Rencana Masa Depan Siswa (SVG Donut Chart) -->
         <div class="card" style="margin-bottom: 0;">
-            <div class="card-header-clean">
+            <div class="card-header card-header-navy" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
                 <div>
-                    <h2 class="card-title-clean">Peta Rencana Masa Depan Siswa</h2>
-                    <p class="card-subtitle-clean">
+                    <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Peta Rencana Masa Depan Siswa</h2>
+                    <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
                         Grafik lingkaran proporsi karier siswa binaan terfilter (Total {{ $totalPlanStudents }} Siswa)
                     </p>
                 </div>
-                <a href="{{ route('guru.peminatan.index') }}" class="btn-detail-pill" title="Lihat Detail Peminatan">
+                <a href="{{ route('guru.peminatan.index') }}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 4px 12px; border-radius: var(--radius-sm);" title="Lihat Detail Peminatan">
                     Buka Peminatan
                 </a>
             </div>
@@ -501,13 +501,11 @@
     <div class="grid-2" style="margin-bottom: 20px;">
         <!-- Diagram 3: Status Penyelesaian Layanan Konseling (Donut Chart) -->
         <div class="card" style="margin-bottom: 0;">
-            <div class="card-header-clean">
-                <div>
-                    <h2 class="card-title-clean">Status Penyelesaian Layanan Konseling</h2>
-                    <p class="card-subtitle-clean">
-                        Ketuntasan sesi penanganan bimbingan (Total {{ array_sum($counselingStatusCounts) }} Kasus)
-                    </p>
-                </div>
+            <div class="card-header card-header-navy" style="padding: 16px 20px;">
+                <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Status Penyelesaian Layanan Konseling</h2>
+                <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
+                    Ketuntasan sesi penanganan bimbingan (Total {{ array_sum($counselingStatusCounts) }} Kasus)
+                </p>
             </div>
             <div class="card-body">
                 @php
@@ -581,13 +579,11 @@
 
         <!-- Diagram 4: Distribusi Tingkat Perhatian Siswa (Horizontal Bar Chart) -->
         <div class="card" style="margin-bottom: 0;">
-            <div class="card-header-clean">
-                <div>
-                    <h2 class="card-title-clean">Distribusi Tingkat Perhatian & Pembinaan Siswa</h2>
-                    <p class="card-subtitle-clean">
-                        Klasifikasi atensi pembinaan siswa aktif (Total {{ $totalFilteredStudents }} Siswa)
-                    </p>
-                </div>
+            <div class="card-header card-header-navy" style="padding: 16px 20px;">
+                <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Distribusi Tingkat Perhatian &amp; Pembinaan Siswa</h2>
+                <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
+                    Klasifikasi atensi pembinaan siswa aktif (Total {{ $totalFilteredStudents }} Siswa)
+                </p>
             </div>
             <div class="card-body">
                 @php
@@ -628,13 +624,11 @@
 
     <div class="grid-2" style="margin-bottom: 24px;">
         <div class="card" style="margin-bottom: 0;">
-            <div class="card-header-clean">
-                <div>
-                    <h2 class="card-title-clean">Distribusi Siswa per Jenjang Kelas</h2>
-                    <p class="card-subtitle-clean">
-                        Total {{ $totalFilteredStudents }} siswa terdata aktif
-                    </p>
-                </div>
+            <div class="card-header card-header-navy" style="padding: 16px 20px;">
+                <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Distribusi Siswa per Jenjang Kelas</h2>
+                <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
+                    Total {{ $totalFilteredStudents }} siswa terdata aktif
+                </p>
             </div>
             <div class="card-body">
                 @php
@@ -665,14 +659,14 @@
         </div>
 
         <div class="card" style="margin-bottom: 0;">
-            <div class="card-header-clean">
+            <div class="card-header card-header-navy" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px;">
                 <div>
-                    <h2 class="card-title-clean">Peta Penyerapan Alumni (Tracer Study)</h2>
-                    <p class="card-subtitle-clean">
+                    <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Peta Penyerapan Alumni (Tracer Study)</h2>
+                    <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
                         Keterserapan lulusan di industri, perguruan tinggi, dan wirausaha (Total {{ $totalAlumni }} Alumni)
                     </p>
                 </div>
-                <a href="{{ route('guru.alumni.index') }}" class="btn-detail-pill" title="Lihat Menu Kelulusan &amp; Alumni">
+                <a href="{{ route('guru.alumni.index') }}" class="btn btn-secondary btn-sm" style="font-size: 12px; padding: 4px 12px; border-radius: var(--radius-sm);" title="Lihat Menu Kelulusan &amp; Alumni">
                     Kelulusan &amp; Alumni
                 </a>
             </div>
