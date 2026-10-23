@@ -27,6 +27,25 @@
 </div>
 
 <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div>
+                <h3 class="card-title" style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin: 0 0 2px 0;">
+                    Tabel Direktori Data Siswa
+                </h3>
+                <span style="font-size: 12.5px; color: rgba(255, 255, 255, 0.75);">
+                    Daftar seluruh siswa aktif dengan detail pembagian pembina BK
+                </span>
+            </div>
+        </div>
+        <span class="badge" style="background: rgba(255, 255, 255, 0.15); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.25); font-size: 11px; padding: 4px 10px;">
+            Total: {{ $students->total() }} Siswa
+        </span>
+    </div>
+
     <!-- Filter Section -->
     <div style="padding: 18px 20px; background: var(--color-surface-subtle); border-bottom: 1px solid var(--color-border);">
         <form method="GET" action="{{ route($rolePrefix . '.siswa.index') }}" style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
@@ -89,7 +108,7 @@
     <!-- Table -->
     <div class="table-responsive" style="overflow-x: auto;">
         <table class="table" style="width: 100%; border-collapse: collapse;">
-            <thead>
+            <thead class="table-thead-navy">
                 <tr>
                     <th style="width: 40px; text-align: center;">No</th>
                     <th>Nama & Foto Siswa</th>

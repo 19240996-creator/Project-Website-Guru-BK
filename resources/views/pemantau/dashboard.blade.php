@@ -206,17 +206,22 @@
 
 <!-- Filter Bar & Tabel Data Siswa -->
 <div class="card" style="margin-bottom: 24px;">
-    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 20px;">
-        <div>
-            <h3 style="font-size: 16px; font-weight: 700; color: var(--color-navy); margin: 0 0 2px 0;">
-                Tabel Pemantauan Data Siswa
-            </h3>
-            <span style="font-size: 12.5px; color: var(--color-text-muted);">
-                Menampilkan data siswa aktif dan pembina BK yang terdaftar di sekolah
-            </span>
+    <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 20px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div>
+                <h3 class="card-title" style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin: 0 0 2px 0;">
+                    Tabel Pemantauan Data Siswa
+                </h3>
+                <span style="font-size: 12.5px; color: rgba(255, 255, 255, 0.75);">
+                    Menampilkan data siswa aktif dan pembina BK yang terdaftar di sekolah
+                </span>
+            </div>
         </div>
         <div style="display: flex; gap: 8px;">
-            <a href="{{ route($rolePrefix . '.ekspor.index', request()->query()) }}" class="btn btn-outline btn-sm" title="Ekspor sesuai filter aktif">
+            <a href="{{ route($rolePrefix . '.ekspor.index', request()->query()) }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;" title="Ekspor sesuai filter aktif">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>Ekspor Data</span>
             </a>
@@ -276,7 +281,7 @@
     <!-- Table Content -->
     <div class="table-responsive" style="overflow-x: auto;">
         <table class="table" style="width: 100%; border-collapse: collapse;">
-            <thead>
+            <thead class="table-thead-navy">
                 <tr>
                     <th style="width: 40px; text-align: center;">No</th>
                     <th>Identitas Siswa</th>
