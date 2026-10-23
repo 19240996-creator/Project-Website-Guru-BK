@@ -182,21 +182,27 @@
     <!-- Mobile Sidebar Backdrop -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeMobileSidebar()"></div>
 
-    <!-- Logout Confirmation Modal -->
-    <div class="modal-overlay" id="logoutModalOverlay" style="display: none;" onclick="handleModalBackdropClick(event)">
-        <div class="modal-card" style="max-width: 440px;">
-            <div class="modal-header">
-                <h3 class="modal-title">Konfirmasi Keluar</h3>
-                <button type="button" class="modal-close" onclick="closeLogoutModal()" aria-label="Tutup modal">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1.5rem;">
-                <p style="color: var(--color-text-muted); font-size: 0.95rem; line-height: 1.5;">
-                    Apakah Anda yakin ingin keluar dari sesi pemantauan ini?
+    <!-- Modal Konfirmasi Keluar Akun -->
+    <div id="logoutModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="logoutModalTitle" onclick="handleBackdropClick(event)">
+        <div class="modal-dialog">
+            <div class="modal-body">
+                <div class="modal-icon-badge danger">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </div>
+                <h3 id="logoutModalTitle" class="modal-title">Konfirmasi Keluar Akun</h3>
+                <p class="modal-desc">
+                    Apakah Anda yakin ingin keluar dari sistem? Seluruh sesi pemantauan, pengaturan, dan berkas yang telah disimpan tetap aman di server.
                 </p>
             </div>
-            <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-                <button type="button" class="btn btn-secondary" onclick="closeLogoutModal()">Batal</button>
-                <button type="button" class="btn btn-danger" onclick="document.getElementById('logoutFormPemantau').submit()">
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeLogoutModal()">
+                    Batal
+                </button>
+                <button type="button" class="btn btn-danger" onclick="confirmLogout()">
                     Ya, Keluar
                 </button>
             </div>
@@ -225,18 +231,40 @@
         }
 
         function openLogoutModal() {
-            document.getElementById('logoutModalOverlay').style.display = 'flex';
+            var modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function closeLogoutModal() {
-            document.getElementById('logoutModalOverlay').style.display = 'none';
+            var modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         }
 
-        function handleModalBackdropClick(e) {
-            if (e.target.id === 'logoutModalOverlay') {
+        function handleBackdropClick(e) {
+            if (e.target.id === 'logoutModal') {
                 closeLogoutModal();
             }
         }
+
+        function confirmLogout() {
+            var form = document.getElementById('logoutFormPemantau');
+            if (form) {
+                form.submit();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeLogoutModal();
+                closeMobileSidebar();
+            }
+        });
 
         function handleGlobalSearch(e) {
             if (e.key === 'Enter') {

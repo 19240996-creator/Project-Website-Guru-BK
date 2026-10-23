@@ -65,6 +65,24 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         );
     }
 
+    public function test_kepala_kampus_and_admin_dico_can_logout_and_redirect_to_login_page()
+    {
+        $user = $this->getOrCreateUser('kepalakampus_logout_test', 'kepala_kampus', 'Kepala Kampus Logout');
+
+        // Pastikan tampilan pemantau merender modal konfirmasi logout yang sesuai dengan design system
+        $dashboardResponse = $this->actingAs($user)->get(route('kepala_kampus.dashboard'));
+        $dashboardResponse->assertStatus(200);
+        $dashboardResponse->assertSee('id="logoutModal"', false);
+        $dashboardResponse->assertSee('Konfirmasi Keluar Akun', false);
+        $dashboardResponse->assertSee('Ya, Keluar', false);
+        $dashboardResponse->assertSee('id="logoutFormPemantau"', false);
+
+        // Eksekusi logout via form POST
+        $response = $this->actingAs($user)->post(route('logout'));
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
     public function test_kepala_kampus_dashboard_and_student_directory_accessible()
     {
         $user = $this->getOrCreateUser('kepalakampus_test', 'kepala_kampus', 'Kepala Kampus Test');
