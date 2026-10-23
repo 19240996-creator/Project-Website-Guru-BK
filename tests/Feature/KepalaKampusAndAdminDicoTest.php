@@ -107,6 +107,11 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $exportResponse->assertSee('card-header card-header-navy');
         $exportResponse->assertSee('Parameter Filter Ekspor');
         $exportResponse->assertSee('Ketentuan Isi & Proteksi Data', false);
+
+        $profilResponse = $this->actingAs($user)->get(route('kepala_kampus.profil.show'));
+        $profilResponse->assertStatus(200);
+        $profilResponse->assertSee('card-header card-header-navy');
+        $profilResponse->assertSee('Perbarui Informasi Profil');
     }
 
     public function test_admin_dico_dashboard_and_student_directory_accessible()
@@ -130,6 +135,11 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $exportResponse->assertSee('card-header card-header-navy');
         $exportResponse->assertSee('Parameter Filter Ekspor');
         $exportResponse->assertSee('Ketentuan Isi & Proteksi Data', false);
+
+        $profilResponse = $this->actingAs($user)->get(route('admin_dico.profil.show'));
+        $profilResponse->assertStatus(200);
+        $profilResponse->assertSee('card-header card-header-navy');
+        $profilResponse->assertSee('Perbarui Informasi Profil');
     }
 
     public function test_kepala_kampus_and_admin_dico_cannot_access_internal_guru_and_koordinator_routes()

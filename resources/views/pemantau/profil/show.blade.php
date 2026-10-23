@@ -92,8 +92,15 @@
 
     <!-- Card Form Edit Profil -->
     <div class="card">
-        <div class="card-header" style="padding: 16px 20px;">
-            <h3 style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin: 0;">Perbarui Informasi Profil</h3>
+        <div class="card-header card-header-navy" style="padding: 16px 20px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); color: #60A5FA; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="card-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0;">Perbarui Informasi Profil</h3>
+                </div>
+            </div>
         </div>
         <form method="POST" action="{{ route($rolePrefix . '.profil.update') }}">
             @csrf
