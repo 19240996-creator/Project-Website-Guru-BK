@@ -101,6 +101,12 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $directoryResponse = $this->actingAs($user)->get(route('kepala_kampus.siswa.index'));
         $directoryResponse->assertStatus(200);
         $directoryResponse->assertSee('Data Siswa Ruang BK Digital');
+
+        $exportResponse = $this->actingAs($user)->get(route('kepala_kampus.ekspor.index'));
+        $exportResponse->assertStatus(200);
+        $exportResponse->assertSee('card-header card-header-navy');
+        $exportResponse->assertSee('Parameter Filter Ekspor');
+        $exportResponse->assertSee('Ketentuan Isi & Proteksi Data', false);
     }
 
     public function test_admin_dico_dashboard_and_student_directory_accessible()
@@ -118,6 +124,12 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $directoryResponse = $this->actingAs($user)->get(route('admin_dico.siswa.index'));
         $directoryResponse->assertStatus(200);
         $directoryResponse->assertSee('Data Siswa Ruang BK Digital');
+
+        $exportResponse = $this->actingAs($user)->get(route('admin_dico.ekspor.index'));
+        $exportResponse->assertStatus(200);
+        $exportResponse->assertSee('card-header card-header-navy');
+        $exportResponse->assertSee('Parameter Filter Ekspor');
+        $exportResponse->assertSee('Ketentuan Isi & Proteksi Data', false);
     }
 
     public function test_kepala_kampus_and_admin_dico_cannot_access_internal_guru_and_koordinator_routes()

@@ -28,14 +28,14 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; margin-bottom: 28px;">
     <!-- Card Form Filter Ekspor -->
     <div class="card">
-        <div class="card-header" style="padding: 18px 22px;">
+        <div class="card-header card-header-navy" style="padding: 18px 22px;">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--color-primary-light); color: var(--color-primary); display: flex; align-items: center; justify-content: center;">
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); color: #60A5FA; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
                 </div>
                 <div>
-                    <h3 style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin: 0;">Parameter Filter Ekspor</h3>
-                    <div style="font-size: 12px; color: var(--color-text-muted);">Pilih cakupan data siswa yang ingin diekspor</div>
+                    <h3 class="card-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0 0 2px 0;">Parameter Filter Ekspor</h3>
+                    <div style="font-size: 12px; color: rgba(255, 255, 255, 0.75);">Pilih cakupan data siswa yang ingin diekspor</div>
                 </div>
             </div>
         </div>
@@ -155,10 +155,12 @@
 
         <!-- Ketentuan Isi & Keamanan Data (Sesuai PRD Bagian 6) -->
         <div class="card">
-            <div class="card-header" style="padding: 16px 20px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-success);"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                    <h4 style="font-size: 14px; font-weight: 700; color: var(--color-navy); margin: 0;">Ketentuan Isi & Proteksi Data</h4>
+            <div class="card-header card-header-navy" style="padding: 16px 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 255, 255, 0.12); color: #34D399; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <h4 class="card-title" style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin: 0;">Ketentuan Isi & Proteksi Data</h4>
                 </div>
             </div>
             <div class="card-body" style="padding: 16px 20px;">
