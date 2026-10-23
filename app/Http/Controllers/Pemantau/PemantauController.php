@@ -190,7 +190,12 @@ class PemantauController extends Controller
         $user = auth()->user();
         $rolePrefix = $user->role;
 
-        $student = Student::with(['studentClass', 'counselor'])->findOrFail($id);
+        $studentId = \App\Services\Security\SecurePath::resolveId($id);
+        if (!$studentId) {
+            abort(404);
+        }
+
+        $student = Student::with(['studentClass', 'counselor'])->findOrFail($studentId);
 
         return view('pemantau.siswa.show', compact('student', 'rolePrefix'));
     }

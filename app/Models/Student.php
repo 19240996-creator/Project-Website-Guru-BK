@@ -141,4 +141,9 @@ class Student extends Model
     {
         return \App\Services\AvatarService::hasCustomAvatar($this->avatar);
     }
+
+    public function getEncryptedIdAttribute(): string
+    {
+        return \App\Services\Security\SecurePath::encryptId($this->id);
+    }
 }

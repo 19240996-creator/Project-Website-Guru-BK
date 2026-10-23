@@ -483,4 +483,61 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $notFound = $this->get('/storage/avatars/non_existent_avatar_test.jpg');
         $notFound->assertStatus(404);
     }
+
+    public function test_encrypted_routes_and_student_id_security()
+    {
+        $adminDico = $this->getOrCreateUser('admindico_test', 'admin_dico', 'Admin DICO Test');
+        $kepalaKampus = $this->getOrCreateUser('kepalakampus_test', 'kepala_kampus', 'Kepala Kampus Test');
+
+        // 1. Verifikasi rute terenkripsi tidak lagi memuat kata kunci polos
+        $dicoDashUrl = route('admin_dico.dashboard');
+        $this->assertStringContainsString(\App\Services\Security\SecurePath::DASHBOARD, $dicoDashUrl);
+        $this->assertStringNotContainsString('/admin-dico/dashboard', $dicoDashUrl);
+
+        $kkDashUrl = route('kepala_kampus.dashboard');
+        $this->assertStringContainsString(\App\Services\Security\SecurePath::DASHBOARD, $kkDashUrl);
+        $this->assertStringNotContainsString('/kepala-kampus/dashboard', $kkDashUrl);
+
+        // 2. Akses ke URL polos lama harus menghasilkan 404 (tidak dapat dipindai scanner)
+        $this->actingAs($adminDico)->get('/admin-dico/dashboard')->assertStatus(404);
+        $this->actingAs($adminDico)->get('/admin-dico/siswa')->assertStatus(404);
+        $this->actingAs($adminDico)->get('/admin-dico/ekspor')->assertStatus(404);
+        $this->actingAs($adminDico)->get('/admin-dico/log')->assertStatus(404);
+        $this->actingAs($adminDico)->get('/admin-dico/profil')->assertStatus(404);
+
+        $this->actingAs($kepalaKampus)->get('/kepala-kampus/dashboard')->assertStatus(404);
+        $this->actingAs($kepalaKampus)->get('/kepala-kampus/siswa')->assertStatus(404);
+        $this->actingAs($kepalaKampus)->get('/kepala-kampus/ekspor')->assertStatus(404);
+        $this->actingAs($kepalaKampus)->get('/kepala-kampus/log')->assertStatus(404);
+        $this->actingAs($kepalaKampus)->get('/kepala-kampus/profil')->assertStatus(404);
+
+        // 3. Uji enkripsi ID siswa
+        $class = StudentClass::firstOrCreate(
+            ['grade' => 'X', 'name' => 'X PPLG 1', 'major' => 'PPLG'],
+            ['academic_year' => '2026/2027']
+        );
+        $student = Student::firstOrCreate(
+            ['nisn' => '9988776655'],
+            [
+                'nis' => '12345',
+                'name' => 'Siswa Enkripsi Test',
+                'student_class_id' => $class->id,
+                'gender' => 'L',
+                'status' => 'aktif',
+            ]
+        );
+
+        $this->assertNotEmpty($student->encrypted_id);
+        $this->assertStringStartsWith('id-', $student->encrypted_id);
+
+        // Akses dengan token enkripsi valid harus sukses 200
+        $validResponse = $this->actingAs($adminDico)->get(route('admin_dico.siswa.show', $student->encrypted_id));
+        $validResponse->assertStatus(200);
+        $validResponse->assertSee('Siswa Enkripsi Test');
+
+        // Akses dengan token palsu / hasil manipulasi harus ditolak 404
+        $fakeToken = 'id-' . base64_encode('99999.invalid_signature');
+        $tamperedResponse = $this->actingAs($adminDico)->get(route('admin_dico.siswa.show', $fakeToken));
+        $tamperedResponse->assertStatus(404);
+    }
 }

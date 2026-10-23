@@ -28,6 +28,7 @@ use App\Http\Controllers\Siswa\OpportunityController as SiswaOpportunityControll
 use App\Http\Controllers\Siswa\AlumniController as SiswaAlumniController;
 use App\Http\Controllers\Siswa\BkClassController as SiswaBkClassController;
 use App\Http\Controllers\Pemantau\PemantauController;
+use App\Services\Security\SecurePath;
 
 /*
 |--------------------------------------------------------------------------
@@ -305,33 +306,34 @@ Route::get('/storage/alumni_photos/{filename}', function ($filename) {
 // ROLE 3: KEPALA KAMPUS (PEMANTAUAN SEKOLAH)
 // ==========================================
 Route::middleware(['auth', 'role:kepala_kampus'])->prefix('kepala-kampus')->name('kepala_kampus.')->group(function () {
-    Route::get('/dashboard', [PemantauController::class, 'dashboard'])->name('dashboard');
-    Route::get('/siswa', [PemantauController::class, 'students'])->name('siswa.index');
-    Route::get('/siswa/{id}', [PemantauController::class, 'studentDetail'])->name('siswa.show');
-    Route::get('/ekspor', [PemantauController::class, 'exportIndex'])->name('ekspor.index');
-    Route::get('/ekspor/preview-count', [PemantauController::class, 'exportPreviewCount'])->name('ekspor.count');
-    Route::get('/ekspor/unduh', [PemantauController::class, 'exportDownload'])->name('ekspor.download');
-    Route::get('/log', [PemantauController::class, 'auditLogs'])->name('log.index');
-    Route::get('/profil', [PemantauController::class, 'profileShow'])->name('profil.show');
-    Route::put('/profil', [PemantauController::class, 'profileUpdate'])->name('profil.update');
-    Route::post('/profil/foto', [PemantauController::class, 'updatePhoto'])->name('profil.photo.update');
-    Route::delete('/profil/foto', [PemantauController::class, 'destroyPhoto'])->name('profil.photo.destroy');
+    Route::get('/' . SecurePath::DASHBOARD, [PemantauController::class, 'dashboard'])->name('dashboard');
+    Route::get('/' . SecurePath::SISWA, [PemantauController::class, 'students'])->name('siswa.index');
+    Route::get('/' . SecurePath::SISWA . '/{id}', [PemantauController::class, 'studentDetail'])->name('siswa.show');
+    Route::get('/' . SecurePath::EKSPOR, [PemantauController::class, 'exportIndex'])->name('ekspor.index');
+    Route::get('/' . SecurePath::EKSPOR . '/' . SecurePath::EKSPOR_COUNT, [PemantauController::class, 'exportPreviewCount'])->name('ekspor.count');
+    Route::get('/' . SecurePath::EKSPOR . '/' . SecurePath::EKSPOR_DOWNLOAD, [PemantauController::class, 'exportDownload'])->name('ekspor.download');
+    Route::get('/' . SecurePath::LOG, [PemantauController::class, 'auditLogs'])->name('log.index');
+    Route::get('/' . SecurePath::PROFIL, [PemantauController::class, 'profileShow'])->name('profil.show');
+    Route::put('/' . SecurePath::PROFIL, [PemantauController::class, 'profileUpdate'])->name('profil.update');
+    Route::post('/' . SecurePath::PROFIL . '/' . SecurePath::PROFIL_PHOTO, [PemantauController::class, 'updatePhoto'])->name('profil.photo.update');
+    Route::delete('/' . SecurePath::PROFIL . '/' . SecurePath::PROFIL_PHOTO, [PemantauController::class, 'destroyPhoto'])->name('profil.photo.destroy');
 });
 
 // ==========================================
 // ROLE 4: ADMIN DICO (PEMANTAUAN SEKOLAH)
 // ==========================================
 Route::middleware(['auth', 'role:admin_dico'])->prefix('admin-dico')->name('admin_dico.')->group(function () {
-    Route::get('/dashboard', [PemantauController::class, 'dashboard'])->name('dashboard');
-    Route::get('/siswa', [PemantauController::class, 'students'])->name('siswa.index');
-    Route::get('/siswa/{id}', [PemantauController::class, 'studentDetail'])->name('siswa.show');
-    Route::get('/ekspor', [PemantauController::class, 'exportIndex'])->name('ekspor.index');
-    Route::get('/ekspor/preview-count', [PemantauController::class, 'exportPreviewCount'])->name('ekspor.count');
-    Route::get('/ekspor/unduh', [PemantauController::class, 'exportDownload'])->name('ekspor.download');
-    Route::get('/log', [PemantauController::class, 'auditLogs'])->name('log.index');
-    Route::get('/profil', [PemantauController::class, 'profileShow'])->name('profil.show');
-    Route::put('/profil', [PemantauController::class, 'profileUpdate'])->name('profil.update');
-    Route::post('/profil/foto', [PemantauController::class, 'updatePhoto'])->name('profil.photo.update');
-    Route::delete('/profil/foto', [PemantauController::class, 'destroyPhoto'])->name('profil.photo.destroy');
+    Route::get('/' . SecurePath::DASHBOARD, [PemantauController::class, 'dashboard'])->name('dashboard');
+    Route::get('/' . SecurePath::SISWA, [PemantauController::class, 'students'])->name('siswa.index');
+    Route::get('/' . SecurePath::SISWA . '/{id}', [PemantauController::class, 'studentDetail'])->name('siswa.show');
+    Route::get('/' . SecurePath::EKSPOR, [PemantauController::class, 'exportIndex'])->name('ekspor.index');
+    Route::get('/' . SecurePath::EKSPOR . '/' . SecurePath::EKSPOR_COUNT, [PemantauController::class, 'exportPreviewCount'])->name('ekspor.count');
+    Route::get('/' . SecurePath::EKSPOR . '/' . SecurePath::EKSPOR_DOWNLOAD, [PemantauController::class, 'exportDownload'])->name('ekspor.download');
+    Route::get('/' . SecurePath::LOG, [PemantauController::class, 'auditLogs'])->name('log.index');
+    Route::get('/' . SecurePath::PROFIL, [PemantauController::class, 'profileShow'])->name('profil.show');
+    Route::put('/' . SecurePath::PROFIL, [PemantauController::class, 'profileUpdate'])->name('profil.update');
+    Route::post('/' . SecurePath::PROFIL . '/' . SecurePath::PROFIL_PHOTO, [PemantauController::class, 'updatePhoto'])->name('profil.photo.update');
+    Route::delete('/' . SecurePath::PROFIL . '/' . SecurePath::PROFIL_PHOTO, [PemantauController::class, 'destroyPhoto'])->name('profil.photo.destroy');
 });
+
 

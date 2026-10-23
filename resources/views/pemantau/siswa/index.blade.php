@@ -165,7 +165,7 @@
                             </span>
                         </td>
                         <td style="text-align: center;">
-                            <a href="{{ route($rolePrefix . '.siswa.show', $st->id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px;" title="Lihat Profil Siswa">
+                            <a href="{{ route($rolePrefix . '.siswa.show', $st->encrypted_id) }}" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 12px;" title="Lihat Profil Siswa">
                                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                 <span>Detail</span>
                             </a>
