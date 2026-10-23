@@ -27,6 +27,7 @@ use App\Http\Controllers\Siswa\FuturePlanController as SiswaFuturePlanController
 use App\Http\Controllers\Siswa\OpportunityController as SiswaOpportunityController;
 use App\Http\Controllers\Siswa\AlumniController as SiswaAlumniController;
 use App\Http\Controllers\Siswa\BkClassController as SiswaBkClassController;
+use App\Http\Controllers\Pemantau\PemantauController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,9 +37,17 @@ use App\Http\Controllers\Siswa\BkClassController as SiswaBkClassController;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        return auth()->user()->isGuruOrKoordinator()
-            ? redirect()->route('guru.dashboard')
-            : redirect()->route('siswa.dashboard');
+        $user = auth()->user();
+        if ($user->isGuruOrKoordinator()) {
+            return redirect()->route('guru.dashboard');
+        }
+        if ($user->role === 'kepala_kampus') {
+            return redirect()->route('kepala_kampus.dashboard');
+        }
+        if ($user->role === 'admin_dico') {
+            return redirect()->route('admin_dico.dashboard');
+        }
+        return redirect()->route('siswa.dashboard');
     }
     return redirect()->route('login');
 });
@@ -291,4 +300,38 @@ Route::get('/storage/alumni_photos/{filename}', function ($filename) {
 
     abort(404);
 })->where('filename', '[A-Za-z0-9_\-\.]+')->name('storage.alumni_photo');
+
+// ==========================================
+// ROLE 3: KEPALA KAMPUS (PEMANTAUAN SEKOLAH)
+// ==========================================
+Route::middleware(['auth', 'role:kepala_kampus'])->prefix('kepala-kampus')->name('kepala_kampus.')->group(function () {
+    Route::get('/dashboard', [PemantauController::class, 'dashboard'])->name('dashboard');
+    Route::get('/siswa', [PemantauController::class, 'students'])->name('siswa.index');
+    Route::get('/siswa/{id}', [PemantauController::class, 'studentDetail'])->name('siswa.show');
+    Route::get('/ekspor', [PemantauController::class, 'exportIndex'])->name('ekspor.index');
+    Route::get('/ekspor/preview-count', [PemantauController::class, 'exportPreviewCount'])->name('ekspor.count');
+    Route::get('/ekspor/unduh', [PemantauController::class, 'exportDownload'])->name('ekspor.download');
+    Route::get('/log', [PemantauController::class, 'auditLogs'])->name('log.index');
+    Route::get('/profil', [PemantauController::class, 'profileShow'])->name('profil.show');
+    Route::put('/profil', [PemantauController::class, 'profileUpdate'])->name('profil.update');
+    Route::post('/profil/foto', [PemantauController::class, 'updatePhoto'])->name('profil.photo.update');
+    Route::delete('/profil/foto', [PemantauController::class, 'destroyPhoto'])->name('profil.photo.destroy');
+});
+
+// ==========================================
+// ROLE 4: ADMIN DICO (PEMANTAUAN SEKOLAH)
+// ==========================================
+Route::middleware(['auth', 'role:admin_dico'])->prefix('admin-dico')->name('admin_dico.')->group(function () {
+    Route::get('/dashboard', [PemantauController::class, 'dashboard'])->name('dashboard');
+    Route::get('/siswa', [PemantauController::class, 'students'])->name('siswa.index');
+    Route::get('/siswa/{id}', [PemantauController::class, 'studentDetail'])->name('siswa.show');
+    Route::get('/ekspor', [PemantauController::class, 'exportIndex'])->name('ekspor.index');
+    Route::get('/ekspor/preview-count', [PemantauController::class, 'exportPreviewCount'])->name('ekspor.count');
+    Route::get('/ekspor/unduh', [PemantauController::class, 'exportDownload'])->name('ekspor.download');
+    Route::get('/log', [PemantauController::class, 'auditLogs'])->name('log.index');
+    Route::get('/profil', [PemantauController::class, 'profileShow'])->name('profil.show');
+    Route::put('/profil', [PemantauController::class, 'profileUpdate'])->name('profil.update');
+    Route::post('/profil/foto', [PemantauController::class, 'updatePhoto'])->name('profil.photo.update');
+    Route::delete('/profil/foto', [PemantauController::class, 'destroyPhoto'])->name('profil.photo.destroy');
+});
 

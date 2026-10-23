@@ -80,7 +80,7 @@ class Student extends Model
             return $query->whereRaw('1 = 0');
         }
 
-        if ($user->role === 'koordinator_bk') {
+        if (in_array($user->role, ['koordinator_bk', 'kepala_kampus', 'admin_dico'])) {
             return $query;
         }
 

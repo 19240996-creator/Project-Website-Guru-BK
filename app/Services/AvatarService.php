@@ -150,7 +150,7 @@ class AvatarService
             return asset('storage/' . $path);
         }
 
-        return $role === 'guru_bk'
+        return in_array($role, ['guru_bk', 'koordinator_bk', 'kepala_kampus', 'admin_dico'])
             ? asset('images/default-avatar-guru.svg')
             : asset('images/default-avatar-student.svg');
     }

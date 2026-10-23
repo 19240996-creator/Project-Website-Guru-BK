@@ -54,6 +54,7 @@ jobs:
           tests/**
           README.md
           storage/**
+          public/storage/**
           bootstrap/cache/**
           vendor/**
 
@@ -62,23 +63,23 @@ jobs:
     # framework, jalankan migrasi. Pakai jalur absolut PHP 8.3 agar konsisten
     # (bukan `php`).
     #
-    # COMPOSER DI SERVER — wajib: vendor/ sengaja TIDAK ikut FTP (puluhan ribu
+    # COMPOSER DI SERVER: wajib: vendor/ sengaja TIDAK ikut FTP (puluhan ribu
     # berkas), jadi paket baru di composer.json (mis. laravel/sanctum) hanya
     # sampai ke server lewat langkah ini. Tanpa ini, kode baru terunggah tapi
     # paketnya tidak, dan SELURUH situs 500 ("Class ... not found").
     # composer.phar disimpan di luar public_html dan dijalankan dengan PHP 8.3
-    # yang sama dengan artisan — composer bawaan hosting bisa memakai versi PHP
+    # yang sama dengan artisan - composer bawaan hosting bisa memakai versi PHP
     # lain lalu menolak Laravel 13. Unduhannya diverifikasi checksum resmi.
     #
     # --no-scripts: PHP di hosting mematikan proc_open, jadi composer tak bisa
     # menjalankan skrip post-autoload-dump (`@php artisan package:discover` =
     # subproses). Dua hal yang dikerjakan skrip itu dilakukan manual di bawah:
     # hapus cache kompilasi lama (manifest paket lama bisa menyebut provider
-    # paket yang baru dihapus → artisan gagal boot), lalu package:discover
+    # paket yang baru dihapus -> artisan gagal boot), lalu package:discover
     # langsung lewat artisan (tanpa subproses).
     #
     # Tiap app diproses di subshell `set -e` sendiri: berhenti di galat pertama
-    # app itu, TAPI app berikutnya tetap diproses — satu app yang gagal tak
+    # app itu, TAPI app berikutnya tetap diproses: satu app yang gagal tak
     # boleh membiarkan app lain setengah ter-deploy (kode baru, migrasi belum).
     # Job tetap gagal di akhir bila ada app yang gagal. (`script_stop` sudah
     # dihapus di ssh-action v1.x dan dulu diabaikan diam-diam.)
@@ -117,8 +118,9 @@ jobs:
           
           # Menyiapkan folder penyimpanan avatar publik dan symlink storage
           mkdir -p storage/app/public/avatars public/storage/avatars
+          cp -rn storage/app/public/avatars/* public/storage/avatars/ 2>/dev/null || true
           chmod -R 775 storage/app/public public/storage 2>/dev/null || true
-          $PHP artisan storage:link || true
+          $PHP artisan storage:link 2>/dev/null || true
 
           $PHP artisan optimize:clear
           $PHP artisan view:clear
@@ -126,4 +128,5 @@ jobs:
           $PHP artisan route:clear
           $PHP artisan migrate --force
           $PHP artisan db:seed --class=KoordinatorSeeder --force || true
+          $PHP artisan db:seed --class=KepalaKampusAdminDicoSeeder --force || true
           $PHP artisan optimize

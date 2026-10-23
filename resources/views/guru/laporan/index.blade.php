@@ -580,7 +580,7 @@
         <!-- Diagram 4: Distribusi Tingkat Perhatian Siswa (Horizontal Bar Chart) -->
         <div class="card" style="margin-bottom: 0;">
             <div class="card-header card-header-navy" style="padding: 16px 20px;">
-                <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;">Distribusi Tingkat Perhatian &amp; Pembinaan Siswa</h2>
+                <h2 class="card-title" style="margin: 0; font-size: 15px; color: #FFFFFF;" title="Distribusi Tingkat Perhatian & Pembinaan Siswa">Distribusi Tingkat Perhatian &amp; Pembinaan Siswa</h2>
                 <p style="margin: 3px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.75);">
                     Klasifikasi atensi pembinaan siswa aktif (Total {{ $totalFilteredStudents }} Siswa)
                 </p>

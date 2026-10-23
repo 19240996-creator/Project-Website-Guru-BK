@@ -11,9 +11,17 @@ class AuthController extends Controller
     public function showLogin()
     {
         if (Auth::check()) {
-            return in_array(Auth::user()->role, ['guru_bk', 'koordinator_bk'])
-                ? redirect()->route('guru.dashboard')
-                : redirect()->route('siswa.dashboard');
+            $user = Auth::user();
+            if ($user->isGuruOrKoordinator()) {
+                return redirect()->route('guru.dashboard');
+            }
+            if ($user->role === 'kepala_kampus') {
+                return redirect()->route('kepala_kampus.dashboard');
+            }
+            if ($user->role === 'admin_dico') {
+                return redirect()->route('admin_dico.dashboard');
+            }
+            return redirect()->route('siswa.dashboard');
         }
 
         return view('auth.login');
@@ -25,7 +33,7 @@ class AuthController extends Controller
             'login' => 'required|string',
             'password' => 'required|string',
         ], [
-            'login.required' => 'NISN (untuk Siswa) atau Username / Email (untuk Guru BK / Koordinator) wajib diisi.',
+            'login.required' => 'NISN (untuk Siswa) atau Username / Email (untuk Pendidik / Pemantau) wajib diisi.',
             'password.required' => 'Kata sandi / Nomor HP wajib diisi.',
         ]);
 
@@ -33,18 +41,28 @@ class AuthController extends Controller
         $password = trim($credentials['password']);
         $cleanPassword = preg_replace('/[^0-9]/', '', $password);
 
-        // 1. Cek login Guru BK atau Guru Koordinator BK (username atau email)
-        $educatorUser = User::whereIn('role', ['guru_bk', 'koordinator_bk'])
+        // 1. Cek login Staf / Guru BK / Koordinator BK / Kepala Kampus / Admin DICO (username atau email)
+        $staffUser = User::whereIn('role', ['guru_bk', 'koordinator_bk', 'kepala_kampus', 'admin_dico'])
             ->where(function ($q) use ($loginInput) {
                 $q->where('username', $loginInput)
                   ->orWhere('email', $loginInput);
             })->first();
 
-        if ($educatorUser) {
-            if (\Illuminate\Support\Facades\Hash::check($password, $educatorUser->password)) {
-                Auth::login($educatorUser);
+        if ($staffUser) {
+            if (\Illuminate\Support\Facades\Hash::check($password, $staffUser->password)) {
+                Auth::login($staffUser);
                 $request->session()->regenerate();
-                return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $educatorUser->name);
+
+                \App\Models\AuditLog::log('LOGIN', 'User', $staffUser->id, "Pengguna {$staffUser->role_label} ({$staffUser->name}) berhasil masuk ke sistem.");
+
+                if ($staffUser->role === 'kepala_kampus') {
+                    return redirect()->intended(route('kepala_kampus.dashboard'))->with('success', 'Selamat datang kembali di Dashboard Pemantauan, ' . $staffUser->name);
+                }
+                if ($staffUser->role === 'admin_dico') {
+                    return redirect()->intended(route('admin_dico.dashboard'))->with('success', 'Selamat datang kembali di Dashboard Pemantauan, ' . $staffUser->name);
+                }
+
+                return redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $staffUser->name);
             }
 
             return back()->withErrors([
@@ -97,6 +115,7 @@ class AuthController extends Controller
 
                 Auth::login($user);
                 $request->session()->regenerate();
+                \App\Models\AuditLog::log('LOGIN', 'User', $user->id, "Siswa {$user->name} berhasil masuk ke sistem.");
                 return redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang di Ruang Konseling & Karier, ' . $user->name);
             }
 
@@ -113,6 +132,14 @@ class AuthController extends Controller
         if ($generalUser && \Illuminate\Support\Facades\Hash::check($password, $generalUser->password)) {
             Auth::login($generalUser);
             $request->session()->regenerate();
+            \App\Models\AuditLog::log('LOGIN', 'User', $generalUser->id, "Pengguna {$generalUser->role_label} ({$generalUser->name}) berhasil masuk ke sistem.");
+
+            if ($generalUser->role === 'kepala_kampus') {
+                return redirect()->intended(route('kepala_kampus.dashboard'))->with('success', 'Selamat datang, ' . $generalUser->name);
+            }
+            if ($generalUser->role === 'admin_dico') {
+                return redirect()->intended(route('admin_dico.dashboard'))->with('success', 'Selamat datang, ' . $generalUser->name);
+            }
             return in_array($generalUser->role, ['guru_bk', 'koordinator_bk'])
                 ? redirect()->intended(route('guru.dashboard'))->with('success', 'Selamat datang kembali, ' . $generalUser->name)
                 : redirect()->intended(route('siswa.dashboard'))->with('success', 'Selamat datang, ' . $generalUser->name);
@@ -126,6 +153,11 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            \App\Models\AuditLog::log('LOGOUT', 'User', $user->id, "Pengguna {$user->role_label} ({$user->name}) keluar dari sistem.");
+        }
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

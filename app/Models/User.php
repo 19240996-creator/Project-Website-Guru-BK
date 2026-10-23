@@ -86,6 +86,21 @@ class User extends Authenticatable
         return $this->role === 'guru_bk';
     }
 
+    public function isKepalaKampus(): bool
+    {
+        return $this->role === 'kepala_kampus';
+    }
+
+    public function isAdminDico(): bool
+    {
+        return $this->role === 'admin_dico';
+    }
+
+    public function isPemantau(): bool
+    {
+        return in_array($this->role, ['kepala_kampus', 'admin_dico']);
+    }
+
     public function isGuruOrKoordinator(): bool
     {
         return in_array($this->role, ['guru_bk', 'koordinator_bk']);
@@ -98,7 +113,7 @@ class User extends Authenticatable
 
     public function canAccessStudent($studentId): bool
     {
-        if ($this->isKoordinatorBk()) {
+        if ($this->isKoordinatorBk() || $this->isPemantau()) {
             return true;
         }
 
@@ -118,6 +133,8 @@ class User extends Authenticatable
         return match ($this->role) {
             'koordinator_bk' => 'Guru Koordinator BK',
             'guru_bk' => 'Guru BK',
+            'kepala_kampus' => 'Kepala Kampus',
+            'admin_dico' => 'Admin DICO',
             'siswa' => 'Siswa',
             default => ucfirst(str_replace('_', ' ', (string) $this->role)),
         };
