@@ -94,6 +94,9 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $response->assertSee('Siswa Kelas X');
         $response->assertSee('Siswa Kelas XI');
         $response->assertSee('Siswa Kelas XII');
+        $response->assertSee('card-header card-header-navy');
+        $response->assertSee('Distribusi Siswa per Jurusan');
+        $response->assertSee('Distribusi Rombongan Belajar');
 
         $directoryResponse = $this->actingAs($user)->get(route('kepala_kampus.siswa.index'));
         $directoryResponse->assertStatus(200);
@@ -108,6 +111,9 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Dashboard Pemantauan Ruang BK Digital');
         $response->assertSee('Total Siswa Sekolah');
+        $response->assertSee('card-header card-header-navy');
+        $response->assertSee('Distribusi Siswa per Jurusan');
+        $response->assertSee('Distribusi Rombongan Belajar');
 
         $directoryResponse = $this->actingAs($user)->get(route('admin_dico.siswa.index'));
         $directoryResponse->assertStatus(200);

@@ -148,12 +148,12 @@
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; margin-bottom: 28px;">
     <!-- Sebaran Siswa Berdasarkan Jurusan -->
     <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-primary);"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                <h3 style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin: 0;">Distribusi Siswa per Jurusan</h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #60A5FA;"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                <h3 class="card-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0;">Distribusi Siswa per Jurusan</h3>
             </div>
-            <span class="badge badge-info" style="font-size: 11px;">{{ count($majorStats) }} Jurusan</span>
+            <span class="badge" style="background: rgba(255, 255, 255, 0.15); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.25); font-size: 11px; padding: 3px 8px;">{{ count($majorStats) }} Jurusan</span>
         </div>
         <div class="card-body" style="padding: 16px 20px;">
             @if(count($majorStats) > 0)
@@ -178,12 +178,12 @@
 
     <!-- Sebaran Siswa Berdasarkan Rombongan Belajar -->
     <div class="card">
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+        <div class="card-header card-header-navy" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-success);"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                <h3 style="font-size: 15px; font-weight: 700; color: var(--color-navy); margin: 0;">Distribusi Rombongan Belajar</h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #34D399;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                <h3 class="card-title" style="font-size: 15px; font-weight: 700; color: #FFFFFF; margin: 0;">Distribusi Rombongan Belajar</h3>
             </div>
-            <span class="badge badge-success" style="font-size: 11px;">{{ $rombelList->count() }} Rombel</span>
+            <span class="badge" style="background: rgba(255, 255, 255, 0.15); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.25); font-size: 11px; padding: 3px 8px;">{{ $rombelList->count() }} Rombel</span>
         </div>
         <div class="card-body" style="padding: 16px 20px;">
             @if($rombelList->count() > 0)
