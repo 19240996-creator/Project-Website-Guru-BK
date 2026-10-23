@@ -149,10 +149,8 @@
         </table>
     </div>
 
-    @if($logs->hasPages())
-        <div style="padding: 16px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end;">
-            {{ $logs->links() }}
-        </div>
+    @if($logs->total() > 0)
+        {{ $logs->links() }}
     @endif
 </div>
 @endsection

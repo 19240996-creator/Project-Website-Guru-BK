@@ -1,8 +1,8 @@
 @php
     $entityLabel = request()->is('*penugasan*') ? 'siswa' : 
                    (request()->is('*guru-bk*') ? 'akun Guru BK' : 
-                   (request()->is('*siswa*') ? 'data siswa' : 
-                   (request()->is('*audit*') ? 'log aktivitas' : 
+                   (request()->is('*siswa*') || request()->is('*dashboard*') ? 'data siswa' : 
+                   (request()->is('*audit*') || request()->is('*log*') ? 'log aktivitas' : 
                    (request()->is('*konseling*') ? 'sesi konseling' : 
                    (request()->is('*mitra*') ? 'data mitra' : 
                    (request()->is('*peluang*') ? 'data peluang' : 

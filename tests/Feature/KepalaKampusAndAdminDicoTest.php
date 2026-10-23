@@ -140,6 +140,10 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $profilResponse->assertStatus(200);
         $profilResponse->assertSee('card-header card-header-navy');
         $profilResponse->assertSee('Perbarui Informasi Profil');
+
+        $logResponse = $this->actingAs($user)->get(route('admin_dico.log.index'));
+        $logResponse->assertStatus(200);
+        $logResponse->assertSee('pagination-container', false);
     }
 
     public function test_kepala_kampus_and_admin_dico_cannot_access_internal_guru_and_koordinator_routes()
@@ -266,6 +270,7 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $kkLogResponse = $this->actingAs($kepalaKampus)->get(route('kepala_kampus.log.index'));
         $kkLogResponse->assertStatus(200);
         $kkLogResponse->assertSee($uniqueKK);
+        $kkLogResponse->assertSee('pagination-container', false);
         $kkLogResponse->assertDontSee($uniqueDico);
         $kkLogResponse->assertDontSee($uniqueKoord);
 
@@ -274,6 +279,7 @@ class KepalaKampusAndAdminDicoTest extends TestCase
         $dicoLogResponse = $this->actingAs($adminDico)->get(route('admin_dico.log.index'));
         $dicoLogResponse->assertStatus(200);
         $dicoLogResponse->assertSee($uniqueDico);
+        $dicoLogResponse->assertSee('pagination-container', false);
         $dicoLogResponse->assertDontSee($uniqueKK);
         $dicoLogResponse->assertDontSee($uniqueKoord);
 

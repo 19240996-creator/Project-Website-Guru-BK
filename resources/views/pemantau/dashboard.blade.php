@@ -355,10 +355,8 @@
         </table>
     </div>
 
-    @if($students->hasPages())
-        <div style="padding: 16px 20px; border-top: 1px solid var(--color-border); display: flex; justify-content: flex-end;">
-            {{ $students->links() }}
-        </div>
+    @if($students->total() > 0)
+        {{ $students->links() }}
     @endif
 </div>
 @endsection
