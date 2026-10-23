@@ -150,7 +150,7 @@
     </div>
 
     @if($logs->total() > 0)
-        {{ $logs->links() }}
+        {{ $logs->links('components.pagination') }}
     @endif
 </div>
 @endsection

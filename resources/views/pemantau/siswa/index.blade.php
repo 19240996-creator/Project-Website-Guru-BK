@@ -187,7 +187,7 @@
     </div>
 
     @if($students->total() > 0)
-        {{ $students->links() }}
+        {{ $students->links('components.pagination') }}
     @endif
 </div>
 @endsection

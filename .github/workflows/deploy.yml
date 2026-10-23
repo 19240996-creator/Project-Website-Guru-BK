@@ -43,6 +43,7 @@ jobs:
         local-dir: ./
         # 1. PENYESUAIAN PATH KE SUBDOMAIN:
         server-dir: ./crm/
+        timeout: 600000
 
         # 2. PENYESUAIAN EXCLUDE (SANGAT PENTING):
         exclude: |
@@ -56,7 +57,9 @@ jobs:
           storage/**
           public/storage/**
           bootstrap/cache/**
+          ./vendor/**
           vendor/**
+          !resources/views/**
 
     # Setelah file ter-upload (FTP tak bisa menjalankan artisan), langkah ini SSH
     # ke server untuk KEDUA app: pasang dependensi composer, bangun ulang cache
